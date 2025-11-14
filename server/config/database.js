@@ -29,21 +29,34 @@ const pool = mysql.createPool({
 async function initializeDatabase() {
   try {
     const schemaPath = path.join(__dirname, '../../database/schema.sql');
-    const schema = await fs.readFile(schemaPath, 'utf8');
+    let schema = await fs.readFile(schemaPath, 'utf8');
+    
+    // Remover todos los comentarios (líneas que empiezan con --)
+    schema = schema
+      .split('\n')
+      .filter(line => !line.trim().startsWith('--'))
+      .join('\n');
     
     // Dividir el schema en statements individuales
     const statements = schema
       .split(';')
       .map(stmt => stmt.trim())
-      .filter(stmt => stmt.length > 0 && !stmt.startsWith('--'));
+      .filter(stmt => stmt.length > 0);
+    
+    console.log(`📋 Ejecutando ${statements.length} statements SQL...`);
     
     // Ejecutar cada statement
-    for (const statement of statements) {
+    for (let i = 0; i < statements.length; i++) {
+      const statement = statements[i];
       try {
         await pool.query(statement);
+        console.log(`   ✓ Statement ${i + 1}/${statements.length} ejecutado`);
       } catch (error) {
         // Ignorar errores de índices duplicados
-        if (error.code !== 'ER_DUP_KEYNAME') {
+        if (error.code === 'ER_DUP_KEYNAME') {
+          console.log(`   ⚠️  Statement ${i + 1}: Índice ya existe (ignorado)`);
+        } else {
+          console.error(`   ✗ Error en statement ${i + 1}:`, statement.substring(0, 100));
           throw error;
         }
       }
