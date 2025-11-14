@@ -1,7 +1,6 @@
 require('dotenv').config();
 const mysql = require('mysql2/promise');
 const bcrypt = require('bcrypt');
-const app = require('./app');
 const db = require('./config/database');
 
 const PORT = process.env.PORT || 6777;
@@ -84,6 +83,9 @@ async function setupDatabase() {
 
 // Configurar base de datos y luego iniciar servidor
 setupDatabase().then(() => {
+  // Importar app DESPUÉS de que la base de datos esté lista
+  const app = require('./app');
+  
   app.listen(PORT, () => {
     console.log(`🚀 Servidor corriendo en puerto ${PORT}`);
     console.log(`📊 Ambiente: ${process.env.NODE_ENV || 'development'}`);
