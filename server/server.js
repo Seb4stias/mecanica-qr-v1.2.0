@@ -1,9 +1,35 @@
 require('dotenv').config();
 const mysql = require('mysql2/promise');
+const bcrypt = require('bcrypt');
 const app = require('./app');
 const db = require('./config/database');
 
 const PORT = process.env.PORT || 6777;
+
+/**
+ * Crear usuario administrador por defecto
+ */
+async function createDefaultAdmin() {
+  try {
+    const pool = db.getPool();
+    const [existing] = await pool.query(
+      'SELECT id FROM users WHERE role = "admin_level2" LIMIT 1'
+    );
+
+    if (existing.length === 0) {
+      const passwordHash = await bcrypt.hash('admin123', 10);
+      await pool.query(
+        `INSERT INTO users (email, password_hash, name, role, is_active)
+         VALUES (?, ?, ?, ?, 1)`,
+        ['admin@inacap.cl', passwordHash, 'Administrador', 'admin_level2']
+      );
+      console.log('✓ Usuario admin creado: admin@inacap.cl / admin123');
+      console.log('⚠️  CAMBIA ESTA CONTRASEÑA INMEDIATAMENTE');
+    }
+  } catch (error) {
+    console.error('⚠️  Error al crear usuario admin:', error.message);
+  }
+}
 
 /**
  * Configuración automática de la base de datos al iniciar
@@ -41,6 +67,9 @@ async function setupDatabase() {
       console.log('📋 Inicializando base de datos por primera vez...');
       await db.initializeDatabase();
       console.log('✓ Base de datos inicializada correctamente');
+      
+      // Crear usuario admin por defecto
+      await createDefaultAdmin();
     }
 
   } catch (error) {
