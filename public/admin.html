@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel Administrativo - Sistema de Acceso Vehicular</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-brand">Panel Administrativo - INACAP</div>
+    <div class="nav-menu">
+      <span id="userName"></span>
+      <button onclick="logout()" class="btn btn-secondary">Cerrar Sesión</button>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="tabs">
+      <button class="tab-btn active" onclick="showTab('pendientes')">Pendientes</button>
+      <button class="tab-btn" onclick="showTab('aprobadas')">Aprobadas</button>
+      <button class="tab-btn" onclick="showTab('denegadas')">Denegadas</button>
+      <button class="tab-btn" id="usersTab" onclick="showTab('usuarios')" style="display:none">Usuarios</button>
+      <button class="tab-btn" onclick="showTab('mi-cuenta')">Mi Cuenta</button>
+    </div>
+
+    <div id="pendientes-tab" class="tab-content active">
+      <h2>Solicitudes Pendientes</h2>
+      <div id="pendientesList"></div>
+    </div>
+
+    <div id="aprobadas-tab" class="tab-content">
+      <h2>Solicitudes Aprobadas</h2>
+      <div id="aprobadasList"></div>
+    </div>
+
+    <div id="denegadas-tab" class="tab-content">
+      <h2>Solicitudes Denegadas</h2>
+      <div id="denegadasList"></div>
+    </div>
+
+    <div id="usuarios-tab" class="tab-content">
+      <h2>Gestión de Usuarios</h2>
+      <div id="userManagement"></div>
+    </div>
+
+    <div id="mi-cuenta-tab" class="tab-content">
+      <h2>Mi Cuenta</h2>
+      <div id="myAccountContent"></div>
+    </div>
+  </div>
+
+  <!-- Modal for request details -->
+  <div id="requestModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal()">&times;</span>
+      <div id="modalBody"></div>
+    </div>
+  </div>
+
+  <script src="/js/admin.js"></script>
+</body>
+</html>

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registro - Sistema de Acceso Vehicular INACAP</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="login-container">
+    <div class="login-card">
+      <div class="login-header">
+        <h1>Registro de Estudiante</h1>
+        <p>INACAP - Área de Mecánica</p>
+      </div>
+
+      <form id="registerForm" class="login-form">
+        <div class="form-group">
+          <label for="name">Nombre Completo</label>
+          <input 
+            type="text" 
+            id="name" 
+            name="name" 
+            required 
+            placeholder="Juan Pérez"
+          >
+          <span class="error-message" id="nameError"></span>
+        </div>
+
+        <div class="form-group">
+          <label for="rut">RUT</label>
+          <input 
+            type="text" 
+            id="rut" 
+            name="rut" 
+            required 
+            placeholder="12345678-9"
+          >
+          <span class="error-message" id="rutError"></span>
+        </div>
+
+        <div class="form-group">
+          <label for="email">Correo Electrónico</label>
+          <input 
+            type="email" 
+            id="email" 
+            name="email" 
+            required 
+            placeholder="usuario@ejemplo.com"
+          >
+          <span class="error-message" id="emailError"></span>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Contraseña</label>
+          <div class="password-input-wrapper">
+            <input 
+              type="password" 
+              id="password" 
+              name="password" 
+              required 
+              placeholder="Mínimo 6 caracteres"
+            >
+            <button type="button" class="toggle-password" onclick="togglePasswordVisibility('password')">
+              👁️
+            </button>
+          </div>
+          <span class="error-message" id="passwordError"></span>
+        </div>
+
+        <div class="form-group">
+          <label for="confirmPassword">Confirmar Contraseña</label>
+          <div class="password-input-wrapper">
+            <input 
+              type="password" 
+              id="confirmPassword" 
+              name="confirmPassword" 
+              required 
+              placeholder="Repita su contraseña"
+            >
+            <button type="button" class="toggle-password" onclick="togglePasswordVisibility('confirmPassword')">
+              👁️
+            </button>
+          </div>
+          <span class="error-message" id="confirmPasswordError"></span>
+        </div>
+
+        <div class="form-group">
+          <button type="submit" class="btn btn-primary" id="registerBtn">
+            Registrarse
+          </button>
+        </div>
+
+        <div class="error-message" id="formError"></div>
+      </form>
+
+      <div class="login-footer">
+        <p>¿Ya tienes cuenta? <a href="/index.html">Inicia sesión aquí</a></p>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/register.js"></script>
+</body>
+</html>

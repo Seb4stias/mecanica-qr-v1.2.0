@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portal Estudiante - Sistema de Acceso Vehicular</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-brand">Sistema de Acceso Vehicular - INACAP</div>
+    <div class="nav-menu">
+      <span id="userName"></span>
+      <button onclick="logout()" class="btn btn-secondary">Cerrar Sesión</button>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="tabs">
+      <button class="tab-btn active" onclick="showTab('nueva')">Nueva Solicitud</button>
+      <button class="tab-btn" onclick="showTab('mis-solicitudes')">Mis Solicitudes</button>
+    </div>
+
+    <!-- Nueva Solicitud Tab -->
+    <div id="nueva-tab" class="tab-content active">
+      <h2>Nueva Solicitud de Permiso Vehicular</h2>
+      <form id="requestForm" enctype="multipart/form-data">
+        <h3>Datos del Estudiante</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="student_name">Nombre Completo *</label>
+            <input type="text" id="student_name" name="student_name" required>
+            <span class="error-message" id="nameError"></span>
+          </div>
+          <div class="form-group">
+            <label for="student_rut">RUT *</label>
+            <input type="text" id="student_rut" name="student_rut" placeholder="12345678-9" required>
+            <span class="error-message" id="rutError"></span>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="student_carrera">Carrera *</label>
+            <input type="text" id="student_carrera" name="student_carrera" required>
+            <span class="error-message" id="carreraError"></span>
+          </div>
+          <div class="form-group">
+            <label for="student_email">Email Institucional *</label>
+            <input type="email" id="student_email" name="student_email" placeholder="usuario@inacapmail.cl" required>
+            <span class="error-message" id="emailError"></span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="student_phone">Teléfono *</label>
+          <input type="tel" id="student_phone" name="student_phone" placeholder="12345678" required>
+          <span class="error-message" id="phoneError"></span>
+        </div>
+
+        <h3>Datos del Vehículo</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="vehicle_plate">Patente *</label>
+            <input type="text" id="vehicle_plate" name="vehicle_plate" required>
+          </div>
+          <div class="form-group">
+            <label for="vehicle_model">Modelo *</label>
+            <input type="text" id="vehicle_model" name="vehicle_model" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="vehicle_color">Color *</label>
+            <input type="text" id="vehicle_color" name="vehicle_color" required>
+          </div>
+          <div class="form-group">
+            <label for="garage_location">Ubicación de Garaje</label>
+            <input type="text" id="garage_location" name="garage_location">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="vehicle_photo">Foto del Vehículo *</label>
+          <input type="file" id="vehicle_photo" name="vehicle_photo" accept="image/*" required>
+          <div id="photoPreview"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="modifications_description">Descripción de Modificaciones</label>
+          <textarea id="modifications_description" name="modifications_description" rows="3"></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Enviar Solicitud</button>
+      </form>
+    </div>
+
+    <!-- Mis Solicitudes Tab -->
+    <div id="mis-solicitudes-tab" class="tab-content">
+      <h2>Mis Solicitudes</h2>
+      <div id="requestsList"></div>
+    </div>
+  </div>
+
+  <script src="/js/student.js"></script>
+</body>
+</html>

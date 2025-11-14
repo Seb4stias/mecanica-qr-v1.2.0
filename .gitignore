@@ -1,0 +1,47 @@
+xx# Dependencias
+node_modules/
+package-lock.json
+
+# Variables de entorno
+.env
+
+# Base de datos local
+database/*.db
+database/*.db-journal
+
+# Archivos subidos
+public/uploads/*
+!public/uploads/.gitkeep
+public/qr-codes/*
+!public/qr-codes/.gitkeep
+
+# Documentación interna
+DOCUMENTACION_CODIGO.md
+SETUP_DATABASE.md
+
+# Scripts de prueba
+create-test-users.js
+check-users.js
+test-login.js
+
+# Carpetas de prueba
+scan-qr jaramillo/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+
