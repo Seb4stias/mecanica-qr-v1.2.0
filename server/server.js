@@ -68,12 +68,19 @@ async function setupDatabase() {
       console.log('✓ Base de datos inicializada correctamente');
       
       // Crear usuario admin por defecto
+      console.log('👤 Creando usuario administrador...');
       await createDefaultAdmin();
+      console.log('✓ Setup completo');
+    } else {
+      console.log(`✓ Base de datos ya existe con ${tables[0].count} tablas`);
     }
 
   } catch (error) {
     console.error('⚠️  Error al configurar la base de datos:', error.message);
-    console.error('   El servidor continuará, pero puede haber problemas de conexión.');
+    if (connection) {
+      await connection.end().catch(() => {});
+    }
+    throw error; // Lanzar el error para que el servidor NO arranque
   } finally {
     if (connection) {
       await connection.end().catch(() => {});
@@ -82,16 +89,21 @@ async function setupDatabase() {
 }
 
 // Configurar base de datos y luego iniciar servidor
-setupDatabase().then(() => {
-  // Importar app DESPUÉS de que la base de datos esté lista
-  const app = require('./app');
-  
-  app.listen(PORT, () => {
-    console.log(`🚀 Servidor corriendo en puerto ${PORT}`);
-    console.log(`📊 Ambiente: ${process.env.NODE_ENV || 'development'}`);
-    console.log(`🗄️  Base de datos MariaDB: ${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_DATABASE}`);
+console.log('🔄 Iniciando configuración de base de datos...');
+setupDatabase()
+  .then(() => {
+    console.log('✓ Base de datos lista, importando aplicación...');
+    // Importar app DESPUÉS de que la base de datos esté lista
+    const app = require('./app');
+    
+    console.log('✓ Aplicación cargada, iniciando servidor...');
+    app.listen(PORT, () => {
+      console.log(`🚀 Servidor corriendo en puerto ${PORT}`);
+      console.log(`📊 Ambiente: ${process.env.NODE_ENV || 'development'}`);
+      console.log(`🗄️  Base de datos MariaDB: ${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_DATABASE}`);
+    });
+  })
+  .catch((error) => {
+    console.error('✗ Error fatal al iniciar:', error);
+    process.exit(1);
   });
-}).catch((error) => {
-  console.error('✗ Error fatal al iniciar:', error);
-  process.exit(1);
-});
