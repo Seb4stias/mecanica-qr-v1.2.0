@@ -16,13 +16,19 @@ async function createDefaultAdmin() {
     );
 
     if (existing.length === 0) {
-      const passwordHash = await bcrypt.hash('admin123', 10);
+      // Usar variables de entorno o valores por defecto
+      const adminName = process.env.ADMIN_NAME || 'Administrador';
+      const adminRut = process.env.ADMIN_RUT || '99999999-9';
+      const adminEmail = process.env.ADMIN_EMAIL || 'admin@inacap.cl';
+      const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
+
+      const passwordHash = await bcrypt.hash(adminPassword, 10);
       await pool.query(
-        `INSERT INTO users (email, password_hash, name, role, is_active)
-         VALUES (?, ?, ?, ?, 1)`,
-        ['admin@inacap.cl', passwordHash, 'Administrador', 'admin_level2']
+        `INSERT INTO users (email, password_hash, name, role, rut, is_active)
+         VALUES (?, ?, ?, ?, ?, 1)`,
+        [adminEmail, passwordHash, adminName, 'admin_level2', adminRut]
       );
-      console.log('✓ Usuario admin creado: admin@inacap.cl / admin123');
+      console.log(`✓ Usuario admin creado: ${adminRut} / ${adminEmail}`);
       console.log('⚠️  CAMBIA ESTA CONTRASEÑA INMEDIATAMENTE');
     }
   } catch (error) {

@@ -34,24 +34,110 @@ npm start
 
 ## Despliegue en Coolify
 
-1. Conecta tu repositorio de GitHub a Coolify
-2. Crea una base de datos MariaDB en Coolify
-3. Vincula la base de datos a tu aplicación
-4. Configura las variables de entorno en Coolify:
-   - `DB_HOST`, `DB_USER`, `DB_PASSWORD`, `DB_DATABASE`, `DB_PORT` (automáticas)
-   - `SESSION_SECRET` (genera una cadena aleatoria)
-   - `NODE_ENV=production`
-   - Variables de email si usas notificaciones
-5. Deploy
+### Pasos para Deploy
 
-## Usuario Administrador por Defecto
+1. **Crear base de datos MariaDB en Coolify**
+   - Ve a tu proyecto en Coolify
+   - Crea un nuevo recurso de tipo "Database"
+   - Selecciona MariaDB
+   - Guarda las credenciales que te proporciona
 
-Al iniciar por primera vez, se crea automáticamente:
+2. **Conectar repositorio de GitHub**
+   - Conecta tu repositorio a Coolify
+   - Selecciona la rama `main` o la que uses
 
+3. **Configurar variables de entorno**
+   
+   En la sección "Environment Variables" de Coolify, agrega:
+   
+   **Variables de Base de Datos** (Coolify las proporciona automáticamente al vincular la BD):
+   ```
+   DB_HOST=<host-de-coolify>
+   DB_USER=<usuario-de-coolify>
+   DB_PASSWORD=<password-de-coolify>
+   DB_DATABASE=<nombre-de-bd>
+   DB_PORT=3306
+   ```
+   
+   **Variables de Aplicación** (debes configurarlas manualmente):
+   ```
+   NODE_ENV=production
+   PORT=3000
+   SESSION_SECRET=<genera-cadena-aleatoria-segura>
+   QR_EXPIRY_DAYS=30
+   ```
+   
+   **Variables de Email** (opcional, para notificaciones):
+   ```
+   EMAIL_HOST=smtp.gmail.com
+   EMAIL_PORT=587
+   EMAIL_USER=tu-correo@gmail.com
+   EMAIL_PASSWORD=<contraseña-de-aplicacion>
+   EMAIL_FROM=Sistema Vehicular <tu-correo@gmail.com>
+   ```
+
+4. **Deploy**
+   - Haz clic en "Deploy" o "Force Deploy"
+   - La aplicación se desplegará automáticamente
+   - La base de datos se inicializará en el primer arranque
+
+### Inicialización Automática
+
+El sistema realiza automáticamente al iniciar por primera vez:
+
+1. ✅ Crea la base de datos si no existe
+2. ✅ Ejecuta el schema SQL (crea todas las tablas)
+3. ✅ Crea el usuario administrador por defecto
+4. ✅ Inicia el servidor
+
+**Usuario Administrador por Defecto:**
 - **Email**: admin@inacap.cl
 - **Password**: admin123
+- **RUT**: No configurado (debes agregarlo manualmente en la BD)
 
-⚠️ **CAMBIA ESTA CONTRASEÑA INMEDIATAMENTE**
+⚠️ **IMPORTANTE**: 
+- El login requiere RUT, no email
+- Debes agregar un RUT al usuario admin en la base de datos para poder iniciar sesión
+- O crear un nuevo usuario admin con RUT desde el registro
+
+### Primer Acceso al Sistema
+
+**Opción 1: Agregar RUT al admin por defecto**
+Ejecuta en la base de datos:
+```sql
+UPDATE users SET rut = '12345678-9' WHERE email = 'admin@inacap.cl';
+```
+
+**Opción 2: Registrar un nuevo usuario**
+1. Ve a `/register.html`
+2. Completa el formulario con tu RUT
+3. Inicia sesión con tu RUT y contraseña
+
+### Problemas Comunes y Soluciones
+
+#### Error: "MODULE_NOT_FOUND"
+**Causa**: Archivos no subidos a GitHub  
+**Solución**: Asegúrate de hacer `git add .` y `git push` de todos los archivos
+
+#### Error: "ECONNREFUSED ::1:3306"
+**Causa**: Variables de entorno no configuradas correctamente  
+**Solución**: Verifica que las variables `DB_HOST`, `DB_USER`, `DB_PASSWORD` estén configuradas en Coolify
+
+#### Error: "SQL syntax error near 'IF NOT EXISTS'"
+**Causa**: MariaDB no soporta `CREATE INDEX IF NOT EXISTS`  
+**Solución**: Ya corregido en `database/schema.sql` (sin IF NOT EXISTS en índices)
+
+#### Error: "Table doesn't exist" (Race Condition)
+**Causa**: El servidor arranca antes de que las tablas se creen  
+**Solución**: Ya corregido en `server/server.js` (importa `app` después de inicializar BD)
+
+#### App en estado "DEGRADED (unhealthy)"
+**Causa**: La app crashea en bucle, generalmente por problemas de conexión a BD  
+**Solución**: 
+1. Revisa los logs en Coolify
+2. Verifica las variables de entorno
+3. Asegúrate de que la BD MariaDB esté corriendo
+4. Haz "Force Deploy" para reconstruir sin cache
 
 ## Estructura del Proyecto
 
@@ -74,9 +160,14 @@ Al iniciar por primera vez, se crea automáticamente:
 ## API Endpoints
 
 ### Autenticación
-- `POST /api/auth/login` - Iniciar sesión
+- `POST /api/auth/register` - Registrar nuevo usuario (estudiante)
+  - Body: `{ name, rut, email, password, carrera?, phone? }`
+  - Crea automáticamente una sesión
+- `POST /api/auth/login` - Iniciar sesión con RUT
+  - Body: `{ rut, password }`
+  - Retorna información del usuario y rol
 - `POST /api/auth/logout` - Cerrar sesión
-- `GET /api/auth/session` - Verificar sesión
+- `GET /api/auth/session` - Verificar sesión activa
 
 ### Solicitudes
 - `POST /api/requests` - Crear solicitud
@@ -100,7 +191,100 @@ Al iniciar por primera vez, se crea automáticamente:
 
 - Node.js + Express
 - MariaDB (MySQL)
-- bcrypt (encriptación)
+- bcrypt (encriptación de contraseñas)
+- express-session (manejo de sesiones)
 - QRCode (generación de QR)
 - PDFKit (generación de PDFs)
 - Multer (subida de archivos)
+
+## Páginas del Sistema
+
+- `/index.html` - Login (requiere RUT)
+- `/register.html` - Registro de estudiantes
+- `/student-dashboard.html` - Panel de estudiante
+- `/admin-level1-dashboard.html` - Panel de admin nivel 1
+- `/admin-level2-dashboard.html` - Panel de admin nivel 2
+- `/scanner-dashboard.html` - Panel de escáner QR
+
+
+## Migración de SQLite a MariaDB
+
+Este proyecto fue migrado de SQLite a MariaDB para compatibilidad con Coolify.
+
+### Cambios Realizados
+
+1. **Dependencias**
+   - ❌ Removido: `sqlite3`
+   - ✅ Agregado: `mysql2`
+
+2. **Configuración de Base de Datos**
+   - Creado `server/config/database.js` con pool de conexiones MariaDB
+   - Función `initializeDatabase()` que ejecuta `schema.sql` automáticamente
+   - Manejo de errores para índices duplicados
+
+3. **Schema SQL**
+   - Adaptado de SQLite a MariaDB
+   - Cambiado `AUTOINCREMENT` por `AUTO_INCREMENT`
+   - Removido `IF NOT EXISTS` de `CREATE INDEX` (no soportado en MariaDB)
+   - Agregado `ENGINE=InnoDB` y `CHARSET=utf8mb4`
+
+4. **Inicialización del Servidor**
+   - `server.js` ahora espera a que la BD esté lista antes de importar `app.js`
+   - Previene race conditions donde el servidor arranca antes de crear las tablas
+   - Logs detallados para debugging
+
+### Errores Resueltos Durante la Migración
+
+#### 1. MODULE_NOT_FOUND './routes/auth'
+**Problema**: Las carpetas `routes/`, `controllers/`, `middleware/` estaban vacías  
+**Causa**: Archivos no fueron subidos a GitHub  
+**Solución**: Recreados todos los archivos de rutas y middleware
+
+#### 2. ECONNREFUSED localhost:3306
+**Problema**: App intentaba conectarse a localhost en lugar de la BD de Coolify  
+**Causa**: Variables de entorno no estaban siendo leídas  
+**Solución**: Agregados logs de debug para verificar variables, confirmado que el código SÍ las lee correctamente
+
+#### 3. SQL Syntax Error en CREATE INDEX
+**Problema**: `CREATE INDEX IF NOT EXISTS` no es válido en MariaDB  
+**Causa**: Sintaxis de SQLite incompatible con MariaDB  
+**Solución**: Removido `IF NOT EXISTS` de los índices, agregado manejo de errores para `ER_DUP_KEYNAME`
+
+#### 4. Table 'mecanica.requests' doesn't exist (Race Condition)
+**Problema**: El servidor arrancaba antes de que las tablas se crearan  
+**Causa**: `app.js` se importaba al inicio, ejecutando código que usa la BD antes de inicializarla  
+**Solución**: Movida la importación de `app.js` dentro del `.then()` después de `setupDatabase()`
+
+#### 5. App en estado DEGRADED
+**Problema**: App crasheaba y se reiniciaba en bucle  
+**Causa**: Múltiples errores encadenados (variables de entorno, sintaxis SQL, race condition)  
+**Solución**: Corregidos todos los errores anteriores + agregado `throw error` en catch para evitar que el servidor arranque con errores
+
+### Lecciones Aprendidas
+
+1. **Variables de Entorno**: Coolify inyecta las variables automáticamente al vincular la BD, pero debes verificar que los nombres coincidan exactamente
+2. **Compatibilidad SQL**: SQLite y MariaDB tienen diferencias de sintaxis, especialmente en índices y tipos de datos
+3. **Race Conditions**: En Node.js, los `require()` se ejecutan inmediatamente, causando problemas si dependen de inicialización asíncrona
+4. **Debugging en Producción**: Logs detallados son esenciales para diagnosticar problemas en entornos como Coolify donde no tienes acceso directo
+5. **Force Deploy**: Coolify cachea builds por commit SHA, usa "Force Deploy" cuando cambies dependencias o configuración
+
+## Historial de Versiones
+
+### v1.1.1 - Sistema de Autenticación
+- Agregado registro de usuarios (`/api/auth/register`)
+- Login con RUT (en lugar de email)
+- Creación automática de sesión al registrarse
+- Validaciones de RUT y email duplicados
+- Redirección automática según rol de usuario
+
+### v1.1.0 - Migración a MariaDB
+- Migrado de SQLite a MariaDB
+- Compatibilidad con Coolify
+- Inicialización automática de base de datos
+- Corrección de race conditions
+- Mejoras en logging y debugging
+
+### v1.0.0 - Versión Inicial
+- Sistema básico con SQLite
+- Gestión de solicitudes y aprobaciones
+- Generación de códigos QR
