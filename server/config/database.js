@@ -2,6 +2,13 @@ const mysql = require('mysql2/promise');
 const fs = require('fs').promises;
 const path = require('path');
 
+// Debug: Mostrar variables de entorno
+console.log('🔍 Variables de BD:');
+console.log('   DB_HOST:', process.env.DB_HOST || 'NO DEFINIDO (usando localhost)');
+console.log('   DB_USER:', process.env.DB_USER || 'NO DEFINIDO (usando root)');
+console.log('   DB_DATABASE:', process.env.DB_DATABASE || 'NO DEFINIDO (usando mecanica)');
+console.log('   DB_PORT:', process.env.DB_PORT || 'NO DEFINIDO (usando 3306)');
+
 // Crear pool de conexiones
 const pool = mysql.createPool({
   host: process.env.DB_HOST || 'localhost',
