@@ -103,11 +103,11 @@ CREATE TABLE IF NOT EXISTS password_reset_tokens (
   FOREIGN KEY (user_id) REFERENCES users(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Índices
-CREATE INDEX IF NOT EXISTS idx_requests_user_id ON requests(user_id);
-CREATE INDEX IF NOT EXISTS idx_requests_status ON requests(status);
-CREATE INDEX IF NOT EXISTS idx_requests_created_at ON requests(created_at);
-CREATE INDEX IF NOT EXISTS idx_audit_logs_user_id ON audit_logs(user_id);
-CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at ON audit_logs(created_at);
-CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_user_id ON password_reset_tokens(user_id);
-CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_token ON password_reset_tokens(token);
+-- Índices (sin IF NOT EXISTS porque MariaDB no lo soporta en CREATE INDEX)
+CREATE INDEX idx_requests_user_id ON requests(user_id);
+CREATE INDEX idx_requests_status ON requests(status);
+CREATE INDEX idx_requests_created_at ON requests(created_at);
+CREATE INDEX idx_audit_logs_user_id ON audit_logs(user_id);
+CREATE INDEX idx_audit_logs_created_at ON audit_logs(created_at);
+CREATE INDEX idx_password_reset_tokens_user_id ON password_reset_tokens(user_id);
+CREATE INDEX idx_password_reset_tokens_token ON password_reset_tokens(token);

@@ -39,7 +39,14 @@ async function initializeDatabase() {
     
     // Ejecutar cada statement
     for (const statement of statements) {
-      await pool.query(statement);
+      try {
+        await pool.query(statement);
+      } catch (error) {
+        // Ignorar errores de índices duplicados
+        if (error.code !== 'ER_DUP_KEYNAME') {
+          throw error;
+        }
+      }
     }
     
     console.log('✓ Schema de base de datos ejecutado correctamente');
