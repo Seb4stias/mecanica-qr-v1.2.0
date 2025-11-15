@@ -81,21 +81,32 @@ function showTab(tabName) {
 
 async function loadPendingRequests() {
   try {
-    const response = await fetch('/api/admin/requests?status=pending');
+    const response = await fetch('/api/admin/requests?status=pending,level1_approved');
     const data = await response.json();
     
     const container = document.getElementById('pendientesList');
     
     if (data.requests && data.requests.length > 0) {
-      container.innerHTML = data.requests.map(req => `
-        <div class="request-card">
-          <h3>${req.student_name}</h3>
-          <p><strong>RUT:</strong> ${req.student_rut}</p>
-          <p><strong>Patente:</strong> ${req.vehicle_plate}</p>
-          <p><strong>Modelo:</strong> ${req.vehicle_model}</p>
-          <button class="btn btn-primary" onclick="viewRequest(${req.id})">Ver Detalles</button>
-        </div>
-      `).join('');
+      container.innerHTML = data.requests.map(req => {
+        const canApprove = (currentUser.role === 'admin_level1' && !req.level1_approved) ||
+                          (currentUser.role === 'admin_level2' && req.level1_approved && !req.level2_approved);
+        
+        return `
+          <div class="request-card" style="border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; border-radius: 5px;">
+            <h3>${req.student_name}</h3>
+            <p><strong>RUT:</strong> ${req.student_rut}</p>
+            <p><strong>Patente:</strong> ${req.vehicle_plate}</p>
+            <p><strong>Modelo:</strong> ${req.vehicle_model}</p>
+            <p><strong>Estado:</strong> ${getStatusBadge(req)}</p>
+            ${req.level1_approved ? `
+              <p style="color: green;"><strong>✅ Aprobado Nivel 1:</strong> ${req.level1_date ? new Date(req.level1_date).toLocaleString() : 'N/A'}</p>
+            ` : ''}
+            <button class="btn btn-primary" onclick="viewRequestDetails(${req.id})">Ver Detalles</button>
+            ${canApprove ? `<button class="btn btn-success" onclick="approveRequest(${req.id})">Aprobar</button>` : ''}
+            <button class="btn btn-danger" onclick="rejectRequest(${req.id})">Rechazar</button>
+          </div>
+        `;
+      }).join('');
     } else {
       container.innerHTML = '<p>No hay solicitudes pendientes</p>';
     }
@@ -104,12 +115,70 @@ async function loadPendingRequests() {
   }
 }
 
+function getStatusBadge(req) {
+  if (req.status === 'approved') {
+    return '<span style="color: green; font-weight: bold;">✅ Aprobada</span>';
+  } else if (req.status === 'level1_approved') {
+    return '<span style="color: orange; font-weight: bold;">⏳ Aprobada Nivel 1 (Pendiente Nivel 2)</span>';
+  } else if (req.status === 'rejected') {
+    return '<span style="color: red; font-weight: bold;">❌ Rechazada</span>';
+  } else {
+    return '<span style="color: gray; font-weight: bold;">⏳ Pendiente</span>';
+  }
+}
+
 async function loadApprovedRequests() {
-  document.getElementById('aprobadasList').innerHTML = '<p>Cargando...</p>';
+  try {
+    const response = await fetch('/api/admin/requests?status=approved');
+    const data = await response.json();
+    
+    const container = document.getElementById('aprobadasList');
+    
+    if (data.requests && data.requests.length > 0) {
+      container.innerHTML = data.requests.map(req => `
+        <div class="request-card" style="border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; border-radius: 5px;">
+          <h3>${req.student_name}</h3>
+          <p><strong>RUT:</strong> ${req.student_rut}</p>
+          <p><strong>Patente:</strong> ${req.vehicle_plate}</p>
+          <p><strong>Modelo:</strong> ${req.vehicle_model}</p>
+          <p style="color: green;"><strong>✅ Aprobado Nivel 1:</strong> ${req.level1_date ? new Date(req.level1_date).toLocaleString() : 'N/A'}</p>
+          <p style="color: green;"><strong>✅ Aprobado Nivel 2:</strong> ${req.level2_date ? new Date(req.level2_date).toLocaleString() : 'N/A'}</p>
+          <button class="btn btn-primary" onclick="viewRequestDetails(${req.id})">Ver Detalles</button>
+        </div>
+      `).join('');
+    } else {
+      container.innerHTML = '<p>No hay solicitudes aprobadas</p>';
+    }
+  } catch (error) {
+    console.error('Error:', error);
+  }
 }
 
 async function loadRejectedRequests() {
-  document.getElementById('denegadasList').innerHTML = '<p>Cargando...</p>';
+  try {
+    const response = await fetch('/api/admin/requests?status=rejected');
+    const data = await response.json();
+    
+    const container = document.getElementById('denegadasList');
+    
+    if (data.requests && data.requests.length > 0) {
+      container.innerHTML = data.requests.map(req => `
+        <div class="request-card" style="border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; border-radius: 5px;">
+          <h3>${req.student_name}</h3>
+          <p><strong>RUT:</strong> ${req.student_rut}</p>
+          <p><strong>Patente:</strong> ${req.vehicle_plate}</p>
+          <p><strong>Modelo:</strong> ${req.vehicle_model}</p>
+          <p style="color: red;"><strong>❌ Rechazada por:</strong> Nivel ${req.denied_by_level}</p>
+          <p><strong>Razón:</strong> ${req.denial_reason || 'No especificada'}</p>
+          <button class="btn btn-primary" onclick="viewRequestDetails(${req.id})">Ver Detalles</button>
+        </div>
+      `).join('');
+    } else {
+      container.innerHTML = '<p>No hay solicitudes rechazadas</p>';
+    }
+  } catch (error) {
+    console.error('Error:', error);
+  }
 }
 
 async function loadUsers() {
@@ -319,8 +388,110 @@ async function changePassword(event) {
   }
 }
 
-function viewRequest(id) {
-  alert('Ver detalles de solicitud ' + id + ' - En desarrollo');
+async function viewRequestDetails(id) {
+  try {
+    const response = await fetch(`/api/admin/requests/${id}`);
+    const data = await response.json();
+    
+    if (data.success) {
+      const req = data.request;
+      const modalBody = document.getElementById('modalBody');
+      
+      modalBody.innerHTML = `
+        <h2>Solicitud #${req.id}</h2>
+        <hr>
+        <h3>Datos del Estudiante</h3>
+        <p><strong>Nombre:</strong> ${req.student_name}</p>
+        <p><strong>RUT:</strong> ${req.student_rut}</p>
+        <p><strong>Carrera:</strong> ${req.student_carrera}</p>
+        <p><strong>Email:</strong> ${req.student_email}</p>
+        <p><strong>Teléfono:</strong> ${req.student_phone}</p>
+        
+        <h3>Datos del Vehículo</h3>
+        <p><strong>Patente:</strong> ${req.vehicle_plate}</p>
+        <p><strong>Modelo:</strong> ${req.vehicle_model}</p>
+        <p><strong>Color:</strong> ${req.vehicle_color}</p>
+        <p><strong>Ubicación Garaje:</strong> ${req.garage_location || 'No especificada'}</p>
+        <p><strong>Modificaciones:</strong> ${req.modifications_description || 'Ninguna'}</p>
+        ${req.vehicle_photo_path ? `<p><img src="${req.vehicle_photo_path}" style="max-width: 300px;"></p>` : ''}
+        
+        <h3>Estado de Aprobación</h3>
+        <p><strong>Estado:</strong> ${getStatusBadge(req)}</p>
+        ${req.level1_approved ? `
+          <p style="color: green;"><strong>✅ Aprobado Nivel 1 por:</strong> Admin ID ${req.level1_admin_id}</p>
+          <p><strong>Fecha:</strong> ${new Date(req.level1_date).toLocaleString()}</p>
+          <p><strong>Comentarios:</strong> ${req.level1_comments || 'Sin comentarios'}</p>
+        ` : ''}
+        ${req.level2_approved ? `
+          <p style="color: green;"><strong>✅ Aprobado Nivel 2 por:</strong> Admin ID ${req.level2_admin_id}</p>
+          <p><strong>Fecha:</strong> ${new Date(req.level2_date).toLocaleString()}</p>
+          <p><strong>Comentarios:</strong> ${req.level2_comments || 'Sin comentarios'}</p>
+        ` : ''}
+        ${req.status === 'rejected' ? `
+          <p style="color: red;"><strong>❌ Rechazada por Nivel:</strong> ${req.denied_by_level}</p>
+          <p><strong>Razón:</strong> ${req.denial_reason}</p>
+        ` : ''}
+      `;
+      
+      document.getElementById('requestModal').style.display = 'block';
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Error al cargar detalles');
+  }
+}
+
+async function approveRequest(id) {
+  const comments = prompt('Comentarios (opcional):');
+  
+  try {
+    const response = await fetch(`/api/admin/requests/${id}/approve`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ comments })
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      alert('✅ Solicitud aprobada exitosamente');
+      loadPendingRequests();
+    } else {
+      alert('❌ ' + data.message);
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Error al aprobar solicitud');
+  }
+}
+
+async function rejectRequest(id) {
+  const reason = prompt('Razón del rechazo (requerido):');
+  
+  if (!reason || reason.trim() === '') {
+    alert('Debe proporcionar una razón para rechazar');
+    return;
+  }
+  
+  try {
+    const response = await fetch(`/api/admin/requests/${id}/reject`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reason })
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      alert('❌ Solicitud rechazada');
+      loadPendingRequests();
+    } else {
+      alert('❌ ' + data.message);
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Error al rechazar solicitud');
+  }
 }
 
 function closeModal() {

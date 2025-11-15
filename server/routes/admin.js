@@ -20,8 +20,9 @@ router.get('/requests', requireRole('admin_level1', 'admin_level2'), async (req,
     const params = [];
     
     if (status) {
-      query += ' WHERE r.status = ?';
-      params.push(status);
+      const statuses = status.split(',');
+      query += ' WHERE r.status IN (' + statuses.map(() => '?').join(',') + ')';
+      params.push(...statuses);
     }
     
     query += ' ORDER BY r.created_at DESC';
@@ -31,6 +32,31 @@ router.get('/requests', requireRole('admin_level1', 'admin_level2'), async (req,
     res.json({
       success: true,
       requests
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * GET /api/admin/requests/:id
+ * Obtener detalle de una solicitud específica
+ */
+router.get('/requests/:id', requireRole('admin_level1', 'admin_level2'), async (req, res, next) => {
+  try {
+    const pool = db.getPool();
+    const [requests] = await pool.query('SELECT * FROM requests WHERE id = ?', [req.params.id]);
+    
+    if (requests.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Solicitud no encontrada'
+      });
+    }
+    
+    res.json({
+      success: true,
+      request: requests[0]
     });
   } catch (error) {
     next(error);
@@ -48,6 +74,8 @@ router.post('/requests/:id/approve', requireRole('admin_level1', 'admin_level2')
     const adminLevel = req.session.userRole === 'admin_level1' ? 1 : 2;
     const pool = db.getPool();
 
+    console.log(`📝 Admin nivel ${adminLevel} (ID: ${req.session.userId}) aprobando solicitud ${requestId}`);
+
     // Obtener solicitud actual
     const [requests] = await pool.query('SELECT * FROM requests WHERE id = ?', [requestId]);
     
@@ -60,7 +88,23 @@ router.post('/requests/:id/approve', requireRole('admin_level1', 'admin_level2')
 
     const request = requests[0];
 
+    // Verificar que no esté ya rechazada
+    if (request.status === 'rejected') {
+      return res.status(400).json({
+        success: false,
+        message: 'No se puede aprobar una solicitud rechazada'
+      });
+    }
+
     if (adminLevel === 1) {
+      // Verificar que no esté ya aprobada por nivel 1
+      if (request.level1_approved) {
+        return res.status(400).json({
+          success: false,
+          message: 'Esta solicitud ya fue aprobada por nivel 1'
+        });
+      }
+
       // Aprobación nivel 1
       await pool.query(
         `UPDATE requests SET 
@@ -70,14 +114,23 @@ router.post('/requests/:id/approve', requireRole('admin_level1', 'admin_level2')
           level1_comments = ?,
           status = 'level1_approved'
         WHERE id = ?`,
-        [req.session.userId, comments, requestId]
+        [req.session.userId, comments || '', requestId]
       );
+
+      console.log(`✅ Solicitud ${requestId} aprobada por nivel 1`);
     } else {
       // Aprobación nivel 2 (final)
       if (!request.level1_approved) {
         return res.status(400).json({
           success: false,
           message: 'La solicitud debe ser aprobada por nivel 1 primero'
+        });
+      }
+
+      if (request.level2_approved) {
+        return res.status(400).json({
+          success: false,
+          message: 'Esta solicitud ya fue aprobada por nivel 2'
         });
       }
 
@@ -89,16 +142,24 @@ router.post('/requests/:id/approve', requireRole('admin_level1', 'admin_level2')
           level2_comments = ?,
           status = 'approved'
         WHERE id = ?`,
-        [req.session.userId, comments, requestId]
+        [req.session.userId, comments || '', requestId]
       );
 
+      console.log(`✅ Solicitud ${requestId} aprobada por nivel 2 - Generando QR...`);
+
       // Generar QR
-      await generateQRCode(requestId, request);
+      try {
+        await generateQRCode(requestId, request);
+        console.log(`✅ QR generado para solicitud ${requestId}`);
+      } catch (qrError) {
+        console.error(`❌ Error generando QR:`, qrError);
+        // No fallar la aprobación si el QR falla
+      }
     }
 
     res.json({
       success: true,
-      message: 'Solicitud aprobada exitosamente'
+      message: `Solicitud aprobada exitosamente por nivel ${adminLevel}`
     });
   } catch (error) {
     next(error);
@@ -107,7 +168,7 @@ router.post('/requests/:id/approve', requireRole('admin_level1', 'admin_level2')
 
 /**
  * POST /api/admin/requests/:id/reject
- * Rechazar solicitud
+ * Rechazar solicitud (cualquier nivel puede rechazar)
  */
 router.post('/requests/:id/reject', requireRole('admin_level1', 'admin_level2'), async (req, res, next) => {
   try {
@@ -116,6 +177,26 @@ router.post('/requests/:id/reject', requireRole('admin_level1', 'admin_level2'),
     const adminLevel = req.session.userRole === 'admin_level1' ? 1 : 2;
     const pool = db.getPool();
 
+    if (!reason || reason.trim() === '') {
+      return res.status(400).json({
+        success: false,
+        message: 'Debe proporcionar una razón para rechazar'
+      });
+    }
+
+    console.log(`❌ Admin nivel ${adminLevel} (ID: ${req.session.userId}) rechazando solicitud ${requestId}`);
+
+    // Verificar que la solicitud existe
+    const [requests] = await pool.query('SELECT * FROM requests WHERE id = ?', [requestId]);
+    
+    if (requests.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Solicitud no encontrada'
+      });
+    }
+
+    // Rechazar la solicitud
     await pool.query(
       `UPDATE requests SET 
         status = 'rejected',
@@ -124,6 +205,8 @@ router.post('/requests/:id/reject', requireRole('admin_level1', 'admin_level2'),
       WHERE id = ?`,
       [reason, adminLevel, requestId]
     );
+
+    console.log(`✅ Solicitud ${requestId} rechazada por nivel ${adminLevel}`);
 
     res.json({
       success: true,
