@@ -144,6 +144,8 @@ async function loadApprovedRequests() {
           <p style="color: green;"><strong>✅ Aprobado Nivel 1:</strong> ${req.level1_date ? new Date(req.level1_date).toLocaleString() : 'N/A'}</p>
           <p style="color: green;"><strong>✅ Aprobado Nivel 2:</strong> ${req.level2_date ? new Date(req.level2_date).toLocaleString() : 'N/A'}</p>
           <button class="btn btn-primary" onclick="viewRequestDetails(${req.id})">Ver Detalles</button>
+          <button class="btn btn-success" onclick="downloadQR(${req.id})">📥 Ver QR</button>
+          <button class="btn btn-success" onclick="downloadForm(${req.id})">📄 Descargar Formulario</button>
         </div>
       `).join('');
     } else {
@@ -492,6 +494,14 @@ async function rejectRequest(id) {
     console.error('Error:', error);
     alert('Error al rechazar solicitud');
   }
+}
+
+function downloadQR(requestId) {
+  window.open(`/api/requests/${requestId}/qr`, '_blank');
+}
+
+function downloadForm(requestId) {
+  window.open(`/api/requests/${requestId}/pdf`, '_blank');
 }
 
 function closeModal() {
