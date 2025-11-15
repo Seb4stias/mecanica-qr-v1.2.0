@@ -2,20 +2,29 @@ let currentUser = null;
 
 // Verificar sesión al cargar
 document.addEventListener('DOMContentLoaded', async () => {
-  await checkSession();
-  loadMyRequests();
+  console.log('🔄 Student: Verificando sesión...');
+  const sessionValid = await checkSession();
+  if (sessionValid) {
+    console.log('✅ Student: Sesión válida, cargando solicitudes...');
+    loadMyRequests();
+  }
 });
 
 async function checkSession() {
   try {
+    console.log('📡 Student: Consultando /api/auth/session...');
     const response = await fetch('/api/auth/session');
+    console.log('📥 Student: Respuesta recibida:', response.status);
     const data = await response.json();
+    console.log('📦 Student: Datos:', data);
     
     if (!data.success) {
+      console.log('❌ Student: Sesión inválida, redirigiendo...');
       window.location.href = '/index.html';
-      return;
+      return false;
     }
     
+    console.log('✅ Student: Sesión válida para:', data.user.name);
     currentUser = data.user;
     document.getElementById('userName').textContent = data.user.name;
     
@@ -25,9 +34,12 @@ async function checkSession() {
     document.getElementById('student_email').value = data.user.email || '';
     document.getElementById('student_phone').value = data.user.phone || '';
     document.getElementById('student_carrera').value = data.user.carrera || '';
+    
+    return true;
   } catch (error) {
-    console.error('Error verificando sesión:', error);
+    console.error('💥 Student: Error verificando sesión:', error);
     window.location.href = '/index.html';
+    return false;
   }
 }
 

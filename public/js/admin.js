@@ -2,8 +2,12 @@ let currentUser = null;
 
 // Verificar sesión al cargar
 document.addEventListener('DOMContentLoaded', async () => {
-  await checkSession();
-  loadPendingRequests();
+  console.log('🔄 Admin: Verificando sesión...');
+  const sessionValid = await checkSession();
+  if (sessionValid) {
+    console.log('✅ Admin: Sesión válida, cargando solicitudes...');
+    loadPendingRequests();
+  }
 });
 
 async function checkSession() {

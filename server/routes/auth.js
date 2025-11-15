@@ -47,6 +47,8 @@ router.post('/login', async (req, res, next) => {
     req.session.userRole = user.role;
     req.session.userName = user.name;
 
+    console.log('✅ Sesión creada para:', user.name, '- ID:', user.id, '- Rol:', user.role);
+
     res.json({
       success: true,
       message: 'Inicio de sesión exitoso',
@@ -171,7 +173,12 @@ router.post('/logout', (req, res) => {
  */
 router.get('/session', async (req, res, next) => {
   try {
+    console.log('🔍 Verificando sesión... Session ID:', req.sessionID);
+    console.log('🔍 Session data:', req.session);
+    
     if (req.session && req.session.userId) {
+      console.log('✅ Sesión encontrada para user ID:', req.session.userId);
+      
       // Obtener datos actualizados del usuario
       const pool = db.getPool();
       const [users] = await pool.query(
@@ -181,6 +188,7 @@ router.get('/session', async (req, res, next) => {
       
       if (users.length > 0) {
         const user = users[0];
+        console.log('✅ Usuario encontrado:', user.name, '- Rol:', user.role);
         res.json({
           success: true,
           user: {
@@ -194,18 +202,21 @@ router.get('/session', async (req, res, next) => {
           }
         });
       } else {
+        console.log('❌ Usuario no encontrado en BD');
         res.status(401).json({
           success: false,
           message: 'Usuario no encontrado'
         });
       }
     } else {
+      console.log('❌ No hay sesión activa');
       res.status(401).json({
         success: false,
         message: 'No hay sesión activa'
       });
     }
   } catch (error) {
+    console.error('💥 Error en /session:', error);
     next(error);
   }
 });
