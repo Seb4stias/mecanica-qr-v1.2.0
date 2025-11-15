@@ -126,13 +126,43 @@ router.post('/requests/:id/approve', requireRole('admin_level1', 'admin_level2')
           level1_approved = 1,
           level1_admin_id = ?,
           level1_date = NOW(),
-          level1_comments = ?,
-          status = 'level1_approved'
+          level1_comments = ?
         WHERE id = ?`,
         [req.session.userId, comments || '', requestId]
       );
 
       console.log(`✅ Solicitud ${requestId} aprobada por nivel 1`);
+
+      // Volver a consultar para verificar si nivel 2 ya aprobó
+      const [updatedRequests] = await pool.query('SELECT * FROM requests WHERE id = ?', [requestId]);
+      const updatedRequest = updatedRequests[0];
+
+      console.log(`🔍 Estado después de aprobar nivel 1: level1=${updatedRequest.level1_approved}, level2=${updatedRequest.level2_approved}`);
+
+      // Si AMBOS niveles están aprobados, cambiar estado a 'approved' y generar QR
+      if (updatedRequest.level1_approved === 1 && updatedRequest.level2_approved === 1) {
+        await pool.query(
+          `UPDATE requests SET status = 'approved' WHERE id = ?`,
+          [requestId]
+        );
+        
+        console.log(`✅ Solicitud ${requestId} COMPLETAMENTE APROBADA - Generando QR...`);
+
+        // Generar QR
+        try {
+          await generateQRCode(requestId, updatedRequest);
+          console.log(`✅ QR generado para solicitud ${requestId}`);
+        } catch (qrError) {
+          console.error(`❌ Error generando QR:`, qrError);
+        }
+      } else {
+        // Solo nivel 1 aprobado, falta nivel 2
+        await pool.query(
+          `UPDATE requests SET status = 'level1_approved' WHERE id = ?`,
+          [requestId]
+        );
+        console.log(`✅ Solicitud ${requestId} aprobada por nivel 1, falta nivel 2`);
+      }
     } else {
       // Admin nivel 2 solo puede aprobar nivel 2
       if (request.level2_approved) {
@@ -155,8 +185,14 @@ router.post('/requests/:id/approve', requireRole('admin_level1', 'admin_level2')
 
       console.log(`✅ Solicitud ${requestId} aprobada por nivel 2`);
 
+      // Volver a consultar la solicitud para obtener el estado actualizado
+      const [updatedRequests] = await pool.query('SELECT * FROM requests WHERE id = ?', [requestId]);
+      const updatedRequest = updatedRequests[0];
+
+      console.log(`🔍 Estado después de aprobar nivel 2: level1=${updatedRequest.level1_approved}, level2=${updatedRequest.level2_approved}`);
+
       // Si AMBOS niveles están aprobados, cambiar estado a 'approved' y generar QR
-      if (request.level1_approved === 1) {
+      if (updatedRequest.level1_approved === 1 && updatedRequest.level2_approved === 1) {
         await pool.query(
           `UPDATE requests SET status = 'approved' WHERE id = ?`,
           [requestId]
@@ -166,7 +202,7 @@ router.post('/requests/:id/approve', requireRole('admin_level1', 'admin_level2')
 
         // Generar QR
         try {
-          await generateQRCode(requestId, request);
+          await generateQRCode(requestId, updatedRequest);
           console.log(`✅ QR generado para solicitud ${requestId}`);
         } catch (qrError) {
           console.error(`❌ Error generando QR:`, qrError);
