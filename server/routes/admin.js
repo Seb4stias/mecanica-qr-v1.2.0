@@ -337,6 +337,13 @@ router.delete('/requests/:id', requireRole('admin_level2'), async (req, res, nex
 async function generateQRCode(requestId, requestData) {
   const pool = db.getPool();
   
+  // Crear carpeta qr-codes si no existe
+  const qrDir = path.join(__dirname, '../../public/qr-codes');
+  if (!fs.existsSync(qrDir)) {
+    fs.mkdirSync(qrDir, { recursive: true });
+    console.log('📁 Carpeta qr-codes creada');
+  }
+  
   const qrData = JSON.stringify({
     requestId: requestId,
     plate: requestData.vehicle_plate,
@@ -346,12 +353,16 @@ async function generateQRCode(requestId, requestData) {
   });
 
   // Generar imagen QR
-  const qrImagePath = `public/qr-codes/qr-${requestId}.png`;
+  const qrImagePath = path.join(qrDir, `qr-${requestId}.png`);
+  console.log(`📝 Generando QR en: ${qrImagePath}`);
   await QRCode.toFile(qrImagePath, qrData);
+  console.log(`✅ QR generado exitosamente`);
 
   // Generar PDF
-  const pdfPath = `public/qr-codes/permit-${requestId}.pdf`;
+  const pdfPath = path.join(qrDir, `permit-${requestId}.pdf`);
+  console.log(`📝 Generando PDF en: ${pdfPath}`);
   await generatePDF(requestData, qrImagePath, pdfPath);
+  console.log(`✅ PDF generado exitosamente`);
 
   // Calcular fecha de expiración
   const expiryDays = parseInt(process.env.QR_EXPIRY_DAYS) || 30;
