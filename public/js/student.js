@@ -134,10 +134,11 @@ async function loadMyRequests() {
 
 function getStatusText(status) {
   const statusMap = {
-    'pending': 'Pendiente',
-    'level1_approved': 'Aprobada Nivel 1',
-    'approved': 'Aprobada',
-    'rejected': 'Rechazada'
+    'pending': '⏳ Pendiente de Revisión',
+    'level1_approved': '⏳ En Proceso de Aprobación',
+    'level2_approved': '⏳ En Proceso de Aprobación',
+    'approved': '✅ Aprobada',
+    'rejected': '❌ Rechazada'
   };
   return statusMap[status] || status;
 }

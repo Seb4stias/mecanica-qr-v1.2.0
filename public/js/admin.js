@@ -81,15 +81,27 @@ function showTab(tabName) {
 
 async function loadPendingRequests() {
   try {
-    const response = await fetch('/api/admin/requests?status=pending,level1_approved');
+    const response = await fetch('/api/admin/requests?status=pending,level1_approved,level2_approved');
     const data = await response.json();
     
     const container = document.getElementById('pendientesList');
     
     if (data.requests && data.requests.length > 0) {
       container.innerHTML = data.requests.map(req => {
-        const canApprove = (currentUser.role === 'admin_level1' && !req.level1_approved) ||
-                          (currentUser.role === 'admin_level2' && req.level1_approved && !req.level2_approved);
+        // Admin nivel 1: puede aprobar si no está aprobado nivel 1
+        // Admin nivel 2: puede aprobar SIEMPRE (en cualquier momento)
+        let canApprove = false;
+        
+        if (currentUser.role === 'admin_level1') {
+          canApprove = req.level1_approved !== 1;
+        } else if (currentUser.role === 'admin_level2') {
+          // Nivel 2 puede aprobar si:
+          // - No está aprobado nivel 1 (puede aprobar como nivel 1)
+          // - O está aprobado nivel 1 pero no nivel 2 (aprobación final)
+          canApprove = req.level1_approved !== 1 || (req.level1_approved === 1 && req.level2_approved !== 1);
+        }
+        
+        console.log(`Solicitud ${req.id}: level1=${req.level1_approved}, level2=${req.level2_approved}, canApprove=${canApprove}, userRole=${currentUser.role}`);
         
         return `
           <div class="request-card" style="border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; border-radius: 5px;">
@@ -98,12 +110,15 @@ async function loadPendingRequests() {
             <p><strong>Patente:</strong> ${req.vehicle_plate}</p>
             <p><strong>Modelo:</strong> ${req.vehicle_model}</p>
             <p><strong>Estado:</strong> ${getStatusBadge(req)}</p>
-            ${req.level1_approved ? `
-              <p style="color: green;"><strong>✅ Aprobado Nivel 1:</strong> ${req.level1_date ? new Date(req.level1_date).toLocaleString() : 'N/A'}</p>
+            ${req.level1_approved === 1 ? `
+              <p style="color: green;"><strong>✅ Aprobado Nivel 1 por:</strong> ${req.level1_admin_name || 'Admin'} - ${req.level1_date ? new Date(req.level1_date).toLocaleString() : 'N/A'}</p>
+            ` : ''}
+            ${req.level2_approved === 1 ? `
+              <p style="color: green;"><strong>✅ Aprobado Nivel 2 por:</strong> ${req.level2_admin_name || 'Admin'} - ${req.level2_date ? new Date(req.level2_date).toLocaleString() : 'N/A'}</p>
             ` : ''}
             <button class="btn btn-primary" onclick="viewRequestDetails(${req.id})">Ver Detalles</button>
-            ${canApprove ? `<button class="btn btn-success" onclick="approveRequest(${req.id})">Aprobar</button>` : ''}
-            <button class="btn btn-danger" onclick="rejectRequest(${req.id})">Rechazar</button>
+            ${canApprove ? `<button class="btn btn-success" onclick="approveRequest(${req.id})">✅ Aprobar</button>` : ''}
+            <button class="btn btn-danger" onclick="rejectRequest(${req.id})">❌ Rechazar</button>
           </div>
         `;
       }).join('');
@@ -117,9 +132,11 @@ async function loadPendingRequests() {
 
 function getStatusBadge(req) {
   if (req.status === 'approved') {
-    return '<span style="color: green; font-weight: bold;">✅ Aprobada</span>';
+    return '<span style="color: green; font-weight: bold;">✅ Aprobada (Nivel 1 + Nivel 2)</span>';
   } else if (req.status === 'level1_approved') {
-    return '<span style="color: orange; font-weight: bold;">⏳ Aprobada Nivel 1 (Pendiente Nivel 2)</span>';
+    return '<span style="color: orange; font-weight: bold;">⏳ Aprobada Nivel 1 (Falta Nivel 2)</span>';
+  } else if (req.status === 'level2_approved') {
+    return '<span style="color: orange; font-weight: bold;">⏳ Aprobada Nivel 2 (Falta Nivel 1)</span>';
   } else if (req.status === 'rejected') {
     return '<span style="color: red; font-weight: bold;">❌ Rechazada</span>';
   } else {
@@ -170,7 +187,7 @@ async function loadRejectedRequests() {
           <p><strong>RUT:</strong> ${req.student_rut}</p>
           <p><strong>Patente:</strong> ${req.vehicle_plate}</p>
           <p><strong>Modelo:</strong> ${req.vehicle_model}</p>
-          <p style="color: red;"><strong>❌ Rechazada por:</strong> Nivel ${req.denied_by_level}</p>
+          <p style="color: red;"><strong>❌ Rechazada por:</strong> ${req.rejected_by_name || 'Admin'} (Nivel ${req.denied_by_level})</p>
           <p><strong>Razón:</strong> ${req.denial_reason || 'No especificada'}</p>
           <button class="btn btn-primary" onclick="viewRequestDetails(${req.id})">Ver Detalles</button>
         </div>
@@ -420,17 +437,17 @@ async function viewRequestDetails(id) {
         <h3>Estado de Aprobación</h3>
         <p><strong>Estado:</strong> ${getStatusBadge(req)}</p>
         ${req.level1_approved ? `
-          <p style="color: green;"><strong>✅ Aprobado Nivel 1 por:</strong> Admin ID ${req.level1_admin_id}</p>
+          <p style="color: green;"><strong>✅ Aprobado Nivel 1 por:</strong> ${req.level1_admin_name || 'Admin ID ' + req.level1_admin_id}</p>
           <p><strong>Fecha:</strong> ${new Date(req.level1_date).toLocaleString()}</p>
           <p><strong>Comentarios:</strong> ${req.level1_comments || 'Sin comentarios'}</p>
         ` : ''}
         ${req.level2_approved ? `
-          <p style="color: green;"><strong>✅ Aprobado Nivel 2 por:</strong> Admin ID ${req.level2_admin_id}</p>
+          <p style="color: green;"><strong>✅ Aprobado Nivel 2 por:</strong> ${req.level2_admin_name || 'Admin ID ' + req.level2_admin_id}</p>
           <p><strong>Fecha:</strong> ${new Date(req.level2_date).toLocaleString()}</p>
           <p><strong>Comentarios:</strong> ${req.level2_comments || 'Sin comentarios'}</p>
         ` : ''}
         ${req.status === 'rejected' ? `
-          <p style="color: red;"><strong>❌ Rechazada por Nivel:</strong> ${req.denied_by_level}</p>
+          <p style="color: red;"><strong>❌ Rechazada por:</strong> ${req.rejected_by_name || 'Admin'} (Nivel ${req.denied_by_level})</p>
           <p><strong>Razón:</strong> ${req.denial_reason}</p>
         ` : ''}
       `;
