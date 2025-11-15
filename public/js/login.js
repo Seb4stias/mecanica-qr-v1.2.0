@@ -37,19 +37,17 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
       // Redirigir según el rol
       switch (data.user.role) {
         case 'student':
-          window.location.href = '/student-dashboard.html';
+          window.location.href = '/student.html';
           break;
         case 'admin_level1':
-          window.location.href = '/admin-level1-dashboard.html';
-          break;
         case 'admin_level2':
-          window.location.href = '/admin-level2-dashboard.html';
+          window.location.href = '/admin.html';
           break;
         case 'scanner':
-          window.location.href = '/scanner-dashboard.html';
+          window.location.href = '/scanner.html';
           break;
         default:
-          window.location.href = '/dashboard.html';
+          window.location.href = '/student.html';
       }
     } else {
       console.log('❌ Login fallido:', data.message);

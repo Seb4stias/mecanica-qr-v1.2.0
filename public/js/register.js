@@ -65,7 +65,7 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
     if (data.success) {
       showSuccessModal('¡Registro exitoso! Redirigiendo al panel...');
       setTimeout(() => {
-        window.location.href = '/student-dashboard.html';
+        window.location.href = '/student.html';
       }, 2000);
     } else {
       showErrorModal(data.message || 'Error al registrar usuario');
