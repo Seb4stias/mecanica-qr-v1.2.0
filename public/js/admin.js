@@ -119,6 +119,7 @@ async function loadPendingRequests() {
             <button class="btn btn-primary" onclick="viewRequestDetails(${req.id})">Ver Detalles</button>
             ${canApprove ? `<button class="btn btn-success" onclick="approveRequest(${req.id})">✅ Aprobar</button>` : ''}
             <button class="btn btn-danger" onclick="rejectRequest(${req.id})">❌ Rechazar</button>
+            ${currentUser.role === 'admin_level2' ? `<button class="btn btn-secondary" onclick="deleteRequest(${req.id})" style="background: #6c757d;">🗑️ Eliminar</button>` : ''}
           </div>
         `;
       }).join('');
@@ -163,6 +164,7 @@ async function loadApprovedRequests() {
           <button class="btn btn-primary" onclick="viewRequestDetails(${req.id})">Ver Detalles</button>
           <button class="btn btn-success" onclick="downloadQR(${req.id})">📥 Ver QR</button>
           <button class="btn btn-success" onclick="downloadForm(${req.id})">📄 Descargar Formulario</button>
+          ${currentUser.role === 'admin_level2' ? `<button class="btn btn-secondary" onclick="deleteRequest(${req.id})" style="background: #6c757d;">🗑️ Eliminar</button>` : ''}
         </div>
       `).join('');
     } else {
@@ -181,17 +183,29 @@ async function loadRejectedRequests() {
     const container = document.getElementById('denegadasList');
     
     if (data.requests && data.requests.length > 0) {
-      container.innerHTML = data.requests.map(req => `
-        <div class="request-card" style="border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; border-radius: 5px;">
-          <h3>${req.student_name}</h3>
-          <p><strong>RUT:</strong> ${req.student_rut}</p>
-          <p><strong>Patente:</strong> ${req.vehicle_plate}</p>
-          <p><strong>Modelo:</strong> ${req.vehicle_model}</p>
-          <p style="color: red;"><strong>❌ Rechazada por:</strong> ${req.rejected_by_name || 'Admin'} (Nivel ${req.denied_by_level})</p>
-          <p><strong>Razón:</strong> ${req.denial_reason || 'No especificada'}</p>
-          <button class="btn btn-primary" onclick="viewRequestDetails(${req.id})">Ver Detalles</button>
-        </div>
-      `).join('');
+      container.innerHTML = data.requests.map(req => {
+        console.log(`Solicitud rechazada ${req.id}:`, {
+          denied_by_level: req.denied_by_level,
+          rejected_by_name: req.rejected_by_name,
+          level1_admin_id: req.level1_admin_id,
+          level2_admin_id: req.level2_admin_id,
+          level1_admin_name: req.level1_admin_name,
+          level2_admin_name: req.level2_admin_name
+        });
+        
+        return `
+          <div class="request-card" style="border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; border-radius: 5px;">
+            <h3>${req.student_name}</h3>
+            <p><strong>RUT:</strong> ${req.student_rut}</p>
+            <p><strong>Patente:</strong> ${req.vehicle_plate}</p>
+            <p><strong>Modelo:</strong> ${req.vehicle_model}</p>
+            <p style="color: red;"><strong>❌ Rechazada por:</strong> ${req.rejected_by_name || 'Admin'} (Nivel ${req.denied_by_level})</p>
+            <p><strong>Razón:</strong> ${req.denial_reason || 'No especificada'}</p>
+            <button class="btn btn-primary" onclick="viewRequestDetails(${req.id})">Ver Detalles</button>
+            ${currentUser.role === 'admin_level2' ? `<button class="btn btn-secondary" onclick="deleteRequest(${req.id})" style="background: #6c757d;">🗑️ Eliminar</button>` : ''}
+          </div>
+        `;
+      }).join('');
     } else {
       container.innerHTML = '<p>No hay solicitudes rechazadas</p>';
     }
@@ -510,6 +524,38 @@ async function rejectRequest(id) {
   } catch (error) {
     console.error('Error:', error);
     alert('Error al rechazar solicitud');
+  }
+}
+
+async function deleteRequest(requestId) {
+  if (!confirm('¿Está seguro de que desea eliminar esta solicitud? Esta acción no se puede deshacer.')) {
+    return;
+  }
+  
+  try {
+    const response = await fetch(`/api/admin/requests/${requestId}`, {
+      method: 'DELETE'
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      alert('✅ Solicitud eliminada exitosamente');
+      // Recargar la lista actual
+      const activeTab = document.querySelector('.tab-btn.active').textContent.toLowerCase();
+      if (activeTab.includes('pendiente')) {
+        loadPendingRequests();
+      } else if (activeTab.includes('aprobada')) {
+        loadApprovedRequests();
+      } else if (activeTab.includes('denegada')) {
+        loadRejectedRequests();
+      }
+    } else {
+      alert('❌ ' + data.message);
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Error al eliminar solicitud');
   }
 }
 

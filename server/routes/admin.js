@@ -258,6 +258,44 @@ router.post('/requests/:id/reject', requireRole('admin_level1', 'admin_level2'),
 });
 
 /**
+ * DELETE /api/admin/requests/:id
+ * Eliminar solicitud (solo admin nivel 2)
+ */
+router.delete('/requests/:id', requireRole('admin_level2'), async (req, res, next) => {
+  try {
+    const requestId = req.params.id;
+    const pool = db.getPool();
+
+    console.log(`🗑️ Admin nivel 2 (ID: ${req.session.userId}) eliminando solicitud ${requestId}`);
+
+    // Verificar que la solicitud existe
+    const [requests] = await pool.query('SELECT * FROM requests WHERE id = ?', [requestId]);
+    
+    if (requests.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Solicitud no encontrada'
+      });
+    }
+
+    // Eliminar QR asociado si existe
+    await pool.query('DELETE FROM qr_codes WHERE request_id = ?', [requestId]);
+
+    // Eliminar la solicitud
+    await pool.query('DELETE FROM requests WHERE id = ?', [requestId]);
+
+    console.log(`✅ Solicitud ${requestId} eliminada exitosamente`);
+
+    res.json({
+      success: true,
+      message: 'Solicitud eliminada exitosamente'
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
  * Función auxiliar para generar código QR
  */
 async function generateQRCode(requestId, requestData) {
