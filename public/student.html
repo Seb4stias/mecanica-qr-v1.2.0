@@ -19,6 +19,7 @@
     <div class="tabs">
       <button class="tab-btn active" onclick="showTab('nueva')">Nueva Solicitud</button>
       <button class="tab-btn" onclick="showTab('mis-solicitudes')">Mis Solicitudes</button>
+      <button class="tab-btn" onclick="showTab('mi-cuenta')">Mi Cuenta</button>
     </div>
 
     <!-- Nueva Solicitud Tab -->
@@ -82,8 +83,8 @@
         </div>
 
         <div class="form-group">
-          <label for="vehicle_photo">Foto del Vehículo *</label>
-          <input type="file" id="vehicle_photo" name="vehicle_photo" accept="image/*" required>
+          <label for="vehiclePhoto">Foto del Vehículo *</label>
+          <input type="file" id="vehiclePhoto" name="vehiclePhoto" accept="image/*" required>
           <div id="photoPreview"></div>
         </div>
 
@@ -101,8 +102,14 @@
       <h2>Mis Solicitudes</h2>
       <div id="requestsList"></div>
     </div>
+
+    <!-- Mi Cuenta Tab -->
+    <div id="mi-cuenta-tab" class="tab-content">
+      <h2>Mi Cuenta</h2>
+      <div id="myAccountContent"></div>
+    </div>
   </div>
 
-  <script src="/js/student.js?v=2"></script>
+  <script src="/js/student.js?v=3"></script>
 </body>
 </html>
