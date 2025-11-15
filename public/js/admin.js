@@ -113,7 +113,127 @@ async function loadRejectedRequests() {
 }
 
 async function loadUsers() {
-  document.getElementById('userManagement').innerHTML = '<p>Gestión de usuarios - En desarrollo</p>';
+  try {
+    const response = await fetch('/api/admin/users');
+    const data = await response.json();
+    
+    const container = document.getElementById('userManagement');
+    
+    if (data.users && data.users.length > 0) {
+      container.innerHTML = `
+        <div style="margin-bottom: 20px;">
+          <button class="btn btn-primary" onclick="showCreateUserForm()">Crear Nuevo Usuario</button>
+        </div>
+        <div id="createUserFormContainer" style="display: none; margin-bottom: 20px; padding: 20px; border: 1px solid #ddd; border-radius: 5px;">
+          <h3>Crear Nuevo Usuario</h3>
+          <form id="createUserForm" onsubmit="createUser(event)">
+            <div class="form-group">
+              <label>Nombre</label>
+              <input type="text" id="newUserName" required>
+            </div>
+            <div class="form-group">
+              <label>RUT</label>
+              <input type="text" id="newUserRut" required>
+            </div>
+            <div class="form-group">
+              <label>Email</label>
+              <input type="email" id="newUserEmail" required>
+            </div>
+            <div class="form-group">
+              <label>Contraseña</label>
+              <input type="password" id="newUserPassword" required minlength="6">
+            </div>
+            <div class="form-group">
+              <label>Rol</label>
+              <select id="newUserRole" required>
+                <option value="student">Estudiante</option>
+                <option value="admin_level1">Admin Nivel 1</option>
+                <option value="admin_level2">Admin Nivel 2</option>
+                <option value="scanner">Escáner</option>
+              </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Crear Usuario</button>
+            <button type="button" class="btn btn-secondary" onclick="hideCreateUserForm()">Cancelar</button>
+          </form>
+          <div id="createUserMessage"></div>
+        </div>
+        <table style="width: 100%; border-collapse: collapse;">
+          <thead>
+            <tr style="background: #f5f5f5;">
+              <th style="padding: 10px; text-align: left; border: 1px solid #ddd;">ID</th>
+              <th style="padding: 10px; text-align: left; border: 1px solid #ddd;">Nombre</th>
+              <th style="padding: 10px; text-align: left; border: 1px solid #ddd;">RUT</th>
+              <th style="padding: 10px; text-align: left; border: 1px solid #ddd;">Email</th>
+              <th style="padding: 10px; text-align: left; border: 1px solid #ddd;">Rol</th>
+              <th style="padding: 10px; text-align: left; border: 1px solid #ddd;">Estado</th>
+              <th style="padding: 10px; text-align: left; border: 1px solid #ddd;">Fecha Creación</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${data.users.map(user => `
+              <tr>
+                <td style="padding: 10px; border: 1px solid #ddd;">${user.id}</td>
+                <td style="padding: 10px; border: 1px solid #ddd;">${user.name}</td>
+                <td style="padding: 10px; border: 1px solid #ddd;">${user.rut || 'N/A'}</td>
+                <td style="padding: 10px; border: 1px solid #ddd;">${user.email}</td>
+                <td style="padding: 10px; border: 1px solid #ddd;">${getRoleText(user.role)}</td>
+                <td style="padding: 10px; border: 1px solid #ddd;">${user.is_active ? '✅ Activo' : '❌ Inactivo'}</td>
+                <td style="padding: 10px; border: 1px solid #ddd;">${new Date(user.created_at).toLocaleDateString()}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+    } else {
+      container.innerHTML = '<p>No hay usuarios registrados</p>';
+    }
+  } catch (error) {
+    console.error('Error cargando usuarios:', error);
+    document.getElementById('userManagement').innerHTML = '<p style="color: red;">Error al cargar usuarios</p>';
+  }
+}
+
+function showCreateUserForm() {
+  document.getElementById('createUserFormContainer').style.display = 'block';
+}
+
+function hideCreateUserForm() {
+  document.getElementById('createUserFormContainer').style.display = 'none';
+  document.getElementById('createUserForm').reset();
+}
+
+async function createUser(event) {
+  event.preventDefault();
+  
+  const name = document.getElementById('newUserName').value;
+  const rut = document.getElementById('newUserRut').value;
+  const email = document.getElementById('newUserEmail').value;
+  const password = document.getElementById('newUserPassword').value;
+  const role = document.getElementById('newUserRole').value;
+  const messageDiv = document.getElementById('createUserMessage');
+  
+  try {
+    const response = await fetch('/api/admin/users', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, rut, email, password, role })
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      messageDiv.innerHTML = '<p style="color: green;">✅ Usuario creado exitosamente</p>';
+      setTimeout(() => {
+        hideCreateUserForm();
+        loadUsers();
+      }, 1500);
+    } else {
+      messageDiv.innerHTML = `<p style="color: red;">❌ ${data.message}</p>`;
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    messageDiv.innerHTML = '<p style="color: red;">Error de conexión</p>';
+  }
 }
 
 async function loadMyAccount() {
