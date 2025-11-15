@@ -12,10 +12,19 @@ async function checkSession() {
     const data = await response.json();
     
     if (!data.success) {
+      console.log('❌ No hay sesión, redirigiendo a login...');
       window.location.href = '/index.html';
-      return;
+      return false;
     }
     
+    // Verificar que sea admin
+    if (data.user.role !== 'admin_level1' && data.user.role !== 'admin_level2') {
+      console.log('❌ Usuario no es admin, redirigiendo...');
+      window.location.href = '/index.html';
+      return false;
+    }
+    
+    console.log('✅ Sesión válida:', data.user);
     currentUser = data.user;
     document.getElementById('userName').textContent = data.user.name;
     
@@ -23,9 +32,12 @@ async function checkSession() {
     if (data.user.role === 'admin_level2') {
       document.getElementById('usersTab').style.display = 'block';
     }
+    
+    return true;
   } catch (error) {
-    console.error('Error verificando sesión:', error);
+    console.error('💥 Error verificando sesión:', error);
     window.location.href = '/index.html';
+    return false;
   }
 }
 
@@ -104,11 +116,82 @@ async function loadMyAccount() {
   if (currentUser) {
     document.getElementById('myAccountContent').innerHTML = `
       <div class="account-info">
+        <h3>Información de la Cuenta</h3>
         <p><strong>Nombre:</strong> ${currentUser.name}</p>
         <p><strong>Email:</strong> ${currentUser.email}</p>
-        <p><strong>Rol:</strong> ${currentUser.role}</p>
+        <p><strong>RUT:</strong> ${currentUser.rut || 'No configurado'}</p>
+        <p><strong>Rol:</strong> ${getRoleText(currentUser.role)}</p>
+        
+        <hr style="margin: 20px 0;">
+        
+        <h3>Cambiar Contraseña</h3>
+        <form id="changePasswordForm" onsubmit="changePassword(event)">
+          <div class="form-group">
+            <label>Contraseña Actual</label>
+            <input type="password" id="currentPassword" required>
+          </div>
+          <div class="form-group">
+            <label>Nueva Contraseña</label>
+            <input type="password" id="newPassword" required minlength="6">
+          </div>
+          <div class="form-group">
+            <label>Confirmar Nueva Contraseña</label>
+            <input type="password" id="confirmPassword" required>
+          </div>
+          <button type="submit" class="btn btn-primary">Cambiar Contraseña</button>
+        </form>
+        <div id="passwordChangeMessage"></div>
       </div>
     `;
+  }
+}
+
+function getRoleText(role) {
+  const roles = {
+    'admin_level1': 'Administrador Nivel 1',
+    'admin_level2': 'Administrador Nivel 2',
+    'student': 'Estudiante',
+    'scanner': 'Escáner'
+  };
+  return roles[role] || role;
+}
+
+async function changePassword(event) {
+  event.preventDefault();
+  
+  const currentPassword = document.getElementById('currentPassword').value;
+  const newPassword = document.getElementById('newPassword').value;
+  const confirmPassword = document.getElementById('confirmPassword').value;
+  const messageDiv = document.getElementById('passwordChangeMessage');
+  
+  if (newPassword !== confirmPassword) {
+    messageDiv.innerHTML = '<p style="color: red;">Las contraseñas no coinciden</p>';
+    return;
+  }
+  
+  if (newPassword.length < 6) {
+    messageDiv.innerHTML = '<p style="color: red;">La contraseña debe tener al menos 6 caracteres</p>';
+    return;
+  }
+  
+  try {
+    const response = await fetch('/api/auth/change-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ currentPassword, newPassword })
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      messageDiv.innerHTML = '<p style="color: green;">✅ Contraseña cambiada exitosamente</p>';
+      document.getElementById('changePasswordForm').reset();
+    } else {
+      messageDiv.innerHTML = `<p style="color: red;">❌ ${data.message}</p>`;
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    messageDiv.innerHTML = '<p style="color: red;">Error de conexión</p>';
   }
 }
 

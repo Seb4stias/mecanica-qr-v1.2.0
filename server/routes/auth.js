@@ -169,22 +169,113 @@ router.post('/logout', (req, res) => {
  * GET /api/auth/session
  * Verificar sesión actual
  */
-router.get('/session', (req, res) => {
-  if (req.session && req.session.userId) {
+router.get('/session', async (req, res, next) => {
+  try {
+    if (req.session && req.session.userId) {
+      // Obtener datos actualizados del usuario
+      const pool = db.getPool();
+      const [users] = await pool.query(
+        'SELECT id, email, name, role, rut, carrera, phone FROM users WHERE id = ? AND is_active = 1',
+        [req.session.userId]
+      );
+      
+      if (users.length > 0) {
+        const user = users[0];
+        res.json({
+          success: true,
+          user: {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            role: user.role,
+            rut: user.rut,
+            carrera: user.carrera,
+            phone: user.phone
+          }
+        });
+      } else {
+        res.status(401).json({
+          success: false,
+          message: 'Usuario no encontrado'
+        });
+      }
+    } else {
+      res.status(401).json({
+        success: false,
+        message: 'No hay sesión activa'
+      });
+    }
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * POST /api/auth/change-password
+ * Cambiar contraseña del usuario actual
+ */
+router.post('/change-password', async (req, res, next) => {
+  try {
+    if (!req.session || !req.session.userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'No autorizado'
+      });
+    }
+    
+    const { currentPassword, newPassword } = req.body;
+    
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'Contraseña actual y nueva son requeridas'
+      });
+    }
+    
+    if (newPassword.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: 'La nueva contraseña debe tener al menos 6 caracteres'
+      });
+    }
+    
+    const pool = db.getPool();
+    
+    // Verificar contraseña actual
+    const [users] = await pool.query(
+      'SELECT password_hash FROM users WHERE id = ?',
+      [req.session.userId]
+    );
+    
+    if (users.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Usuario no encontrado'
+      });
+    }
+    
+    const validPassword = await bcrypt.compare(currentPassword, users[0].password_hash);
+    
+    if (!validPassword) {
+      return res.status(401).json({
+        success: false,
+        message: 'Contraseña actual incorrecta'
+      });
+    }
+    
+    // Actualizar contraseña
+    const newPasswordHash = await bcrypt.hash(newPassword, 10);
+    await pool.query(
+      'UPDATE users SET password_hash = ? WHERE id = ?',
+      [newPasswordHash, req.session.userId]
+    );
+    
     res.json({
       success: true,
-      user: {
-        id: req.session.userId,
-        email: req.session.userEmail,
-        name: req.session.userName,
-        role: req.session.userRole
-      }
+      message: 'Contraseña actualizada exitosamente'
     });
-  } else {
-    res.status(401).json({
-      success: false,
-      message: 'No hay sesión activa'
-    });
+  } catch (error) {
+    next(error);
   }
 });
 
