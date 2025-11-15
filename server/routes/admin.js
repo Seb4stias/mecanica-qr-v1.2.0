@@ -368,12 +368,14 @@ async function generateQRCode(requestId, requestData) {
   const expiryDays = parseInt(process.env.QR_EXPIRY_DAYS) || 30;
   const expiresAt = expiryDays > 0 ? new Date(Date.now() + expiryDays * 24 * 60 * 60 * 1000) : null;
 
-  // Guardar en base de datos
+  // Guardar en base de datos con rutas relativas desde la raíz del proyecto
   await pool.query(
     `INSERT INTO qr_codes (request_id, qr_data, qr_image_path, pdf_path, expires_at, is_active)
      VALUES (?, ?, ?, ?, ?, 1)`,
-    [requestId, qrData, `/qr-codes/qr-${requestId}.png`, `/qr-codes/permit-${requestId}.pdf`, expiresAt]
+    [requestId, qrData, `public/qr-codes/qr-${requestId}.png`, `public/qr-codes/permit-${requestId}.pdf`, expiresAt]
   );
+  
+  console.log(`💾 Rutas guardadas en BD: public/qr-codes/qr-${requestId}.png`);
 }
 
 /**

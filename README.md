@@ -171,6 +171,14 @@ UPDATE users SET rut = '12345678-9' WHERE email = 'admin@inacap.cl';
 **Causa**: El servidor arranca antes de que las tablas se creen  
 **Solución**: Ya corregido en `server/server.js` (importa `app` después de inicializar BD)
 
+#### Error: "ENOENT: no such file or directory" al descargar QR
+**Causa**: La carpeta `public/qr-codes/` no existe  
+**Solución**: Ya corregido - se crea automáticamente al generar el primer QR
+
+#### Error: Estado "En Proceso" cuando ambos niveles aprobaron
+**Causa**: El estado no se actualizaba a "approved" correctamente  
+**Solución**: Ya corregido - se verifica el estado después de cada aprobación
+
 #### App en estado "DEGRADED (unhealthy)"
 **Causa**: La app crashea en bucle, generalmente por problemas de conexión a BD  
 **Solución**: 
@@ -245,13 +253,20 @@ UPDATE users SET rut = '12345678-9' WHERE email = 'admin@inacap.cl';
 
 ## Tecnologías
 
+### Backend
 - Node.js + Express
-- MariaDB (MySQL)
+- MariaDB (MySQL) con mysql2
 - bcrypt (encriptación de contraseñas)
 - express-session (manejo de sesiones)
-- QRCode (generación de QR)
+- QRCode (generación de códigos QR)
 - PDFKit (generación de PDFs)
-- Multer (subida de archivos)
+- Multer (subida de archivos/fotos)
+
+### Frontend
+- HTML5 + CSS3
+- JavaScript Vanilla
+- jsQR (lectura de códigos QR con cámara)
+- Fetch API (comunicación con backend)
 
 ## Páginas del Sistema
 
@@ -336,6 +351,14 @@ Este proyecto fue migrado de SQLite a MariaDB para compatibilidad con Coolify.
 5. **Force Deploy**: Coolify cachea builds por commit SHA, usa "Force Deploy" cuando cambies dependencias o configuración
 
 ## Historial de Versiones
+
+### v1.2.2 - Versión Estable (Actual)
+- ✅ Generación automática de carpetas para QR y uploads
+- ✅ Corrección de estado "approved" cuando ambos niveles aprueban
+- ✅ Visualización de fotos de vehículos en todas las listas
+- ✅ Mostrar nombres de admins que aprobaron/rechazaron
+- ✅ Logs detallados para debugging
+- ✅ Rutas absolutas para archivos QR y PDF
 
 ### v1.2.1 - Sistema Completo
 - ✅ Flujo de aprobación de 2 niveles independientes
