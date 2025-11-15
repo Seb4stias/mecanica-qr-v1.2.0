@@ -63,19 +63,39 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
     const data = await response.json();
 
     if (data.success) {
-      alert('¡Registro exitoso! Redirigiendo...');
-      window.location.href = '/student-dashboard.html';
+      showSuccessModal('¡Registro exitoso! Redirigiendo al panel...');
+      setTimeout(() => {
+        window.location.href = '/student-dashboard.html';
+      }, 2000);
     } else {
-      document.getElementById('formError').textContent = data.message || 'Error al registrar';
+      showErrorModal(data.message || 'Error al registrar usuario');
     }
   } catch (error) {
     console.error('Error:', error);
-    document.getElementById('formError').textContent = 'Error de conexión. Intente nuevamente.';
+    showErrorModal('Error de conexión. Intente nuevamente.');
   } finally {
     registerBtn.disabled = false;
     registerBtn.textContent = 'Registrarse';
   }
 });
+
+function showErrorModal(message) {
+  document.getElementById('errorModalMessage').textContent = message;
+  document.getElementById('errorModal').classList.add('active');
+}
+
+function closeErrorModal() {
+  document.getElementById('errorModal').classList.remove('active');
+}
+
+function showSuccessModal(message) {
+  document.getElementById('successModalMessage').textContent = message;
+  document.getElementById('successModal').classList.add('active');
+}
+
+function closeSuccessModal() {
+  document.getElementById('successModal').classList.remove('active');
+}
 
 function togglePassword(fieldId) {
   const field = document.getElementById(fieldId);

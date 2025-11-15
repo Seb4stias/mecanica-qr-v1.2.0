@@ -3,14 +3,12 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
 
   const rut = document.getElementById('rut').value.trim();
   const password = document.getElementById('password').value;
-  const errorDiv = document.getElementById('formError');
   const loginBtn = document.getElementById('loginBtn');
 
-  // Limpiar error previo
-  errorDiv.textContent = '';
+  console.log('🔍 Intentando login con RUT:', rut);
 
   if (!rut || !password) {
-    errorDiv.textContent = 'Por favor complete todos los campos';
+    showErrorModal('Por favor complete todos los campos');
     return;
   }
 
@@ -19,6 +17,8 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
   loginBtn.textContent = 'Iniciando sesión...';
 
   try {
+    console.log('📡 Enviando petición a /api/auth/login...');
+    
     const response = await fetch('/api/auth/login', {
       method: 'POST',
       headers: {
@@ -27,9 +27,13 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
       body: JSON.stringify({ rut, password })
     });
 
+    console.log('📥 Respuesta recibida:', response.status);
+
     const data = await response.json();
+    console.log('📦 Datos:', data);
 
     if (data.success) {
+      console.log('✅ Login exitoso, redirigiendo...');
       // Redirigir según el rol
       switch (data.user.role) {
         case 'student':
@@ -48,16 +52,26 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
           window.location.href = '/dashboard.html';
       }
     } else {
-      errorDiv.textContent = data.message || 'Credenciales inválidas';
+      console.log('❌ Login fallido:', data.message);
+      showErrorModal(data.message || 'Usuario o contraseña incorrectos');
     }
   } catch (error) {
-    console.error('Error:', error);
-    errorDiv.textContent = 'Error de conexión. Intente nuevamente.';
+    console.error('💥 Error de conexión:', error);
+    showErrorModal('Error de conexión. Verifique su internet e intente nuevamente.');
   } finally {
     loginBtn.disabled = false;
     loginBtn.textContent = 'Iniciar Sesión';
   }
 });
+
+function showErrorModal(message) {
+  document.getElementById('errorModalMessage').textContent = message;
+  document.getElementById('errorModal').classList.add('active');
+}
+
+function closeErrorModal() {
+  document.getElementById('errorModal').classList.remove('active');
+}
 
 function togglePasswordVisibility() {
   const passwordField = document.getElementById('password');
