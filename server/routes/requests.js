@@ -178,7 +178,10 @@ router.get('/:id/qr', requireAuth, async (req, res, next) => {
     }
     
     const qrCode = qrCodes[0];
+    console.log('🔍 QR path en BD:', qrCode.qr_image_path);
+    console.log('🔍 __dirname:', __dirname);
     const qrPath = path.join(__dirname, '../../', qrCode.qr_image_path);
+    console.log('🔍 Path completo:', qrPath);
     
     res.download(qrPath, `QR-${request.vehicle_plate}.png`);
   } catch (error) {
@@ -230,7 +233,9 @@ router.get('/:id/pdf', requireAuth, async (req, res, next) => {
     }
     
     const qrCode = qrCodes[0];
+    console.log('🔍 PDF path en BD:', qrCode.pdf_path);
     const pdfPath = path.join(__dirname, '../../', qrCode.pdf_path);
+    console.log('🔍 Path completo PDF:', pdfPath);
     
     res.download(pdfPath, `Permiso-${request.vehicle_plate}.pdf`);
   } catch (error) {
