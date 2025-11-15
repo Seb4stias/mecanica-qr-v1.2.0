@@ -4,19 +4,59 @@ Sistema web para gestionar permisos de acceso vehicular con códigos QR.
 
 ## Características
 
-- Solicitud de permisos de acceso vehicular
-- Sistema de aprobación de dos niveles
-- Generación automática de códigos QR y PDFs
-- Validación de QR mediante escáner
-- Gestión de usuarios y roles
-- Auditoría de accesos
+- ✅ Solicitud de permisos de acceso vehicular con foto
+- ✅ Sistema de aprobación de dos niveles independientes
+- ✅ Generación automática de códigos QR y PDFs
+- ✅ Validación de QR mediante escáner con cámara
+- ✅ Gestión de usuarios y roles
+- ✅ Cambio de contraseña para todos los usuarios
+- ✅ Eliminación de solicitudes (admin nivel 2)
+- ✅ Descarga de QR y formularios PDF
+- ✅ Auditoría de aprobaciones y rechazos
 
 ## Roles de Usuario
 
-- **Estudiante**: Solicita permisos de acceso
-- **Admin Nivel 1**: Aprueba solicitudes (primera revisión)
-- **Admin Nivel 2**: Aprueba solicitudes (aprobación final) y gestiona usuarios
-- **Scanner**: Valida códigos QR en puntos de acceso
+### Estudiante (student)
+- Crear solicitudes de permiso vehicular
+- Ver estado de sus solicitudes
+- Descargar QR y formulario PDF cuando esté aprobada
+- Cambiar su contraseña
+
+### Admin Nivel 1 (admin_level1)
+- Ver todas las solicitudes
+- Aprobar solicitudes (aprobación nivel 1)
+- Rechazar solicitudes con razón
+- Ver quién aprobó/rechazó cada solicitud
+- Cambiar su contraseña
+
+### Admin Nivel 2 (admin_level2)
+- Todas las funciones de Admin Nivel 1
+- Aprobar solicitudes (aprobación nivel 2)
+- Eliminar solicitudes
+- Crear y gestionar usuarios
+- Ver lista completa de usuarios registrados
+
+### Scanner (scanner)
+- Escanear códigos QR con la cámara
+- Ver información completa del vehículo y estudiante
+- Validar si el acceso está autorizado
+- Ver historial de escaneos
+
+## Flujo de Aprobación
+
+1. **Estudiante** crea una solicitud con datos del vehículo y foto
+2. **Estado: Pendiente** - Esperando revisión
+3. **Admin Nivel 1** revisa y aprueba → **Estado: Aprobada Nivel 1**
+4. **Admin Nivel 2** revisa y aprueba → **Estado: Aprobada**
+5. Se genera automáticamente el **código QR y PDF**
+6. **Estudiante** puede descargar QR y formulario
+7. **Scanner** valida el QR en el punto de acceso
+
+**Nota importante:** 
+- Se necesitan **2 aprobaciones** (una de cada nivel) para aprobar completamente
+- Cualquier admin puede **rechazar** en cualquier momento
+- Si se rechaza, la solicitud queda **rechazada inmediatamente**
+- Solo **admin nivel 2** puede eliminar solicitudes
 
 ## Instalación Local
 
@@ -168,24 +208,40 @@ UPDATE users SET rut = '12345678-9' WHERE email = 'admin@inacap.cl';
   - Retorna información del usuario y rol
 - `POST /api/auth/logout` - Cerrar sesión
 - `GET /api/auth/session` - Verificar sesión activa
+- `POST /api/auth/change-password` - Cambiar contraseña
+  - Body: `{ currentPassword, newPassword }`
 
-### Solicitudes
-- `POST /api/requests` - Crear solicitud
+### Solicitudes (Estudiantes)
+- `POST /api/requests` - Crear solicitud con foto del vehículo
+  - Multipart form data con campos del estudiante y vehículo
 - `GET /api/requests` - Listar mis solicitudes
-- `GET /api/requests/:id` - Ver detalle
+- `GET /api/requests/:id` - Ver detalle de solicitud
+- `GET /api/requests/:id/qr` - Descargar imagen QR (solo si está aprobada)
+- `GET /api/requests/:id/pdf` - Descargar formulario PDF con QR
 
-### Administración
+### Administración (Admin Nivel 1 y 2)
 - `GET /api/admin/requests` - Listar todas las solicitudes
+  - Query params: `?status=pending,level1_approved,level2_approved,approved,rejected`
+- `GET /api/admin/requests/:id` - Ver detalle completo de solicitud
 - `POST /api/admin/requests/:id/approve` - Aprobar solicitud
+  - Admin nivel 1: Aprueba nivel 1
+  - Admin nivel 2: Aprueba nivel 2
+  - Se necesitan ambas aprobaciones para generar QR
 - `POST /api/admin/requests/:id/reject` - Rechazar solicitud
+  - Body: `{ reason }` (obligatorio)
+  - Cualquier nivel puede rechazar
+- `DELETE /api/admin/requests/:id` - Eliminar solicitud (solo nivel 2)
 
-### Escáner
-- `POST /api/scanner/validate` - Validar código QR
+### Escáner (Rol Scanner)
+- `POST /api/scanner/validate` - Validar código QR escaneado
+  - Body: `{ qrData }`
+  - Retorna información del vehículo y estado de validez
 - `GET /api/scanner/history` - Historial de escaneos
 
-### Gestión de Usuarios
-- `GET /api/admin/users` - Listar usuarios
-- `POST /api/admin/users` - Crear usuario
+### Gestión de Usuarios (Solo Admin Nivel 2)
+- `GET /api/admin/users` - Listar todos los usuarios
+- `POST /api/admin/users` - Crear nuevo usuario
+  - Body: `{ name, rut, email, password, role }`
 
 ## Tecnologías
 
@@ -199,12 +255,23 @@ UPDATE users SET rut = '12345678-9' WHERE email = 'admin@inacap.cl';
 
 ## Páginas del Sistema
 
-- `/index.html` - Login (requiere RUT)
-- `/register.html` - Registro de estudiantes
-- `/student-dashboard.html` - Panel de estudiante
-- `/admin-level1-dashboard.html` - Panel de admin nivel 1
-- `/admin-level2-dashboard.html` - Panel de admin nivel 2
-- `/scanner-dashboard.html` - Panel de escáner QR
+- `/index.html` - Login con RUT y contraseña
+- `/register.html` - Registro de nuevos estudiantes
+- `/student.html` - Panel de estudiante
+  - Nueva solicitud
+  - Mis solicitudes
+  - Mi cuenta (cambiar contraseña)
+- `/admin.html` - Panel de administración (nivel 1 y 2)
+  - Solicitudes pendientes
+  - Solicitudes aprobadas
+  - Solicitudes rechazadas
+  - Gestión de usuarios (solo nivel 2)
+  - Mi cuenta (cambiar contraseña)
+- `/scanner.html` - Panel de escáner QR
+  - Activar cámara
+  - Escanear QR
+  - Ver información del vehículo
+  - Validar acceso
 
 
 ## Migración de SQLite a MariaDB
@@ -270,19 +337,31 @@ Este proyecto fue migrado de SQLite a MariaDB para compatibilidad con Coolify.
 
 ## Historial de Versiones
 
-### v1.1.1 - Sistema de Autenticación
-- Agregado registro de usuarios (`/api/auth/register`)
-- Login con RUT (en lugar de email)
-- Creación automática de sesión al registrarse
-- Validaciones de RUT y email duplicados
-- Redirección automática según rol de usuario
+### v1.2.1 - Sistema Completo
+- ✅ Flujo de aprobación de 2 niveles independientes
+- ✅ Generación de QR y PDF al aprobar
+- ✅ Descarga de QR y formularios
+- ✅ Panel de scanner con validación en tiempo real
+- ✅ Cambio de contraseña para todos los usuarios
+- ✅ Eliminación de solicitudes (admin nivel 2)
+- ✅ Gestión completa de usuarios
+- ✅ Auditoría de quién aprobó/rechazó
+- ✅ Pop-ups de error y éxito
+- ✅ Validación de campos en formularios
 
-### v1.1.0 - Migración a MariaDB
+### v1.2.0 - Migración a MariaDB
 - Migrado de SQLite a MariaDB
 - Compatibilidad con Coolify
 - Inicialización automática de base de datos
 - Corrección de race conditions
+- Usuario admin configurable por variables de entorno
 - Mejoras en logging y debugging
+
+### v1.1.0 - Sistema de Autenticación
+- Agregado registro de usuarios
+- Login con RUT
+- Validaciones de RUT y email duplicados
+- Redirección automática según rol
 
 ### v1.0.0 - Versión Inicial
 - Sistema básico con SQLite

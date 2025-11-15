@@ -105,21 +105,33 @@ async function loadPendingRequests() {
         
         return `
           <div class="request-card" style="border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; border-radius: 5px;">
-            <h3>${req.student_name}</h3>
-            <p><strong>RUT:</strong> ${req.student_rut}</p>
-            <p><strong>Patente:</strong> ${req.vehicle_plate}</p>
-            <p><strong>Modelo:</strong> ${req.vehicle_model}</p>
-            <p><strong>Estado:</strong> ${getStatusBadge(req)}</p>
-            ${req.level1_approved === 1 ? `
-              <p style="color: green;"><strong>✅ Aprobado Nivel 1 por:</strong> ${req.level1_admin_name || 'Admin'} - ${req.level1_date ? new Date(req.level1_date).toLocaleString() : 'N/A'}</p>
-            ` : ''}
-            ${req.level2_approved === 1 ? `
-              <p style="color: green;"><strong>✅ Aprobado Nivel 2 por:</strong> ${req.level2_admin_name || 'Admin'} - ${req.level2_date ? new Date(req.level2_date).toLocaleString() : 'N/A'}</p>
-            ` : ''}
-            <button class="btn btn-primary" onclick="viewRequestDetails(${req.id})">Ver Detalles</button>
-            ${canApprove ? `<button class="btn btn-success" onclick="approveRequest(${req.id})">✅ Aprobar</button>` : ''}
-            <button class="btn btn-danger" onclick="rejectRequest(${req.id})">❌ Rechazar</button>
-            ${currentUser.role === 'admin_level2' ? `<button class="btn btn-secondary" onclick="deleteRequest(${req.id})" style="background: #6c757d;">🗑️ Eliminar</button>` : ''}
+            <div style="display: flex; gap: 15px;">
+              ${req.vehicle_photo_path ? `
+                <div style="flex-shrink: 0;">
+                  <img src="${req.vehicle_photo_path}" alt="Foto del vehículo" style="width: 150px; height: 150px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;">
+                </div>
+              ` : ''}
+              <div style="flex-grow: 1;">
+                <h3>${req.student_name}</h3>
+                <p><strong>RUT:</strong> ${req.student_rut}</p>
+                <p><strong>Patente:</strong> ${req.vehicle_plate}</p>
+                <p><strong>Modelo:</strong> ${req.vehicle_model}</p>
+                <p><strong>Color:</strong> ${req.vehicle_color}</p>
+                <p><strong>Estado:</strong> ${getStatusBadge(req)}</p>
+                ${req.level1_approved === 1 ? `
+                  <p style="color: green;"><strong>✅ Aprobado Nivel 1:</strong> ${req.level1_admin_name || 'Admin'} - ${req.level1_date ? new Date(req.level1_date).toLocaleString() : 'N/A'}</p>
+                ` : ''}
+                ${req.level2_approved === 1 ? `
+                  <p style="color: green;"><strong>✅ Aprobado Nivel 2:</strong> ${req.level2_admin_name || 'Admin'} - ${req.level2_date ? new Date(req.level2_date).toLocaleString() : 'N/A'}</p>
+                ` : ''}
+              </div>
+            </div>
+            <div style="margin-top: 10px;">
+              <button class="btn btn-primary" onclick="viewRequestDetails(${req.id})">Ver Detalles</button>
+              ${canApprove ? `<button class="btn btn-success" onclick="approveRequest(${req.id})">✅ Aprobar</button>` : ''}
+              <button class="btn btn-danger" onclick="rejectRequest(${req.id})">❌ Rechazar</button>
+              ${currentUser.role === 'admin_level2' ? `<button class="btn btn-secondary" onclick="deleteRequest(${req.id})" style="background: #6c757d;">🗑️ Eliminar</button>` : ''}
+            </div>
           </div>
         `;
       }).join('');
@@ -155,16 +167,28 @@ async function loadApprovedRequests() {
     if (data.requests && data.requests.length > 0) {
       container.innerHTML = data.requests.map(req => `
         <div class="request-card" style="border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; border-radius: 5px;">
-          <h3>${req.student_name}</h3>
-          <p><strong>RUT:</strong> ${req.student_rut}</p>
-          <p><strong>Patente:</strong> ${req.vehicle_plate}</p>
-          <p><strong>Modelo:</strong> ${req.vehicle_model}</p>
-          <p style="color: green;"><strong>✅ Aprobado Nivel 1:</strong> ${req.level1_date ? new Date(req.level1_date).toLocaleString() : 'N/A'}</p>
-          <p style="color: green;"><strong>✅ Aprobado Nivel 2:</strong> ${req.level2_date ? new Date(req.level2_date).toLocaleString() : 'N/A'}</p>
-          <button class="btn btn-primary" onclick="viewRequestDetails(${req.id})">Ver Detalles</button>
-          <button class="btn btn-success" onclick="downloadQR(${req.id})">📥 Ver QR</button>
-          <button class="btn btn-success" onclick="downloadForm(${req.id})">📄 Descargar Formulario</button>
-          ${currentUser.role === 'admin_level2' ? `<button class="btn btn-secondary" onclick="deleteRequest(${req.id})" style="background: #6c757d;">🗑️ Eliminar</button>` : ''}
+          <div style="display: flex; gap: 15px;">
+            ${req.vehicle_photo_path ? `
+              <div style="flex-shrink: 0;">
+                <img src="${req.vehicle_photo_path}" alt="Foto del vehículo" style="width: 150px; height: 150px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;">
+              </div>
+            ` : ''}
+            <div style="flex-grow: 1;">
+              <h3>${req.student_name}</h3>
+              <p><strong>RUT:</strong> ${req.student_rut}</p>
+              <p><strong>Patente:</strong> ${req.vehicle_plate}</p>
+              <p><strong>Modelo:</strong> ${req.vehicle_model}</p>
+              <p><strong>Color:</strong> ${req.vehicle_color}</p>
+              <p style="color: green;"><strong>✅ Aprobado Nivel 1:</strong> ${req.level1_admin_name || 'Admin'} - ${req.level1_date ? new Date(req.level1_date).toLocaleString() : 'N/A'}</p>
+              <p style="color: green;"><strong>✅ Aprobado Nivel 2:</strong> ${req.level2_admin_name || 'Admin'} - ${req.level2_date ? new Date(req.level2_date).toLocaleString() : 'N/A'}</p>
+            </div>
+          </div>
+          <div style="margin-top: 10px;">
+            <button class="btn btn-primary" onclick="viewRequestDetails(${req.id})">Ver Detalles</button>
+            <button class="btn btn-success" onclick="downloadQR(${req.id})">📥 Ver QR</button>
+            <button class="btn btn-success" onclick="downloadForm(${req.id})">📄 Descargar Formulario</button>
+            ${currentUser.role === 'admin_level2' ? `<button class="btn btn-secondary" onclick="deleteRequest(${req.id})" style="background: #6c757d;">🗑️ Eliminar</button>` : ''}
+          </div>
         </div>
       `).join('');
     } else {
@@ -184,25 +208,45 @@ async function loadRejectedRequests() {
     
     if (data.requests && data.requests.length > 0) {
       container.innerHTML = data.requests.map(req => {
+        // Determinar el nombre correcto según el nivel que rechazó
+        let rejectedByName = 'Admin';
+        if (req.denied_by_level === 1 && req.level1_admin_name) {
+          rejectedByName = req.level1_admin_name;
+        } else if (req.denied_by_level === 2 && req.level2_admin_name) {
+          rejectedByName = req.level2_admin_name;
+        } else if (req.rejected_by_name) {
+          rejectedByName = req.rejected_by_name;
+        }
+        
         console.log(`Solicitud rechazada ${req.id}:`, {
           denied_by_level: req.denied_by_level,
-          rejected_by_name: req.rejected_by_name,
-          level1_admin_id: req.level1_admin_id,
-          level2_admin_id: req.level2_admin_id,
+          rejected_by_name: rejectedByName,
           level1_admin_name: req.level1_admin_name,
           level2_admin_name: req.level2_admin_name
         });
         
         return `
           <div class="request-card" style="border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; border-radius: 5px;">
-            <h3>${req.student_name}</h3>
-            <p><strong>RUT:</strong> ${req.student_rut}</p>
-            <p><strong>Patente:</strong> ${req.vehicle_plate}</p>
-            <p><strong>Modelo:</strong> ${req.vehicle_model}</p>
-            <p style="color: red;"><strong>❌ Rechazada por:</strong> ${req.rejected_by_name || 'Admin'} (Nivel ${req.denied_by_level})</p>
-            <p><strong>Razón:</strong> ${req.denial_reason || 'No especificada'}</p>
-            <button class="btn btn-primary" onclick="viewRequestDetails(${req.id})">Ver Detalles</button>
-            ${currentUser.role === 'admin_level2' ? `<button class="btn btn-secondary" onclick="deleteRequest(${req.id})" style="background: #6c757d;">🗑️ Eliminar</button>` : ''}
+            <div style="display: flex; gap: 15px;">
+              ${req.vehicle_photo_path ? `
+                <div style="flex-shrink: 0;">
+                  <img src="${req.vehicle_photo_path}" alt="Foto del vehículo" style="width: 150px; height: 150px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;">
+                </div>
+              ` : ''}
+              <div style="flex-grow: 1;">
+                <h3>${req.student_name}</h3>
+                <p><strong>RUT:</strong> ${req.student_rut}</p>
+                <p><strong>Patente:</strong> ${req.vehicle_plate}</p>
+                <p><strong>Modelo:</strong> ${req.vehicle_model}</p>
+                <p><strong>Color:</strong> ${req.vehicle_color}</p>
+                <p style="color: red;"><strong>❌ Rechazada por:</strong> ${rejectedByName}</p>
+                <p><strong>Razón:</strong> ${req.denial_reason || 'No especificada'}</p>
+              </div>
+            </div>
+            <div style="margin-top: 10px;">
+              <button class="btn btn-primary" onclick="viewRequestDetails(${req.id})">Ver Detalles</button>
+              ${currentUser.role === 'admin_level2' ? `<button class="btn btn-secondary" onclick="deleteRequest(${req.id})" style="background: #6c757d;">🗑️ Eliminar</button>` : ''}
+            </div>
           </div>
         `;
       }).join('');
@@ -461,7 +505,11 @@ async function viewRequestDetails(id) {
           <p><strong>Comentarios:</strong> ${req.level2_comments || 'Sin comentarios'}</p>
         ` : ''}
         ${req.status === 'rejected' ? `
-          <p style="color: red;"><strong>❌ Rechazada por:</strong> ${req.rejected_by_name || 'Admin'} (Nivel ${req.denied_by_level})</p>
+          <p style="color: red;"><strong>❌ Rechazada por:</strong> ${
+            req.denied_by_level === 1 && req.level1_admin_name ? req.level1_admin_name :
+            req.denied_by_level === 2 && req.level2_admin_name ? req.level2_admin_name :
+            req.rejected_by_name || 'Admin'
+          }</p>
           <p><strong>Razón:</strong> ${req.denial_reason}</p>
         ` : ''}
       `;
