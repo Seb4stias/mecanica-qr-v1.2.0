@@ -687,3 +687,257 @@ textarea {
   margin-top: 10px;
   min-width: 100px;
 }
+
+
+/* ========================================
+   RESPONSIVE DESIGN - MOBILE FIRST
+   ======================================== */
+
+/* Tablets y pantallas medianas (768px - 1024px) */
+@media (max-width: 1024px) {
+  .container {
+    max-width: 95%;
+    padding: 0 1rem;
+  }
+
+  .navbar {
+    padding: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .nav-brand {
+    font-size: 1rem;
+  }
+
+  .nav-menu {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .tabs {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+  }
+
+  .tab-btn {
+    white-space: nowrap;
+    font-size: 0.9rem;
+    padding: 0.6rem 1rem;
+  }
+
+  .request-card {
+    padding: 1rem !important;
+  }
+
+  .request-card > div {
+    flex-direction: column !important;
+  }
+
+  .request-card img {
+    width: 100% !important;
+    max-width: 300px !important;
+    height: auto !important;
+  }
+
+  .btn {
+    font-size: 0.9rem;
+    padding: 0.6rem 1rem;
+  }
+}
+
+/* Móviles (hasta 768px) */
+@media (max-width: 768px) {
+  body {
+    font-size: 14px;
+  }
+
+  .navbar {
+    flex-direction: column;
+    padding: 0.8rem;
+    gap: 0.5rem;
+  }
+
+  .nav-brand {
+    font-size: 0.9rem;
+    text-align: center;
+  }
+
+  .nav-menu {
+    width: 100%;
+    justify-content: center;
+    font-size: 0.85rem;
+  }
+
+  .container {
+    margin: 1rem auto;
+    padding: 0 0.5rem;
+  }
+
+  .login-card {
+    width: 95% !important;
+    padding: 1.5rem !important;
+  }
+
+  .login-header h1 {
+    font-size: 1.3rem;
+  }
+
+  .tabs {
+    display: flex;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+
+  .tab-btn {
+    font-size: 0.8rem;
+    padding: 0.5rem 0.8rem;
+    min-width: fit-content;
+  }
+
+  .tab-content {
+    padding: 1rem 0.5rem;
+  }
+
+  .request-card {
+    padding: 0.8rem !important;
+    margin-bottom: 1rem !important;
+  }
+
+  .request-card h3 {
+    font-size: 1.1rem;
+  }
+
+  .request-card p {
+    font-size: 0.9rem;
+  }
+
+  .request-card > div {
+    flex-direction: column !important;
+    gap: 10px !important;
+  }
+
+  .request-card img {
+    width: 100% !important;
+    max-width: 250px !important;
+    height: auto !important;
+    margin: 0 auto;
+  }
+
+  .request-card > div:last-child {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .btn {
+    width: 100%;
+    font-size: 0.85rem;
+    padding: 0.6rem;
+    margin: 0.2rem 0;
+  }
+
+  .form-row {
+    flex-direction: column !important;
+  }
+
+  .form-group {
+    width: 100% !important;
+  }
+
+  input, textarea, select {
+    font-size: 16px !important; /* Evita zoom en iOS */
+  }
+
+  .modal-content {
+    width: 95% !important;
+    padding: 1.5rem !important;
+  }
+
+  table {
+    font-size: 0.8rem;
+  }
+
+  table th, table td {
+    padding: 0.5rem !important;
+  }
+
+  /* Scanner específico para móvil */
+  .video-container {
+    width: 100%;
+  }
+
+  #video {
+    width: 100%;
+    height: auto;
+  }
+
+  .result-card {
+    padding: 1rem !important;
+  }
+}
+
+/* Móviles pequeños (hasta 480px) */
+@media (max-width: 480px) {
+  .navbar {
+    padding: 0.5rem;
+  }
+
+  .nav-brand {
+    font-size: 0.8rem;
+  }
+
+  .login-card {
+    padding: 1rem !important;
+  }
+
+  .tab-btn {
+    font-size: 0.75rem;
+    padding: 0.4rem 0.6rem;
+  }
+
+  .request-card h3 {
+    font-size: 1rem;
+  }
+
+  .request-card p {
+    font-size: 0.85rem;
+  }
+
+  .btn {
+    font-size: 0.8rem;
+    padding: 0.5rem;
+  }
+
+  table {
+    display: block;
+    overflow-x: auto;
+  }
+}
+
+/* Pantallas grandes (1440px+) */
+@media (min-width: 1440px) {
+  .container {
+    max-width: 1400px;
+  }
+
+  .request-card {
+    padding: 20px !important;
+  }
+
+  .btn {
+    padding: 0.8rem 1.5rem;
+  }
+}
+
+/* Mejoras de accesibilidad táctil */
+@media (hover: none) and (pointer: coarse) {
+  .btn, .tab-btn, button {
+    min-height: 44px; /* Tamaño mínimo táctil recomendado */
+    min-width: 44px;
+  }
+
+  input, select, textarea {
+    min-height: 44px;
+  }
+}

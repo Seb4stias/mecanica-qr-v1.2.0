@@ -263,10 +263,11 @@ UPDATE users SET rut = '12345678-9' WHERE email = 'admin@inacap.cl';
 - Multer (subida de archivos/fotos)
 
 ### Frontend
-- HTML5 + CSS3
+- HTML5 + CSS3 (Responsive Design)
 - JavaScript Vanilla
 - jsQR (lectura de códigos QR con cámara)
 - Fetch API (comunicación con backend)
+- Mobile-first design (compatible con móviles, tablets y PC)
 
 ## Páginas del Sistema
 
@@ -352,7 +353,13 @@ Este proyecto fue migrado de SQLite a MariaDB para compatibilidad con Coolify.
 
 ## Historial de Versiones
 
-### v1.2.2 - Versión Estable (Actual)
+### v1.2.3 - Versión Estable (Actual)
+- ✅ PDF mejorado con foto del vehículo y modificaciones
+- ✅ Diseño responsive (móvil, tablet, PC)
+- ✅ Interfaz optimizada para pantallas táctiles
+- ✅ Mejoras de accesibilidad
+
+### v1.2.2 - Correcciones QR
 - ✅ Generación automática de carpetas para QR y uploads
 - ✅ Corrección de estado "approved" cuando ambos niveles aprueban
 - ✅ Visualización de fotos de vehículos en todas las listas

@@ -383,20 +383,69 @@ async function generateQRCode(requestId, requestData) {
  */
 async function generatePDF(requestData, qrImagePath, pdfPath) {
   return new Promise((resolve, reject) => {
-    const doc = new PDFDocument();
+    const doc = new PDFDocument({ margin: 50 });
     const stream = fs.createWriteStream(pdfPath);
 
     doc.pipe(stream);
 
-    doc.fontSize(20).text('Permiso de Acceso Vehicular', { align: 'center' });
-    doc.moveDown();
-    doc.fontSize(12).text(`Estudiante: ${requestData.student_name}`);
+    // Título
+    doc.fontSize(24).font('Helvetica-Bold').text('PERMISO DE ACCESO VEHICULAR', { align: 'center' });
+    doc.fontSize(14).font('Helvetica').text('INACAP - Área de Mecánica', { align: 'center' });
+    doc.moveDown(2);
+
+    // Información del Estudiante
+    doc.fontSize(16).font('Helvetica-Bold').text('DATOS DEL ESTUDIANTE');
+    doc.moveDown(0.5);
+    doc.fontSize(12).font('Helvetica');
+    doc.text(`Nombre: ${requestData.student_name}`);
     doc.text(`RUT: ${requestData.student_rut}`);
+    doc.text(`Carrera: ${requestData.student_carrera || 'No especificada'}`);
+    doc.text(`Email: ${requestData.student_email}`);
+    doc.text(`Teléfono: ${requestData.student_phone || 'No especificado'}`);
+    doc.moveDown(1.5);
+
+    // Información del Vehículo
+    doc.fontSize(16).font('Helvetica-Bold').text('DATOS DEL VEHÍCULO');
+    doc.moveDown(0.5);
+    doc.fontSize(12).font('Helvetica');
     doc.text(`Patente: ${requestData.vehicle_plate}`);
     doc.text(`Modelo: ${requestData.vehicle_model}`);
     doc.text(`Color: ${requestData.vehicle_color}`);
-    doc.moveDown();
+    doc.text(`Ubicación Garaje: ${requestData.garage_location || 'No especificada'}`);
+    doc.moveDown(1);
+
+    // Modificaciones
+    if (requestData.modifications_description) {
+      doc.fontSize(16).font('Helvetica-Bold').text('MODIFICACIONES DEL VEHÍCULO');
+      doc.moveDown(0.5);
+      doc.fontSize(12).font('Helvetica');
+      doc.text(requestData.modifications_description, { width: 500 });
+      doc.moveDown(1);
+    }
+
+    // Foto del vehículo si existe
+    if (requestData.vehicle_photo_path) {
+      try {
+        const photoPath = path.join(__dirname, '../../', requestData.vehicle_photo_path);
+        if (fs.existsSync(photoPath)) {
+          doc.fontSize(16).font('Helvetica-Bold').text('FOTO DEL VEHÍCULO');
+          doc.moveDown(0.5);
+          doc.image(photoPath, { width: 300, align: 'center' });
+          doc.moveDown(1);
+        }
+      } catch (error) {
+        console.error('Error agregando foto al PDF:', error);
+      }
+    }
+
+    // Código QR
+    doc.fontSize(16).font('Helvetica-Bold').text('CÓDIGO QR DE ACCESO', { align: 'center' });
+    doc.moveDown(0.5);
     doc.image(qrImagePath, { width: 200, align: 'center' });
+    doc.moveDown(1);
+
+    // Fecha de emisión
+    doc.fontSize(10).font('Helvetica').text(`Fecha de emisión: ${new Date().toLocaleDateString('es-CL')}`, { align: 'center' });
 
     doc.end();
 
