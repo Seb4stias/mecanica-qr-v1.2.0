@@ -50,7 +50,7 @@ async function setupDatabase() {
       port: parseInt(process.env.DB_PORT) || 3306
     });
 
-    const dbName = process.env.DB_DATABASE || 'mecanica';
+    const dbName = process.env.DB_DATABASE || 'mecanicav2';
     
     // Crear la base de datos si no existe
     await connection.query(`CREATE DATABASE IF NOT EXISTS \`${dbName}\` 
