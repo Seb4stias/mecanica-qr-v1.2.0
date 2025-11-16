@@ -715,28 +715,28 @@ async function onScanSuccess(decodedText, decodedResult) {
     const scanResult = document.getElementById('scanResult');
     
     if (data.success && data.valid) {
-      // Obtener la foto del vehículo
-      const requestId = JSON.parse(decodedText).requestId;
-      const requestResponse = await fetch(`/api/admin/requests/${requestId}`);
-      const requestData = await requestResponse.json();
+      // La foto viene directamente del endpoint de validación
+      const vehiclePhoto = data.data.vehiclePhotoPath || null;
       
-      const vehiclePhoto = requestData.request?.vehicle_photo_path || null;
+      console.log('Foto del vehículo:', vehiclePhoto);
       
       scanResult.innerHTML = `
         <div style="padding: 20px; background: #d4edda; border: 2px solid #28a745; border-radius: 10px; margin-top: 20px;">
           <h2 style="color: #155724; margin-top: 0;">✅ ACCESO AUTORIZADO</h2>
           ${vehiclePhoto ? `
             <div style="text-align: center; margin: 20px 0;">
-              <img src="${vehiclePhoto}" alt="Foto del vehículo" style="max-width: 100%; max-height: 300px; border-radius: 10px; border: 3px solid #28a745;">
+              <img src="/${vehiclePhoto}" alt="Foto del vehículo" style="max-width: 100%; max-height: 400px; border-radius: 10px; border: 3px solid #28a745; display: block; margin: 0 auto;" onerror="console.error('Error cargando imagen:', this.src); this.style.display='none';">
             </div>
-          ` : ''}
-          <p><strong>Estudiante:</strong> ${data.data.studentName}</p>
-          <p><strong>RUT:</strong> ${data.data.studentRut}</p>
-          <p><strong>Patente:</strong> ${data.data.vehiclePlate}</p>
-          <p><strong>Modelo:</strong> ${data.data.vehicleModel}</p>
-          <p><strong>Color:</strong> ${data.data.vehicleColor}</p>
-          ${data.data.expiresAt ? `<p><strong>Válido hasta:</strong> ${new Date(data.data.expiresAt).toLocaleDateString('es-CL')}</p>` : ''}
-          <button class="btn btn-primary" onclick="resumeScanner()" style="margin-top: 15px;">Escanear Otro QR</button>
+          ` : '<p style="color: #856404; background: #fff3cd; padding: 10px; border-radius: 5px;">⚠️ No hay foto del vehículo disponible</p>'}
+          <div style="text-align: left; margin-top: 15px;">
+            <p><strong>Estudiante:</strong> ${data.data.studentName}</p>
+            <p><strong>RUT:</strong> ${data.data.studentRut}</p>
+            <p><strong>Patente:</strong> ${data.data.vehiclePlate}</p>
+            <p><strong>Modelo:</strong> ${data.data.vehicleModel}</p>
+            <p><strong>Color:</strong> ${data.data.vehicleColor}</p>
+            ${data.data.expiresAt ? `<p><strong>Válido hasta:</strong> ${new Date(data.data.expiresAt).toLocaleDateString('es-CL')}</p>` : ''}
+          </div>
+          <button class="btn btn-primary" onclick="resumeScanner()" style="margin-top: 15px; width: 100%;">Escanear Otro QR</button>
         </div>
       `;
     } else {
