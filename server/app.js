@@ -6,6 +6,9 @@ require('dotenv').config();
 
 const app = express();
 
+// Trust proxy - necesario para Coolify/Docker
+app.set('trust proxy', 1);
+
 // Security middleware - DESHABILITADO TEMPORALMENTE PARA DESARROLLO
 // if (process.env.NODE_ENV === 'production') {
 //   app.use(helmet());
