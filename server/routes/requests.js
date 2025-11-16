@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
 const { requireAuth } = require('../middleware/auth');
 const db = require('../config/database');
 
@@ -183,6 +184,15 @@ router.get('/:id/qr', requireAuth, async (req, res, next) => {
     const qrPath = path.join(__dirname, '../../', qrCode.qr_image_path);
     console.log('🔍 Path completo:', qrPath);
     
+    // Verificar que el archivo existe antes de intentar descargarlo
+    if (!fs.existsSync(qrPath)) {
+      console.error(`❌ Archivo QR no encontrado: ${qrPath}`);
+      return res.status(404).json({
+        success: false,
+        message: `ENOENT: no such file or directory, stat '${qrPath}'`
+      });
+    }
+    
     res.download(qrPath, `QR-${request.vehicle_plate}.png`);
   } catch (error) {
     next(error);
@@ -236,6 +246,15 @@ router.get('/:id/pdf', requireAuth, async (req, res, next) => {
     console.log('🔍 PDF path en BD:', qrCode.pdf_path);
     const pdfPath = path.join(__dirname, '../../', qrCode.pdf_path);
     console.log('🔍 Path completo PDF:', pdfPath);
+    
+    // Verificar que el archivo existe antes de intentar descargarlo
+    if (!fs.existsSync(pdfPath)) {
+      console.error(`❌ Archivo PDF no encontrado: ${pdfPath}`);
+      return res.status(404).json({
+        success: false,
+        message: `ENOENT: no such file or directory, stat '${pdfPath}'`
+      });
+    }
     
     res.download(pdfPath, `Permiso-${request.vehicle_plate}.pdf`);
   } catch (error) {

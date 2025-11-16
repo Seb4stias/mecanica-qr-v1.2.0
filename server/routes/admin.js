@@ -339,11 +339,16 @@ router.delete('/requests/:id', requireRole('admin_level2'), async (req, res, nex
 async function generateQRCode(requestId, requestData) {
   const pool = db.getPool();
   
-  // Crear carpeta qr-codes si no existe
+  // Crear carpeta qr-codes si no existe (ruta absoluta)
   const qrDir = path.join(__dirname, '../../public/qr-codes');
+  console.log(`📁 Verificando directorio QR: ${qrDir}`);
+  
   if (!fs.existsSync(qrDir)) {
+    console.log(`📁 Creando directorio: ${qrDir}`);
     fs.mkdirSync(qrDir, { recursive: true });
-    console.log('📁 Carpeta qr-codes creada');
+    console.log('✅ Carpeta qr-codes creada');
+  } else {
+    console.log('✅ Directorio qr-codes ya existe');
   }
   
   const qrData = JSON.stringify({
@@ -354,30 +359,59 @@ async function generateQRCode(requestId, requestData) {
     generatedAt: new Date().toISOString()
   });
 
-  // Generar imagen QR
+  // Generar imagen QR (ruta absoluta)
   const qrImagePath = path.join(qrDir, `qr-${requestId}.png`);
   console.log(`📝 Generando QR en: ${qrImagePath}`);
-  await QRCode.toFile(qrImagePath, qrData);
-  console.log(`✅ QR generado exitosamente`);
+  
+  try {
+    await QRCode.toFile(qrImagePath, qrData);
+    console.log(`✅ QR generado exitosamente`);
+    
+    // Verificar que el archivo existe
+    if (fs.existsSync(qrImagePath)) {
+      console.log(`✅ Archivo QR verificado: ${qrImagePath}`);
+    } else {
+      throw new Error(`Archivo QR no encontrado después de generación: ${qrImagePath}`);
+    }
+  } catch (error) {
+    console.error(`❌ Error generando QR:`, error);
+    throw error;
+  }
 
-  // Generar PDF
+  // Generar PDF (ruta absoluta)
   const pdfPath = path.join(qrDir, `permit-${requestId}.pdf`);
   console.log(`📝 Generando PDF en: ${pdfPath}`);
-  await generatePDF(requestData, qrImagePath, pdfPath);
-  console.log(`✅ PDF generado exitosamente`);
+  
+  try {
+    await generatePDF(requestData, qrImagePath, pdfPath);
+    console.log(`✅ PDF generado exitosamente`);
+    
+    // Verificar que el archivo existe
+    if (fs.existsSync(pdfPath)) {
+      console.log(`✅ Archivo PDF verificado: ${pdfPath}`);
+    } else {
+      throw new Error(`Archivo PDF no encontrado después de generación: ${pdfPath}`);
+    }
+  } catch (error) {
+    console.error(`❌ Error generando PDF:`, error);
+    throw error;
+  }
 
   // Calcular fecha de expiración
   const expiryDays = parseInt(process.env.QR_EXPIRY_DAYS) || 30;
   const expiresAt = expiryDays > 0 ? new Date(Date.now() + expiryDays * 24 * 60 * 60 * 1000) : null;
 
   // Guardar en base de datos con rutas relativas desde la raíz del proyecto
+  const relativeQrPath = `public/qr-codes/qr-${requestId}.png`;
+  const relativePdfPath = `public/qr-codes/permit-${requestId}.pdf`;
+  
   await pool.query(
     `INSERT INTO qr_codes (request_id, qr_data, qr_image_path, pdf_path, expires_at, is_active)
      VALUES (?, ?, ?, ?, ?, 1)`,
-    [requestId, qrData, `public/qr-codes/qr-${requestId}.png`, `public/qr-codes/permit-${requestId}.pdf`, expiresAt]
+    [requestId, qrData, relativeQrPath, relativePdfPath, expiresAt]
   );
   
-  console.log(`💾 Rutas guardadas en BD: public/qr-codes/qr-${requestId}.png`);
+  console.log(`💾 Rutas guardadas en BD: ${relativeQrPath}, ${relativePdfPath}`);
 }
 
 /**

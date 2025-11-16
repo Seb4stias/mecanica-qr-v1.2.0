@@ -2,6 +2,8 @@ require('dotenv').config();
 const mysql = require('mysql2/promise');
 const bcrypt = require('bcrypt');
 const db = require('./config/database');
+const fs = require('fs');
+const path = require('path');
 
 const PORT = process.env.PORT || 6777;
 
@@ -34,6 +36,23 @@ async function createDefaultAdmin() {
   } catch (error) {
     console.error('⚠️  Error al crear usuario admin:', error.message);
   }
+}
+
+/**
+ * Crear directorios necesarios
+ */
+function createRequiredDirectories() {
+  const directories = [
+    path.join(__dirname, '../public/qr-codes'),
+    path.join(__dirname, '../public/uploads')
+  ];
+
+  directories.forEach(dir => {
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+      console.log(`✓ Directorio creado: ${dir}`);
+    }
+  });
 }
 
 /**
@@ -93,6 +112,10 @@ async function setupDatabase() {
     }
   }
 }
+
+// Crear directorios necesarios primero
+console.log('📁 Creando directorios necesarios...');
+createRequiredDirectories();
 
 // Configurar base de datos y luego iniciar servidor
 console.log('🔄 Iniciando configuración de base de datos...');
