@@ -7,7 +7,7 @@ const db = require('../config/database');
  * POST /api/scanner/validate
  * Validar código QR escaneado
  */
-router.post('/validate', requireRole('scanner'), async (req, res, next) => {
+router.post('/validate', requireRole('scanner', 'admin_level1', 'admin_level2'), async (req, res, next) => {
   try {
     const { qrData } = req.body;
 
@@ -32,7 +32,7 @@ router.post('/validate', requireRole('scanner'), async (req, res, next) => {
 
     // Buscar el QR en la base de datos
     const [qrCodes] = await pool.query(
-      `SELECT qr.*, r.student_name, r.student_rut, r.vehicle_plate, r.vehicle_model, r.vehicle_color, r.status
+      `SELECT qr.*, r.student_name, r.student_rut, r.vehicle_plate, r.vehicle_model, r.vehicle_color, r.status, r.vehicle_photo_path
        FROM qr_codes qr
        JOIN requests r ON qr.request_id = r.id
        WHERE qr.request_id = ? AND qr.is_active = 1`,
@@ -90,6 +90,7 @@ router.post('/validate', requireRole('scanner'), async (req, res, next) => {
         vehiclePlate: qrCode.vehicle_plate,
         vehicleModel: qrCode.vehicle_model,
         vehicleColor: qrCode.vehicle_color,
+        vehiclePhotoPath: qrCode.vehicle_photo_path,
         expiresAt: qrCode.expires_at
       }
     });

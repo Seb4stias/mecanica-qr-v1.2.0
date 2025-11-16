@@ -45,6 +45,8 @@ async function checkSession() {
   }
 }
 
+let html5QrCode = null;
+
 function showTab(tabName) {
   // Ocultar todos los tabs
   document.querySelectorAll('.tab-content').forEach(tab => {
@@ -69,6 +71,9 @@ function showTab(tabName) {
       break;
     case 'denegadas':
       loadRejectedRequests();
+      break;
+    case 'scanner':
+      loadScanner();
       break;
     case 'usuarios':
       loadUsers();
@@ -187,6 +192,7 @@ async function loadApprovedRequests() {
             <button class="btn btn-primary" onclick="viewRequestDetails(${req.id})">Ver Detalles</button>
             <button class="btn btn-success" onclick="downloadQR(${req.id})">📥 Ver QR</button>
             <button class="btn btn-success" onclick="downloadForm(${req.id})">📄 Descargar Formulario</button>
+            <button class="btn btn-warning" onclick="regenerateQR(${req.id})" style="background: #ffc107; color: #000;">🔄 Regenerar QR</button>
             ${currentUser.role === 'admin_level2' ? `<button class="btn btn-secondary" onclick="deleteRequest(${req.id})" style="background: #6c757d;">🗑️ Eliminar</button>` : ''}
           </div>
         </div>
@@ -575,6 +581,30 @@ async function rejectRequest(id) {
   }
 }
 
+async function regenerateQR(requestId) {
+  if (!confirm('¿Desea regenerar el código QR y PDF para esta solicitud?')) {
+    return;
+  }
+  
+  try {
+    const response = await fetch(`/api/admin/requests/${requestId}/regenerate-qr`, {
+      method: 'POST'
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      alert('✅ QR y PDF regenerados exitosamente');
+      loadApprovedRequests();
+    } else {
+      alert('❌ ' + data.message);
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Error al regenerar QR');
+  }
+}
+
 async function deleteRequest(requestId) {
   if (!confirm('¿Está seguro de que desea eliminar esta solicitud? Esta acción no se puede deshacer.')) {
     return;
@@ -626,5 +656,122 @@ async function logout() {
   } catch (error) {
     console.error('Error al cerrar sesión:', error);
     window.location.href = '/index.html';
+  }
+}
+
+async function loadScanner() {
+  const scanResult = document.getElementById('scanResult');
+  scanResult.innerHTML = '<p>Iniciando cámara...</p>';
+  
+  // Detener scanner anterior si existe
+  if (html5QrCode && html5QrCode.isScanning) {
+    try {
+      await html5QrCode.stop();
+    } catch (e) {
+      console.log('Scanner ya estaba detenido');
+    }
+  }
+  
+  // Crear nuevo scanner
+  html5QrCode = new Html5Qrcode("reader");
+  
+  const config = { 
+    fps: 10, 
+    qrbox: { width: 250, height: 250 },
+    aspectRatio: 1.0
+  };
+  
+  try {
+    await html5QrCode.start(
+      { facingMode: "environment" },
+      config,
+      onScanSuccess,
+      onScanError
+    );
+    scanResult.innerHTML = '<p style="color: blue;">📷 Cámara activa. Apunte al código QR...</p>';
+  } catch (err) {
+    console.error('Error iniciando scanner:', err);
+    scanResult.innerHTML = `<p style="color: red;">❌ Error al iniciar cámara: ${err}</p>`;
+  }
+}
+
+async function onScanSuccess(decodedText, decodedResult) {
+  console.log('QR escaneado:', decodedText);
+  
+  // Detener el scanner temporalmente
+  if (html5QrCode && html5QrCode.isScanning) {
+    await html5QrCode.pause(true);
+  }
+  
+  // Validar el QR
+  try {
+    const response = await fetch('/api/scanner/validate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ qrData: decodedText })
+    });
+    
+    const data = await response.json();
+    const scanResult = document.getElementById('scanResult');
+    
+    if (data.success && data.valid) {
+      // Obtener la foto del vehículo
+      const requestId = JSON.parse(decodedText).requestId;
+      const requestResponse = await fetch(`/api/admin/requests/${requestId}`);
+      const requestData = await requestResponse.json();
+      
+      const vehiclePhoto = requestData.request?.vehicle_photo_path || null;
+      
+      scanResult.innerHTML = `
+        <div style="padding: 20px; background: #d4edda; border: 2px solid #28a745; border-radius: 10px; margin-top: 20px;">
+          <h2 style="color: #155724; margin-top: 0;">✅ ACCESO AUTORIZADO</h2>
+          ${vehiclePhoto ? `
+            <div style="text-align: center; margin: 20px 0;">
+              <img src="${vehiclePhoto}" alt="Foto del vehículo" style="max-width: 100%; max-height: 300px; border-radius: 10px; border: 3px solid #28a745;">
+            </div>
+          ` : ''}
+          <p><strong>Estudiante:</strong> ${data.data.studentName}</p>
+          <p><strong>RUT:</strong> ${data.data.studentRut}</p>
+          <p><strong>Patente:</strong> ${data.data.vehiclePlate}</p>
+          <p><strong>Modelo:</strong> ${data.data.vehicleModel}</p>
+          <p><strong>Color:</strong> ${data.data.vehicleColor}</p>
+          ${data.data.expiresAt ? `<p><strong>Válido hasta:</strong> ${new Date(data.data.expiresAt).toLocaleDateString('es-CL')}</p>` : ''}
+          <button class="btn btn-primary" onclick="resumeScanner()" style="margin-top: 15px;">Escanear Otro QR</button>
+        </div>
+      `;
+    } else {
+      scanResult.innerHTML = `
+        <div style="padding: 20px; background: #f8d7da; border: 2px solid #dc3545; border-radius: 10px; margin-top: 20px;">
+          <h2 style="color: #721c24; margin-top: 0;">❌ ACCESO DENEGADO</h2>
+          <p><strong>Razón:</strong> ${data.message}</p>
+          ${data.data ? `
+            <p><strong>Estudiante:</strong> ${data.data.studentName || 'N/A'}</p>
+            <p><strong>RUT:</strong> ${data.data.studentRut || 'N/A'}</p>
+            <p><strong>Patente:</strong> ${data.data.vehiclePlate || 'N/A'}</p>
+          ` : ''}
+          <button class="btn btn-primary" onclick="resumeScanner()" style="margin-top: 15px;">Escanear Otro QR</button>
+        </div>
+      `;
+    }
+  } catch (error) {
+    console.error('Error validando QR:', error);
+    document.getElementById('scanResult').innerHTML = `
+      <div style="padding: 20px; background: #f8d7da; border: 2px solid #dc3545; border-radius: 10px; margin-top: 20px;">
+        <h2 style="color: #721c24; margin-top: 0;">❌ ERROR</h2>
+        <p>Error al validar el código QR</p>
+        <button class="btn btn-primary" onclick="resumeScanner()" style="margin-top: 15px;">Intentar de Nuevo</button>
+      </div>
+    `;
+  }
+}
+
+function onScanError(errorMessage) {
+  // Ignorar errores de escaneo (son normales cuando no hay QR visible)
+}
+
+async function resumeScanner() {
+  document.getElementById('scanResult').innerHTML = '<p style="color: blue;">📷 Cámara activa. Apunte al código QR...</p>';
+  if (html5QrCode) {
+    await html5QrCode.resume();
   }
 }

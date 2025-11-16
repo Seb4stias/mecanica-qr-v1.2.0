@@ -296,6 +296,60 @@ router.post('/requests/:id/reject', requireRole('admin_level1', 'admin_level2'),
 });
 
 /**
+ * POST /api/admin/requests/:id/regenerate-qr
+ * Regenerar QR y PDF para una solicitud aprobada
+ */
+router.post('/requests/:id/regenerate-qr', requireRole('admin_level1', 'admin_level2'), async (req, res, next) => {
+  try {
+    const requestId = req.params.id;
+    const pool = db.getPool();
+
+    console.log(`🔄 Regenerando QR para solicitud ${requestId}`);
+
+    // Verificar que la solicitud existe y está aprobada
+    const [requests] = await pool.query('SELECT * FROM requests WHERE id = ?', [requestId]);
+    
+    if (requests.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Solicitud no encontrada'
+      });
+    }
+
+    const request = requests[0];
+
+    if (request.status !== 'approved') {
+      return res.status(400).json({
+        success: false,
+        message: 'Solo se pueden regenerar QR de solicitudes aprobadas'
+      });
+    }
+
+    // Eliminar QR anterior si existe
+    await pool.query('DELETE FROM qr_codes WHERE request_id = ?', [requestId]);
+
+    // Generar nuevo QR
+    try {
+      await generateQRCode(requestId, request);
+      console.log(`✅ QR y PDF regenerados para solicitud ${requestId}`);
+
+      res.json({
+        success: true,
+        message: 'QR y PDF regenerados exitosamente'
+      });
+    } catch (qrError) {
+      console.error(`❌ Error regenerando QR:`, qrError);
+      res.status(500).json({
+        success: false,
+        message: 'Error al regenerar QR: ' + qrError.message
+      });
+    }
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
  * DELETE /api/admin/requests/:id
  * Eliminar solicitud (solo admin nivel 2)
  */

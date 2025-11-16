@@ -20,6 +20,7 @@
       <button class="tab-btn active" onclick="showTab('pendientes')">Pendientes</button>
       <button class="tab-btn" onclick="showTab('aprobadas')">Aprobadas</button>
       <button class="tab-btn" onclick="showTab('denegadas')">Denegadas</button>
+      <button class="tab-btn" onclick="showTab('scanner')">📷 Escáner QR</button>
       <button class="tab-btn" id="usersTab" onclick="showTab('usuarios')" style="display:none">Usuarios</button>
       <button class="tab-btn" onclick="showTab('mi-cuenta')">Mi Cuenta</button>
     </div>
@@ -37,6 +38,16 @@
     <div id="denegadas-tab" class="tab-content">
       <h2>Solicitudes Denegadas</h2>
       <div id="denegadasList"></div>
+    </div>
+
+    <div id="scanner-tab" class="tab-content">
+      <h2>📷 Escáner de Códigos QR</h2>
+      <div id="scannerContent">
+        <div style="max-width: 600px; margin: 0 auto;">
+          <div id="reader" style="width: 100%;"></div>
+          <div id="scanResult" style="margin-top: 20px;"></div>
+        </div>
+      </div>
     </div>
 
     <div id="usuarios-tab" class="tab-content">
@@ -58,6 +69,7 @@
     </div>
   </div>
 
-  <script src="/js/admin.js?v=12"></script>
+  <script src="https://unpkg.com/html5-qrcode"></script>
+  <script src="/js/admin.js?v=13"></script>
 </body>
 </html>
