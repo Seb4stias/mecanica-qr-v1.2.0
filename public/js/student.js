@@ -10,6 +10,30 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 });
 
+// Funciones del Drawer (Menú Hamburguesa)
+function toggleDrawer() {
+  const drawer = document.querySelector('.drawer');
+  const overlay = document.querySelector('.drawer-overlay');
+  drawer.classList.toggle('open');
+  overlay.classList.toggle('open');
+}
+
+function closeDrawer() {
+  const drawer = document.querySelector('.drawer');
+  const overlay = document.querySelector('.drawer-overlay');
+  drawer.classList.remove('open');
+  overlay.classList.remove('open');
+}
+
+function showTabFromDrawer(tabName) {
+  closeDrawer();
+  document.querySelectorAll('.drawer-item').forEach(item => {
+    item.classList.remove('active');
+  });
+  event.target.closest('.drawer-item').classList.add('active');
+  showTab(tabName);
+}
+
 async function checkSession() {
   try {
     console.log('📡 Student: Consultando /api/auth/session...');

@@ -10,6 +10,35 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 });
 
+// Funciones del Drawer (Menú Hamburguesa)
+function toggleDrawer() {
+  const drawer = document.querySelector('.drawer');
+  const overlay = document.querySelector('.drawer-overlay');
+  drawer.classList.toggle('open');
+  overlay.classList.toggle('open');
+}
+
+function closeDrawer() {
+  const drawer = document.querySelector('.drawer');
+  const overlay = document.querySelector('.drawer-overlay');
+  drawer.classList.remove('open');
+  overlay.classList.remove('open');
+}
+
+function showTabFromDrawer(tabName) {
+  // Cerrar el drawer
+  closeDrawer();
+  
+  // Actualizar tabs del drawer
+  document.querySelectorAll('.drawer-item').forEach(item => {
+    item.classList.remove('active');
+  });
+  event.target.closest('.drawer-item').classList.add('active');
+  
+  // Mostrar el tab correspondiente
+  showTab(tabName);
+}
+
 async function checkSession() {
   try {
     const response = await fetch('/api/auth/session');
@@ -35,6 +64,10 @@ async function checkSession() {
     // Mostrar tab de usuarios solo para admin_level2
     if (data.user.role === 'admin_level2') {
       document.getElementById('usersTab').style.display = 'block';
+      const usersDrawerTab = document.getElementById('usersDrawerTab');
+      if (usersDrawerTab) {
+        usersDrawerTab.style.display = 'block';
+      }
     }
     
     return true;

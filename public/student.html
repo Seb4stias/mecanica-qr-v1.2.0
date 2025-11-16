@@ -8,7 +8,13 @@
 </head>
 <body>
   <nav class="navbar">
+    <button class="hamburger-btn" onclick="toggleDrawer()" aria-label="Menú">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
     <div class="nav-brand">
+      <img src="/images/logo.png" alt="Logo" class="nav-logo">
       <span class="brand-full">Sistema de Acceso Vehicular - INACAP</span>
       <span class="brand-short">Estudiante - INACAP</span>
     </div>
@@ -18,8 +24,31 @@
     </div>
   </nav>
 
+  <!-- Drawer lateral para móvil -->
+  <div class="drawer-overlay" onclick="closeDrawer()"></div>
+  <div class="drawer">
+    <div class="drawer-header">
+      <h3>Menú</h3>
+      <button class="drawer-close" onclick="closeDrawer()">&times;</button>
+    </div>
+    <nav class="drawer-nav">
+      <button class="drawer-item active" onclick="showTabFromDrawer('nueva')">
+        <span class="drawer-icon">📝</span>
+        Nueva Solicitud
+      </button>
+      <button class="drawer-item" onclick="showTabFromDrawer('mis-solicitudes')">
+        <span class="drawer-icon">📋</span>
+        Mis Solicitudes
+      </button>
+      <button class="drawer-item" onclick="showTabFromDrawer('mi-cuenta')">
+        <span class="drawer-icon">👤</span>
+        Mi Cuenta
+      </button>
+    </nav>
+  </div>
+
   <div class="container">
-    <div class="tabs">
+    <div class="tabs tabs-desktop">
       <button class="tab-btn active" onclick="showTab('nueva')">Nueva Solicitud</button>
       <button class="tab-btn" onclick="showTab('mis-solicitudes')">Mis Solicitudes</button>
       <button class="tab-btn" onclick="showTab('mi-cuenta')">Mi Cuenta</button>
