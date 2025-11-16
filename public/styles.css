@@ -10,6 +10,10 @@ body {
   line-height: 1.6;
   color: #333;
   background-color: #ffffff;
+  overflow-x: hidden;
+  width: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 /* Navbar */
@@ -57,6 +61,8 @@ body {
   max-width: 1200px;
   margin: 2rem auto;
   padding: 0 1rem;
+  width: 100%;
+  overflow-x: hidden;
 }
 
 /* Login Container */
@@ -212,6 +218,24 @@ textarea {
   gap: 0.5rem;
   margin-bottom: 2rem;
   border-bottom: 2px solid #ddd;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: #6a1b9a #f0f0f0;
+}
+
+.tabs::-webkit-scrollbar {
+  height: 6px;
+}
+
+.tabs::-webkit-scrollbar-track {
+  background: #f0f0f0;
+  border-radius: 3px;
+}
+
+.tabs::-webkit-scrollbar-thumb {
+  background: #6a1b9a;
+  border-radius: 3px;
 }
 
 .tab-btn {
@@ -223,6 +247,8 @@ textarea {
   font-size: 1rem;
   color: #666;
   transition: all 0.3s;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .tab-btn:hover {
@@ -715,6 +741,51 @@ textarea {
 }
 
 
+/* Tablas Responsive */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+table thead {
+  background: #6a1b9a;
+  color: white;
+}
+
+table th,
+table td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+table th {
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+table tbody tr:hover {
+  background: #f5f5f5;
+}
+
+table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Contenedor de tabla con scroll horizontal */
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: 1rem 0;
+}
+
 /* ========================================
    RESPONSIVE DESIGN - MOBILE FIRST
    ======================================== */
@@ -815,8 +886,18 @@ textarea {
   }
 
   .container {
-    margin: 1rem auto;
-    padding: 0 0.5rem;
+    margin: 0.5rem auto;
+    padding: 0 0.8rem;
+    max-width: 100%;
+  }
+
+  .tab-content {
+    padding: 0.5rem 0;
+  }
+
+  .tab-content h2 {
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
   }
 
   .login-card {
@@ -877,25 +958,40 @@ textarea {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+    margin-top: 1rem;
+  }
+
+  .request-card .btn {
+    width: 100% !important;
+    font-size: 0.85rem;
+    padding: 0.7rem;
+    margin: 0.2rem 0 !important;
+    display: block !important;
   }
 
   .btn {
-    width: 100%;
     font-size: 0.85rem;
-    padding: 0.6rem;
-    margin: 0.2rem 0;
+    padding: 0.6rem 1rem;
   }
 
   .form-row {
-    flex-direction: column !important;
+    grid-template-columns: 1fr !important;
+    gap: 0.5rem !important;
   }
 
   .form-group {
     width: 100% !important;
+    margin-bottom: 0.8rem !important;
   }
 
   input, textarea, select {
     font-size: 16px !important; /* Evita zoom en iOS */
+    padding: 0.7rem !important;
+  }
+
+  label {
+    font-size: 0.9rem;
+    margin-bottom: 0.3rem;
   }
 
   .modal-content {
@@ -903,12 +999,30 @@ textarea {
     padding: 1.5rem !important;
   }
 
+  /* Tablas en móvil */
   table {
+    font-size: 0.85rem;
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  table thead,
+  table tbody,
+  table tr {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+  }
+
+  table th,
+  table td {
+    padding: 0.6rem 0.4rem !important;
     font-size: 0.8rem;
   }
 
-  table th, table td {
-    padding: 0.5rem !important;
+  table th {
+    font-size: 0.75rem;
   }
 
   /* Scanner específico para móvil */
@@ -988,9 +1102,45 @@ textarea {
     padding: 0.5rem;
   }
 
+  /* Tablas en móviles pequeños - Modo tarjeta */
   table {
+    border: 0;
+  }
+
+  table thead {
+    display: none; /* Ocultar encabezados en móvil pequeño */
+  }
+
+  table tbody {
     display: block;
-    overflow-x: auto;
+  }
+
+  table tr {
+    display: block;
+    margin-bottom: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 0.5rem;
+    background: white;
+  }
+
+  table td {
+    display: block;
+    text-align: left !important;
+    padding: 0.5rem !important;
+    border: none !important;
+    position: relative;
+    padding-left: 50% !important;
+  }
+
+  table td::before {
+    content: attr(data-label);
+    position: absolute;
+    left: 0.5rem;
+    width: 45%;
+    padding-right: 0.5rem;
+    font-weight: bold;
+    color: #6a1b9a;
   }
 }
 

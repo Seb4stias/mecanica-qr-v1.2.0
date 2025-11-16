@@ -309,32 +309,34 @@ async function loadUsers() {
           </form>
           <div id="createUserMessage"></div>
         </div>
-        <table style="width: 100%; border-collapse: collapse;">
-          <thead>
-            <tr style="background: #f5f5f5;">
-              <th style="padding: 10px; text-align: left; border: 1px solid #ddd;">ID</th>
-              <th style="padding: 10px; text-align: left; border: 1px solid #ddd;">Nombre</th>
-              <th style="padding: 10px; text-align: left; border: 1px solid #ddd;">RUT</th>
-              <th style="padding: 10px; text-align: left; border: 1px solid #ddd;">Email</th>
-              <th style="padding: 10px; text-align: left; border: 1px solid #ddd;">Rol</th>
-              <th style="padding: 10px; text-align: left; border: 1px solid #ddd;">Estado</th>
-              <th style="padding: 10px; text-align: left; border: 1px solid #ddd;">Fecha Creación</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${data.users.map(user => `
+        <div class="table-container">
+          <table>
+            <thead>
               <tr>
-                <td style="padding: 10px; border: 1px solid #ddd;">${user.id}</td>
-                <td style="padding: 10px; border: 1px solid #ddd;">${user.name}</td>
-                <td style="padding: 10px; border: 1px solid #ddd;">${user.rut || 'N/A'}</td>
-                <td style="padding: 10px; border: 1px solid #ddd;">${user.email}</td>
-                <td style="padding: 10px; border: 1px solid #ddd;">${getRoleText(user.role)}</td>
-                <td style="padding: 10px; border: 1px solid #ddd;">${user.is_active ? '✅ Activo' : '❌ Inactivo'}</td>
-                <td style="padding: 10px; border: 1px solid #ddd;">${new Date(user.created_at).toLocaleDateString()}</td>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>RUT</th>
+                <th>Email</th>
+                <th>Rol</th>
+                <th>Estado</th>
+                <th>Fecha Creación</th>
               </tr>
-            `).join('')}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              ${data.users.map(user => `
+                <tr>
+                  <td data-label="ID">${user.id}</td>
+                  <td data-label="Nombre">${user.name}</td>
+                  <td data-label="RUT">${user.rut || 'N/A'}</td>
+                  <td data-label="Email">${user.email}</td>
+                  <td data-label="Rol">${getRoleText(user.role)}</td>
+                  <td data-label="Estado">${user.is_active ? '✅ Activo' : '❌ Inactivo'}</td>
+                  <td data-label="Fecha">${new Date(user.created_at).toLocaleDateString()}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
       `;
     } else {
       container.innerHTML = '<p>No hay usuarios registrados</p>';
