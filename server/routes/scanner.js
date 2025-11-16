@@ -80,6 +80,8 @@ router.post('/validate', requireRole('scanner', 'admin_level1', 'admin_level2'),
     }
 
     // QR válido
+    console.log('✅ QR válido - Foto del vehículo:', qrCode.vehicle_photo_path);
+    
     res.json({
       success: true,
       valid: true,

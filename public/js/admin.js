@@ -716,16 +716,24 @@ async function onScanSuccess(decodedText, decodedResult) {
     
     if (data.success && data.valid) {
       // La foto viene directamente del endpoint de validación
-      const vehiclePhoto = data.data.vehiclePhotoPath || null;
+      let vehiclePhoto = data.data.vehiclePhotoPath || null;
+      
+      // Asegurar que la ruta comience con /
+      if (vehiclePhoto && !vehiclePhoto.startsWith('/')) {
+        vehiclePhoto = '/' + vehiclePhoto;
+      }
       
       console.log('Foto del vehículo:', vehiclePhoto);
+      console.log('Datos completos:', data.data);
       
       scanResult.innerHTML = `
         <div style="padding: 20px; background: #d4edda; border: 2px solid #28a745; border-radius: 10px; margin-top: 20px;">
           <h2 style="color: #155724; margin-top: 0;">✅ ACCESO AUTORIZADO</h2>
           ${vehiclePhoto ? `
             <div style="text-align: center; margin: 20px 0;">
-              <img src="/${vehiclePhoto}" alt="Foto del vehículo" style="max-width: 100%; max-height: 400px; border-radius: 10px; border: 3px solid #28a745; display: block; margin: 0 auto;" onerror="console.error('Error cargando imagen:', this.src); this.style.display='none';">
+              <img src="${vehiclePhoto}" alt="Foto del vehículo" 
+                   style="max-width: 100%; max-height: 400px; border-radius: 10px; border: 3px solid #28a745; display: block; margin: 0 auto;" 
+                   onerror="console.error('Error cargando imagen:', this.src); this.parentElement.innerHTML='<p style=\\'color: #856404; background: #fff3cd; padding: 10px; border-radius: 5px;\\'>⚠️ Error al cargar la foto del vehículo</p>';">
             </div>
           ` : '<p style="color: #856404; background: #fff3cd; padding: 10px; border-radius: 5px;">⚠️ No hay foto del vehículo disponible</p>'}
           <div style="text-align: left; margin-top: 15px;">

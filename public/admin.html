@@ -8,10 +8,13 @@
 </head>
 <body>
   <nav class="navbar">
-    <div class="nav-brand">Panel Administrativo - INACAP</div>
+    <div class="nav-brand">
+      <span class="brand-full">Panel Administrativo - INACAP</span>
+      <span class="brand-short">Admin - INACAP</span>
+    </div>
     <div class="nav-menu">
-      <span id="userName"></span>
-      <button onclick="logout()" class="btn btn-secondary">Cerrar Sesión</button>
+      <span id="userName" class="user-name"></span>
+      <button onclick="logout()" class="btn btn-secondary btn-logout">Cerrar Sesión</button>
     </div>
   </nav>
 
