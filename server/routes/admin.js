@@ -151,9 +151,10 @@ router.post('/requests/:id/approve', requireRole('admin_level1', 'admin_level2')
         // Generar QR
         try {
           await generateQRCode(requestId, updatedRequest);
-          console.log(`✅ QR generado para solicitud ${requestId}`);
+          console.log(`✅ QR y PDF generados para solicitud ${requestId}`);
         } catch (qrError) {
           console.error(`❌ Error generando QR:`, qrError);
+          console.error(`❌ Stack:`, qrError.stack);
         }
       } else {
         // Solo nivel 1 aprobado, falta nivel 2
@@ -203,9 +204,10 @@ router.post('/requests/:id/approve', requireRole('admin_level1', 'admin_level2')
         // Generar QR
         try {
           await generateQRCode(requestId, updatedRequest);
-          console.log(`✅ QR generado para solicitud ${requestId}`);
+          console.log(`✅ QR y PDF generados para solicitud ${requestId}`);
         } catch (qrError) {
           console.error(`❌ Error generando QR:`, qrError);
+          console.error(`❌ Stack:`, qrError.stack);
           // No fallar la aprobación si el QR falla
         }
       } else {
@@ -383,10 +385,15 @@ async function generateQRCode(requestId, requestData) {
  */
 async function generatePDF(requestData, qrImagePath, pdfPath) {
   return new Promise((resolve, reject) => {
-    const doc = new PDFDocument({ margin: 50 });
-    const stream = fs.createWriteStream(pdfPath);
+    try {
+      console.log('📄 Iniciando generación de PDF...');
+      console.log('   QR Image Path:', qrImagePath);
+      console.log('   PDF Path:', pdfPath);
+      
+      const doc = new PDFDocument({ margin: 50 });
+      const stream = fs.createWriteStream(pdfPath);
 
-    doc.pipe(stream);
+      doc.pipe(stream);
 
     // Título
     doc.fontSize(24).font('Helvetica-Bold').text('PERMISO DE ACCESO VEHICULAR', { align: 'center' });
@@ -447,10 +454,20 @@ async function generatePDF(requestData, qrImagePath, pdfPath) {
     // Fecha de emisión
     doc.fontSize(10).font('Helvetica').text(`Fecha de emisión: ${new Date().toLocaleDateString('es-CL')}`, { align: 'center' });
 
-    doc.end();
+      doc.end();
 
-    stream.on('finish', resolve);
-    stream.on('error', reject);
+      stream.on('finish', () => {
+        console.log('✅ PDF escrito exitosamente');
+        resolve();
+      });
+      stream.on('error', (err) => {
+        console.error('❌ Error escribiendo PDF:', err);
+        reject(err);
+      });
+    } catch (error) {
+      console.error('❌ Error en generatePDF:', error);
+      reject(error);
+    }
   });
 }
 
