@@ -146,7 +146,7 @@ async function loadPendingRequests() {
             <div style="display: flex; gap: 15px;">
               ${req.vehicle_photo_path ? `
                 <div style="flex-shrink: 0;">
-                  <img src="${req.vehicle_photo_path}" alt="Foto del vehículo" style="width: 150px; height: 150px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;">
+                  <img src="/\${req.vehicle_photo_path}" onerror="this.style.display='none'" alt="Foto del vehículo" style="width: 150px; height: 150px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;">
                 </div>
               ` : ''}
               <div style="flex-grow: 1;">
@@ -208,7 +208,7 @@ async function loadApprovedRequests() {
           <div style="display: flex; gap: 15px;">
             ${req.vehicle_photo_path ? `
               <div style="flex-shrink: 0;">
-                <img src="${req.vehicle_photo_path}" alt="Foto del vehículo" style="width: 150px; height: 150px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;">
+                <img src="/\${req.vehicle_photo_path}" onerror="this.style.display='none'" alt="Foto del vehículo" style="width: 150px; height: 150px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;">
               </div>
             ` : ''}
             <div style="flex-grow: 1;">
@@ -269,7 +269,7 @@ async function loadRejectedRequests() {
             <div style="display: flex; gap: 15px;">
               ${req.vehicle_photo_path ? `
                 <div style="flex-shrink: 0;">
-                  <img src="${req.vehicle_photo_path}" alt="Foto del vehículo" style="width: 150px; height: 150px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;">
+                  <img src="/\${req.vehicle_photo_path}" onerror="this.style.display='none'" alt="Foto del vehículo" style="width: 150px; height: 150px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;">
                 </div>
               ` : ''}
               <div style="flex-grow: 1;">
@@ -531,7 +531,7 @@ async function viewRequestDetails(id) {
         <p><strong>Color:</strong> ${req.vehicle_color}</p>
         <p><strong>Ubicación Garaje:</strong> ${req.garage_location || 'No especificada'}</p>
         <p><strong>Modificaciones:</strong> ${req.modifications_description || 'Ninguna'}</p>
-        ${req.vehicle_photo_path ? `<p><img src="${req.vehicle_photo_path}" style="max-width: 300px;"></p>` : ''}
+        ${req.vehicle_photo_path ? `<p><img src="/${req.vehicle_photo_path}" style="max-width: 300px;" onerror="this.style.display='none'"></p>` : ''}
         
         <h3>Estado de Aprobación</h3>
         <p><strong>Estado:</strong> ${getStatusBadge(req)}</p>
@@ -687,10 +687,11 @@ function closeModal() {
 async function logout() {
   try {
     await fetch('/api/auth/logout', { method: 'POST' });
-    window.location.href = '/index.html';
   } catch (error) {
     console.error('Error al cerrar sesión:', error);
-    window.location.href = '/index.html';
+  } finally {
+    // Siempre redirigir al login
+    window.location.href = '/';
   }
 }
 
@@ -818,3 +819,4 @@ async function resumeScanner() {
     await html5QrCode.resume();
   }
 }
+

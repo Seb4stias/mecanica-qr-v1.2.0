@@ -260,9 +260,10 @@ function showSuccessModal(message) {
 async function logout() {
   try {
     await fetch('/api/auth/logout', { method: 'POST' });
-    window.location.href = '/index.html';
   } catch (error) {
     console.error('Error al cerrar sesión:', error);
-    window.location.href = '/index.html';
+  } finally {
+    // Siempre redirigir al login
+    window.location.href = '/';
   }
 }

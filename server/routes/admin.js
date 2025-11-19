@@ -485,7 +485,7 @@ async function generatePDF(requestData, qrImagePath, pdfPath) {
 
     // Título
     doc.fontSize(24).font('Helvetica-Bold').text('PERMISO DE ACCESO VEHICULAR', { align: 'center' });
-    doc.fontSize(14).font('Helvetica').text('INACAP - Área de Mecánica', { align: 'center' });
+    doc.fontSize(14).font('Helvetica').text('INACAP - Perhosting', { align: 'center' });
     doc.moveDown(2);
 
     // Información del Estudiante

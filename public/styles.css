@@ -18,13 +18,13 @@ body {
 
 /* Navbar */
 .navbar {
-  background-color: #6a1b9a;
+  background-color: #ED1C24;
   color: white;
   padding: 1rem 1.5rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 2px 8px rgba(106, 27, 154, 0.2);
+  box-shadow: 0 2px 8px rgba(237, 28, 36, 0.2);
   flex-wrap: wrap;
   gap: 1rem;
   position: relative;
@@ -120,7 +120,7 @@ body {
 }
 
 .drawer-header {
-  background: #6a1b9a;
+  background: #ED1C24;
   color: white;
   padding: 1.5rem;
   display: flex;
@@ -170,13 +170,13 @@ body {
 
 .drawer-item:hover {
   background: #f5f5f5;
-  border-left-color: #6a1b9a;
+  border-left-color: #ED1C24;
 }
 
 .drawer-item.active {
-  background: #f3e5f5;
-  border-left-color: #6a1b9a;
-  color: #6a1b9a;
+  background: #ffebee;
+  border-left-color: #ED1C24;
+  color: #ED1C24;
   font-weight: 600;
 }
 
@@ -201,14 +201,14 @@ body {
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background: linear-gradient(135deg, #6a1b9a 0%, #9c27b0 100%);
+  background: linear-gradient(135deg, #ED1C24 0%, #c41e3a 100%);
 }
 
 .login-card {
   background: white;
   padding: 2rem;
   border-radius: 12px;
-  box-shadow: 0 8px 16px rgba(106, 27, 154, 0.2);
+  box-shadow: 0 8px 16px rgba(237, 28, 36, 0.2);
   width: 100%;
   max-width: 400px;
 }
@@ -219,7 +219,7 @@ body {
 }
 
 .login-header h1 {
-  color: #6a1b9a;
+  color: #ED1C24;
   font-size: 1.5rem;
   margin-bottom: 0.5rem;
 }
@@ -236,7 +236,7 @@ body {
 }
 
 .login-footer a {
-  color: #6a1b9a;
+  color: #ED1C24;
   text-decoration: none;
 }
 
@@ -281,8 +281,8 @@ input:focus,
 textarea:focus,
 select:focus {
   outline: none;
-  border-color: #6a1b9a;
-  box-shadow: 0 0 0 2px rgba(106, 27, 154, 0.1);
+  border-color: #ED1C24;
+  box-shadow: 0 0 0 2px rgba(237, 28, 36, 0.1);
 }
 
 textarea {
@@ -311,12 +311,12 @@ textarea {
 }
 
 .btn-primary {
-  background-color: #6a1b9a;
+  background-color: #ED1C24;
   color: white;
 }
 
 .btn-primary:hover {
-  background-color: #7b1fa2;
+  background-color: #c41e3a;
 }
 
 .btn-secondary {
@@ -351,7 +351,7 @@ textarea {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
-  scrollbar-color: #6a1b9a #f0f0f0;
+  scrollbar-color: #ED1C24 #f0f0f0;
 }
 
 .tabs::-webkit-scrollbar {
@@ -364,7 +364,7 @@ textarea {
 }
 
 .tabs::-webkit-scrollbar-thumb {
-  background: #6a1b9a;
+  background: #ED1C24;
   border-radius: 3px;
 }
 
@@ -382,12 +382,12 @@ textarea {
 }
 
 .tab-btn:hover {
-  color: #6a1b9a;
+  color: #ED1C24;
 }
 
 .tab-btn.active {
-  color: #6a1b9a;
-  border-bottom-color: #6a1b9a;
+  color: #ED1C24;
+  border-bottom-color: #ED1C24;
   font-weight: 600;
 }
 
@@ -405,8 +405,8 @@ textarea {
   padding: 1.5rem;
   margin-bottom: 1rem;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(106, 27, 154, 0.1);
-  border-left: 4px solid #6a1b9a;
+  box-shadow: 0 2px 8px rgba(237, 28, 36, 0.1);
+  border-left: 4px solid #ED1C24;
 }
 
 .request-card p {
@@ -492,12 +492,12 @@ textarea {
   background: white;
   padding: 2rem;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(106, 27, 154, 0.1);
+  box-shadow: 0 2px 8px rgba(237, 28, 36, 0.1);
   text-align: center;
 }
 
 #reader {
-  border: 2px solid #6a1b9a;
+  border: 2px solid #ED1C24;
   border-radius: 8px;
   overflow: hidden;
 }
@@ -532,7 +532,7 @@ textarea {
 }
 
 .scan-status .scanning {
-  color: #6a1b9a;
+  color: #ED1C24;
   font-weight: 500;
 }
 
@@ -585,10 +585,10 @@ textarea {
 }
 
 .result-info h3 {
-  color: #6a1b9a;
+  color: #ED1C24;
   margin-top: 1rem;
   margin-bottom: 0.5rem;
-  border-bottom: 2px solid #6a1b9a;
+  border-bottom: 2px solid #ED1C24;
   padding-bottom: 0.25rem;
 }
 
@@ -775,7 +775,7 @@ textarea {
 .info-row strong {
   display: inline-block;
   min-width: 150px;
-  color: #6a1b9a;
+  color: #ED1C24;
 }
 
 .request-card {
@@ -882,7 +882,7 @@ table {
 }
 
 table thead {
-  background: #6a1b9a;
+  background: #ED1C24;
   color: white;
 }
 
@@ -1289,7 +1289,7 @@ table tbody tr:last-child td {
     width: 45%;
     padding-right: 0.5rem;
     font-weight: bold;
-    color: #6a1b9a;
+    color: #ED1C24;
   }
 }
 
