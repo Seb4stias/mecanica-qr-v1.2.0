@@ -340,10 +340,10 @@ async function loadUsers() {
             <div class="form-group">
               <label>Rol</label>
               <select id="newUserRole" required>
-                <option value="student">Estudiante</option>
-                <option value="admin_level1">Admin Nivel 1</option>
-                <option value="admin_level2">Admin Nivel 2</option>
-                <option value="scanner">Escáner</option>
+                <option value="student">1. Estudiante</option>
+                <option value="scanner">2. Scanner</option>
+                <option value="admin_level1">3. Admin Nivel 1</option>
+                <option value="admin_level2">4. Admin Nivel 2</option>
               </select>
             </div>
             <button type="submit" class="btn btn-primary">Crear Usuario</button>
@@ -888,23 +888,29 @@ async function resumeScanner() {
 
 async function changeUserRole(userId, currentRole) {
   const roles = {
-    'student': 'Estudiante',
-    'scanner': 'Escáner',
-    'admin_level1': 'Admin Nivel 1',
-    'admin_level2': 'Admin Nivel 2'
+    'student': '1. Estudiante',
+    'scanner': '2. Scanner',
+    'admin_level1': '3. Admin Nivel 1',
+    'admin_level2': '4. Admin Nivel 2'
   };
   
-  let options = '';
-  for (const [value, label] of Object.entries(roles)) {
-    options += `<option value="${value}" ${value === currentRole ? 'selected' : ''}>${label}</option>`;
-  }
+  const roleMapping = {
+    '1': 'student',
+    '2': 'scanner',
+    '3': 'admin_level1',
+    '4': 'admin_level2'
+  };
   
-  const newRole = prompt(`Selecciona el nuevo rol:\n\nOpciones:\n- student (Estudiante)\n- scanner (Escáner)\n- admin_level1 (Admin Nivel 1)\n- admin_level2 (Admin Nivel 2)\n\nRol actual: ${roles[currentRole]}`);
+  const currentRoleNumber = Object.keys(roleMapping).find(key => roleMapping[key] === currentRole);
   
-  if (!newRole) return;
+  const input = prompt(`Selecciona el nuevo rol:\n\nOpciones:\n1. Estudiante\n2. Scanner\n3. Admin Nivel 1\n4. Admin Nivel 2\n\nRol actual: ${roles[currentRole]}\n\nIngresa el número (1-4):`);
   
-  if (!['student', 'scanner', 'admin_level1', 'admin_level2'].includes(newRole)) {
-    alert('Rol inválido');
+  if (!input) return;
+  
+  const newRole = roleMapping[input.trim()];
+  
+  if (!newRole) {
+    alert('Número inválido. Debes ingresar 1, 2, 3 o 4');
     return;
   }
   
