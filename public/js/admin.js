@@ -1,5 +1,14 @@
 let currentUser = null;
 
+// Función helper para normalizar rutas de imágenes
+function normalizeImagePath(path) {
+  if (!path) return null;
+  // Asegurar que comience con / y no tenga doble //
+  let normalized = path.startsWith('/') ? path : '/' + path;
+  normalized = normalized.replace('//', '/');
+  return normalized;
+}
+
 // Verificar sesión al cargar
 document.addEventListener('DOMContentLoaded', async () => {
   console.log('🔄 Admin: Verificando sesión...');
@@ -146,7 +155,7 @@ async function loadPendingRequests() {
             <div style="display: flex; gap: 15px;">
               ${req.vehicle_photo_path ? `
                 <div style="flex-shrink: 0;">
-                  <img src="/\${req.vehicle_photo_path}" onerror="this.style.display='none'" alt="Foto del vehículo" style="width: 150px; height: 150px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;">
+                  <img src="\${normalizeImagePath(req.vehicle_photo_path)}" onerror="this.style.display='none'" alt="Foto del vehículo" style="width: 150px; height: 150px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;">
                 </div>
               ` : ''}
               <div style="flex-grow: 1;">
@@ -208,7 +217,7 @@ async function loadApprovedRequests() {
           <div style="display: flex; gap: 15px;">
             ${req.vehicle_photo_path ? `
               <div style="flex-shrink: 0;">
-                <img src="/\${req.vehicle_photo_path}" onerror="this.style.display='none'" alt="Foto del vehículo" style="width: 150px; height: 150px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;">
+                <img src="\${normalizeImagePath(req.vehicle_photo_path)}" onerror="this.style.display='none'" alt="Foto del vehículo" style="width: 150px; height: 150px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;">
               </div>
             ` : ''}
             <div style="flex-grow: 1;">
@@ -269,7 +278,7 @@ async function loadRejectedRequests() {
             <div style="display: flex; gap: 15px;">
               ${req.vehicle_photo_path ? `
                 <div style="flex-shrink: 0;">
-                  <img src="/\${req.vehicle_photo_path}" onerror="this.style.display='none'" alt="Foto del vehículo" style="width: 150px; height: 150px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;">
+                  <img src="\${normalizeImagePath(req.vehicle_photo_path)}" onerror="this.style.display='none'" alt="Foto del vehículo" style="width: 150px; height: 150px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;">
                 </div>
               ` : ''}
               <div style="flex-grow: 1;">
@@ -754,13 +763,15 @@ async function onScanSuccess(decodedText, decodedResult) {
       // La foto viene directamente del endpoint de validación
       let vehiclePhoto = data.data.vehiclePhotoPath || null;
       
-      // Asegurar que la ruta comience con /
-      if (vehiclePhoto && !vehiclePhoto.startsWith('/')) {
-        vehiclePhoto = '/' + vehiclePhoto;
+      // Asegurar que la ruta comience con / y no tenga doble //
+      if (vehiclePhoto) {
+        vehiclePhoto = vehiclePhoto.startsWith('/') ? vehiclePhoto : '/' + vehiclePhoto;
+        vehiclePhoto = vehiclePhoto.replace('//', '/');
       }
       
       console.log('Foto del vehículo:', vehiclePhoto);
       console.log('Datos completos:', data.data);
+      console.log('URL completa de la foto:', vehiclePhoto ? window.location.origin + vehiclePhoto : 'No hay foto');
       
       scanResult.innerHTML = `
         <div style="padding: 20px; background: #d4edda; border: 2px solid #28a745; border-radius: 10px; margin-top: 20px;">
@@ -819,4 +830,7 @@ async function resumeScanner() {
     await html5QrCode.resume();
   }
 }
+
+
+
 
