@@ -241,12 +241,50 @@ async function changePassword(event) {
   }
 }
 
-function downloadQR(requestId) {
-  window.open(`/api/requests/${requestId}/qr`, '_blank');
+async function downloadQR(requestId) {
+  try {
+    // Obtener los datos de la solicitud
+    const response = await fetch(`/api/requests/${requestId}`);
+    const data = await response.json();
+    
+    if (!data.success) {
+      alert('Error al obtener datos de la solicitud');
+      return;
+    }
+    
+    const req = data.request;
+    const qrModalBody = document.getElementById('qrModalBody');
+    
+    qrModalBody.innerHTML = `
+      <h2>Tu Código QR de Acceso</h2>
+      <hr>
+      <div style="text-align: center; margin: 20px 0;">
+        <p><strong>Patente:</strong> ${req.vehicle_plate}</p>
+        <p><strong>Modelo:</strong> ${req.vehicle_model}</p>
+        <p style="color: green; font-weight: bold;">✅ Solicitud Aprobada</p>
+        <img src="/api/requests/${requestId}/qr" alt="Código QR" style="max-width: 400px; width: 100%; border: 2px solid #ED1C24; border-radius: 10px; padding: 10px; background: white; margin: 20px 0;">
+        <p style="font-size: 0.9rem; color: #666;">Presenta este código QR en la entrada del área de mecánica</p>
+      </div>
+      <div style="text-align: center; margin-top: 20px;">
+        <a href="/api/requests/${requestId}/qr" download="QR-${req.vehicle_plate}.png" class="btn btn-primary">📥 Descargar QR</a>
+        <a href="/api/requests/${requestId}/pdf" download="Permiso-${req.vehicle_plate}.pdf" class="btn btn-success">📄 Descargar PDF Completo</a>
+        <button onclick="closeQRModal()" class="btn btn-secondary">Cerrar</button>
+      </div>
+    `;
+    
+    document.getElementById('qrModal').style.display = 'block';
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Error al visualizar QR');
+  }
 }
 
 function downloadForm(requestId) {
   window.open(`/api/requests/${requestId}/pdf`, '_blank');
+}
+
+function closeQRModal() {
+  document.getElementById('qrModal').style.display = 'none';
 }
 
 function showErrorModal(message) {

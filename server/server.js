@@ -56,6 +56,40 @@ function createRequiredDirectories() {
 }
 
 /**
+ * Ejecutar migraciones de base de datos
+ */
+async function runMigrations() {
+  try {
+    const pool = db.getPool();
+    const dbName = process.env.DB_DATABASE || 'mecanicav2';
+    
+    console.log('🔄 Verificando migraciones...');
+    
+    // Migración: Agregar vehicle_id_photo_path si no existe
+    const [columns] = await pool.query(`
+      SELECT COLUMN_NAME 
+      FROM INFORMATION_SCHEMA.COLUMNS 
+      WHERE TABLE_SCHEMA = ? 
+      AND TABLE_NAME = 'requests' 
+      AND COLUMN_NAME = 'vehicle_id_photo_path'
+    `, [dbName]);
+    
+    if (columns.length === 0) {
+      console.log('📝 Agregando columna vehicle_id_photo_path...');
+      await pool.query(`
+        ALTER TABLE requests 
+        ADD COLUMN vehicle_id_photo_path VARCHAR(500) NULL AFTER vehicle_photo_path
+      `);
+      console.log('✅ Columna vehicle_id_photo_path agregada');
+    }
+    
+    console.log('✅ Migraciones completadas');
+  } catch (error) {
+    console.error('⚠️  Error en migraciones:', error.message);
+  }
+}
+
+/**
  * Configuración automática de la base de datos al iniciar
  */
 async function setupDatabase() {
@@ -98,6 +132,9 @@ async function setupDatabase() {
       console.log('✓ Setup completo');
     } else {
       console.log(`✓ Base de datos ya existe con ${tables[0].count} tablas`);
+      
+      // Ejecutar migraciones en base de datos existente
+      await runMigrations();
     }
 
   } catch (error) {

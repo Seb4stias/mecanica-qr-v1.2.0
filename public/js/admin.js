@@ -357,11 +357,10 @@ async function loadUsers() {
               <tr>
                 <th>ID</th>
                 <th>Nombre</th>
-                <th>RUT</th>
                 <th>Email</th>
                 <th>Rol</th>
                 <th>Estado</th>
-                <th>Fecha Creación</th>
+                <th>Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -369,11 +368,15 @@ async function loadUsers() {
                 <tr>
                   <td data-label="ID">${user.id}</td>
                   <td data-label="Nombre">${user.name}</td>
-                  <td data-label="RUT">${user.rut || 'N/A'}</td>
                   <td data-label="Email">${user.email}</td>
                   <td data-label="Rol">${getRoleText(user.role)}</td>
                   <td data-label="Estado">${user.is_active ? '✅ Activo' : '❌ Inactivo'}</td>
-                  <td data-label="Fecha">${new Date(user.created_at).toLocaleDateString()}</td>
+                  <td data-label="Acciones">
+                    <button class="btn btn-primary" onclick="changeUserRole(${user.id}, '${user.role}')" style="font-size: 0.8rem; padding: 0.4rem 0.8rem; margin: 0.2rem;">Cambiar Rol</button>
+                    <button class="btn btn-primary" onclick="changeUserPassword(${user.id})" style="font-size: 0.8rem; padding: 0.4rem 0.8rem; margin: 0.2rem;">Cambiar Contraseña</button>
+                    <button class="btn btn-secondary" onclick="toggleUserActive(${user.id}, ${user.is_active})" style="font-size: 0.8rem; padding: 0.4rem 0.8rem; margin: 0.2rem;">${user.is_active ? 'Desactivar' : 'Activar'}</button>
+                    ${user.id !== currentUser.id ? `<button class="btn btn-danger" onclick="deleteUser(${user.id})" style="font-size: 0.8rem; padding: 0.4rem 0.8rem; margin: 0.2rem;">Eliminar</button>` : ''}
+                  </td>
                 </tr>
               `).join('')}
             </tbody>
@@ -681,12 +684,49 @@ async function deleteRequest(requestId) {
   }
 }
 
-function downloadQR(requestId) {
-  window.open(`/api/requests/${requestId}/qr`, '_blank');
+async function downloadQR(requestId) {
+  try {
+    // Obtener los datos de la solicitud
+    const response = await fetch(`/api/admin/requests/${requestId}`);
+    const data = await response.json();
+    
+    if (!data.success) {
+      alert('Error al obtener datos de la solicitud');
+      return;
+    }
+    
+    const req = data.request;
+    const qrModalBody = document.getElementById('qrModalBody');
+    
+    qrModalBody.innerHTML = `
+      <h2>Código QR - Solicitud #${requestId}</h2>
+      <hr>
+      <div style="text-align: center; margin: 20px 0;">
+        <p><strong>Estudiante:</strong> ${req.student_name}</p>
+        <p><strong>Patente:</strong> ${req.vehicle_plate}</p>
+        <p><strong>Modelo:</strong> ${req.vehicle_model}</p>
+        <img src="/api/requests/${requestId}/qr" alt="Código QR" style="max-width: 400px; width: 100%; border: 2px solid #ED1C24; border-radius: 10px; padding: 10px; background: white;">
+      </div>
+      <div style="text-align: center; margin-top: 20px;">
+        <a href="/api/requests/${requestId}/qr" download="QR-${req.vehicle_plate}.png" class="btn btn-primary">📥 Descargar QR</a>
+        <a href="/api/requests/${requestId}/pdf" download="Permiso-${req.vehicle_plate}.pdf" class="btn btn-success">📄 Descargar PDF</a>
+        <button onclick="closeQRModal()" class="btn btn-secondary">Cerrar</button>
+      </div>
+    `;
+    
+    document.getElementById('qrModal').style.display = 'block';
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Error al visualizar QR');
+  }
 }
 
 function downloadForm(requestId) {
   window.open(`/api/requests/${requestId}/pdf`, '_blank');
+}
+
+function closeQRModal() {
+  document.getElementById('qrModal').style.display = 'none';
 }
 
 function closeModal() {
@@ -843,3 +883,135 @@ async function resumeScanner() {
 
 
 
+
+// Funciones de gestión de usuarios
+
+async function changeUserRole(userId, currentRole) {
+  const roles = {
+    'student': 'Estudiante',
+    'scanner': 'Escáner',
+    'admin_level1': 'Admin Nivel 1',
+    'admin_level2': 'Admin Nivel 2'
+  };
+  
+  let options = '';
+  for (const [value, label] of Object.entries(roles)) {
+    options += `<option value="${value}" ${value === currentRole ? 'selected' : ''}>${label}</option>`;
+  }
+  
+  const newRole = prompt(`Selecciona el nuevo rol:\n\nOpciones:\n- student (Estudiante)\n- scanner (Escáner)\n- admin_level1 (Admin Nivel 1)\n- admin_level2 (Admin Nivel 2)\n\nRol actual: ${roles[currentRole]}`);
+  
+  if (!newRole) return;
+  
+  if (!['student', 'scanner', 'admin_level1', 'admin_level2'].includes(newRole)) {
+    alert('Rol inválido');
+    return;
+  }
+  
+  try {
+    const response = await fetch(`/api/admin/users/${userId}/role`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ role: newRole })
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      alert('✅ Rol actualizado exitosamente');
+      loadUsers();
+    } else {
+      alert('❌ ' + data.message);
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Error al cambiar rol');
+  }
+}
+
+async function changeUserPassword(userId) {
+  const newPassword = prompt('Ingresa la nueva contraseña (mínimo 6 caracteres):');
+  
+  if (!newPassword) return;
+  
+  if (newPassword.length < 6) {
+    alert('La contraseña debe tener al menos 6 caracteres');
+    return;
+  }
+  
+  try {
+    const response = await fetch(`/api/admin/users/${userId}/password`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ newPassword })
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      alert('✅ Contraseña actualizada exitosamente');
+    } else {
+      alert('❌ ' + data.message);
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Error al cambiar contraseña');
+  }
+}
+
+async function toggleUserActive(userId, isActive) {
+  const action = isActive ? 'desactivar' : 'activar';
+  
+  if (!confirm(`¿Estás seguro de que deseas ${action} este usuario?`)) {
+    return;
+  }
+  
+  try {
+    const response = await fetch(`/api/admin/users/${userId}/toggle-active`, {
+      method: 'PUT'
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      alert('✅ ' + data.message);
+      loadUsers();
+    } else {
+      alert('❌ ' + data.message);
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Error al cambiar estado del usuario');
+  }
+}
+
+async function deleteUser(userId) {
+  if (!confirm('¿Estás seguro de que deseas ELIMINAR este usuario? Esta acción no se puede deshacer.')) {
+    return;
+  }
+  
+  const confirmation = prompt('Escribe "ELIMINAR" para confirmar:');
+  
+  if (confirmation !== 'ELIMINAR') {
+    alert('Eliminación cancelada');
+    return;
+  }
+  
+  try {
+    const response = await fetch(`/api/admin/users/${userId}`, {
+      method: 'DELETE'
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      alert('✅ Usuario eliminado exitosamente');
+      loadUsers();
+    } else {
+      alert('❌ ' + data.message);
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Error al eliminar usuario');
+  }
+}
