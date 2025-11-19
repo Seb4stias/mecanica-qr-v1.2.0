@@ -11,6 +11,7 @@
     "setup": "node server/scripts/initDb.js",
     "setup-and-start": "node server/scripts/setupAndStart.js",
     "diagnose-qr": "node server/scripts/diagnoseQR.js",
+    "add-vehicle-id-photo": "node server/scripts/addVehicleIdPhoto.js",
     "test": "jest"
   },
   "keywords": [

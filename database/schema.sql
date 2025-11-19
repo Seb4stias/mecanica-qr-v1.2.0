@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS requests (
   vehicle_model VARCHAR(255) NOT NULL,
   vehicle_color VARCHAR(100) NOT NULL,
   vehicle_photo_path VARCHAR(500),
+  vehicle_id_photo_path VARCHAR(500),
   garage_location VARCHAR(255),
   modifications_description TEXT,
   status VARCHAR(50) DEFAULT 'pending',

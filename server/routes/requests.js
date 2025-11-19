@@ -36,7 +36,10 @@ const upload = multer({
  * POST /api/requests
  * Crear nueva solicitud de permiso
  */
-router.post('/', requireAuth, upload.single('vehiclePhoto'), async (req, res, next) => {
+router.post('/', requireAuth, upload.fields([
+  { name: 'vehiclePhoto', maxCount: 1 },
+  { name: 'vehicleIdPhoto', maxCount: 1 }
+]), async (req, res, next) => {
   try {
     const {
       studentName,
@@ -51,15 +54,16 @@ router.post('/', requireAuth, upload.single('vehiclePhoto'), async (req, res, ne
       modificationsDescription
     } = req.body;
 
-    const vehiclePhotoPath = req.file ? `/uploads/${req.file.filename}` : null;
+    const vehiclePhotoPath = req.files['vehiclePhoto'] ? `/uploads/${req.files['vehiclePhoto'][0].filename}` : null;
+    const vehicleIdPhotoPath = req.files['vehicleIdPhoto'] ? `/uploads/${req.files['vehicleIdPhoto'][0].filename}` : null;
 
     const pool = db.getPool();
     const [result] = await pool.query(
       `INSERT INTO requests (
         user_id, student_name, student_rut, student_carrera, student_email,
         student_phone, vehicle_plate, vehicle_model, vehicle_color,
-        vehicle_photo_path, garage_location, modifications_description, status
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
+        vehicle_photo_path, vehicle_id_photo_path, garage_location, modifications_description, status
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
       [
         req.session.userId,
         studentName,
@@ -71,6 +75,7 @@ router.post('/', requireAuth, upload.single('vehiclePhoto'), async (req, res, ne
         vehicleModel,
         vehicleColor,
         vehiclePhotoPath,
+        vehicleIdPhotoPath,
         garageLocation,
         modificationsDescription
       ]

@@ -760,29 +760,37 @@ async function onScanSuccess(decodedText, decodedResult) {
     const scanResult = document.getElementById('scanResult');
     
     if (data.success && data.valid) {
-      // La foto viene directamente del endpoint de validación
-      let vehiclePhoto = data.data.vehiclePhotoPath || null;
-      
-      // Asegurar que la ruta comience con / y no tenga doble //
-      if (vehiclePhoto) {
-        vehiclePhoto = vehiclePhoto.startsWith('/') ? vehiclePhoto : '/' + vehiclePhoto;
-        vehiclePhoto = vehiclePhoto.replace('//', '/');
-      }
+      // Las fotos vienen directamente del endpoint de validación
+      let vehiclePhoto = normalizeImagePath(data.data.vehiclePhotoPath);
+      let vehicleIdPhoto = normalizeImagePath(data.data.vehicleIdPhotoPath);
       
       console.log('Foto del vehículo:', vehiclePhoto);
+      console.log('Foto V2:', vehicleIdPhoto);
       console.log('Datos completos:', data.data);
-      console.log('URL completa de la foto:', vehiclePhoto ? window.location.origin + vehiclePhoto : 'No hay foto');
       
       scanResult.innerHTML = `
         <div style="padding: 20px; background: #d4edda; border: 2px solid #28a745; border-radius: 10px; margin-top: 20px;">
           <h2 style="color: #155724; margin-top: 0;">✅ ACCESO AUTORIZADO</h2>
-          ${vehiclePhoto ? `
-            <div style="text-align: center; margin: 20px 0;">
-              <img src="${vehiclePhoto}" alt="Foto del vehículo" 
-                   style="max-width: 100%; max-height: 400px; border-radius: 10px; border: 3px solid #28a745; display: block; margin: 0 auto;" 
-                   onerror="console.error('Error cargando imagen:', this.src); this.parentElement.innerHTML='<p style=\\'color: #856404; background: #fff3cd; padding: 10px; border-radius: 5px;\\'>⚠️ Error al cargar la foto del vehículo</p>';">
+          ${vehiclePhoto || vehicleIdPhoto ? `
+            <div style="text-align: center; margin: 20px 0; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
+              ${vehiclePhoto ? `
+                <div style="flex: 1; min-width: 200px; max-width: 45%;">
+                  <p style="font-weight: bold; margin-bottom: 5px;">Foto del Vehículo:</p>
+                  <img src="${vehiclePhoto}" alt="Foto del vehículo" 
+                       style="width: 100%; max-height: 300px; object-fit: cover; border-radius: 10px; border: 3px solid #28a745;" 
+                       onerror="console.error('Error cargando imagen:', this.src); this.parentElement.innerHTML='<p style=\\'color: #856404;\\'>⚠️ Error al cargar</p>';">
+                </div>
+              ` : ''}
+              ${vehicleIdPhoto ? `
+                <div style="flex: 1; min-width: 200px; max-width: 45%;">
+                  <p style="font-weight: bold; margin-bottom: 5px;">Foto V2 (ID):</p>
+                  <img src="${vehicleIdPhoto}" alt="Foto V2" 
+                       style="width: 100%; max-height: 300px; object-fit: cover; border-radius: 10px; border: 3px solid #28a745;" 
+                       onerror="console.error('Error cargando imagen:', this.src); this.parentElement.innerHTML='<p style=\\'color: #856404;\\'>⚠️ Error al cargar</p>';">
+                </div>
+              ` : ''}
             </div>
-          ` : '<p style="color: #856404; background: #fff3cd; padding: 10px; border-radius: 5px;">⚠️ No hay foto del vehículo disponible</p>'}
+          ` : '<p style="color: #856404; background: #fff3cd; padding: 10px; border-radius: 5px;">⚠️ No hay fotos del vehículo disponibles</p>'}
           <div style="text-align: left; margin-top: 15px;">
             <p><strong>Estudiante:</strong> ${data.data.studentName}</p>
             <p><strong>RUT:</strong> ${data.data.studentRut}</p>
@@ -830,6 +838,7 @@ async function resumeScanner() {
     await html5QrCode.resume();
   }
 }
+
 
 
 

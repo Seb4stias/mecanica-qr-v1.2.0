@@ -518,18 +518,39 @@ async function generatePDF(requestData, qrImagePath, pdfPath) {
       doc.moveDown(1);
     }
 
-    // Foto del vehículo si existe
-    if (requestData.vehicle_photo_path) {
-      try {
-        const photoPath = path.join(__dirname, '../../', requestData.vehicle_photo_path);
-        if (fs.existsSync(photoPath)) {
-          doc.fontSize(16).font('Helvetica-Bold').text('FOTO DEL VEHÍCULO');
-          doc.moveDown(0.5);
-          doc.image(photoPath, { width: 300, align: 'center' });
-          doc.moveDown(1);
+    // Fotos del vehículo si existen
+    if (requestData.vehicle_photo_path || requestData.vehicle_id_photo_path) {
+      doc.fontSize(16).font('Helvetica-Bold').text('FOTOS DEL VEHÍCULO');
+      doc.moveDown(0.5);
+      
+      // Foto principal del vehículo
+      if (requestData.vehicle_photo_path) {
+        try {
+          const photoPath = path.join(__dirname, '../../', requestData.vehicle_photo_path);
+          if (fs.existsSync(photoPath)) {
+            doc.fontSize(12).font('Helvetica').text('Foto del Vehículo:');
+            doc.moveDown(0.3);
+            doc.image(photoPath, { width: 250, align: 'center' });
+            doc.moveDown(0.8);
+          }
+        } catch (error) {
+          console.error('Error agregando foto del vehículo al PDF:', error);
         }
-      } catch (error) {
-        console.error('Error agregando foto al PDF:', error);
+      }
+      
+      // Foto del número identificador
+      if (requestData.vehicle_id_photo_path) {
+        try {
+          const idPhotoPath = path.join(__dirname, '../../', requestData.vehicle_id_photo_path);
+          if (fs.existsSync(idPhotoPath)) {
+            doc.fontSize(12).font('Helvetica').text('Foto V2 (Número Identificador):');
+            doc.moveDown(0.3);
+            doc.image(idPhotoPath, { width: 250, align: 'center' });
+            doc.moveDown(1);
+          }
+        } catch (error) {
+          console.error('Error agregando foto V2 al PDF:', error);
+        }
       }
     }
 
