@@ -1,5 +1,14 @@
 let currentUser = null;
 
+// Función helper para normalizar rutas de imágenes
+function normalizeImagePath(path) {
+  if (!path) return null;
+  let normalized = path.trim().replace(/^\/+/, '');
+  normalized = '/' + normalized;
+  normalized = normalized.replace(/\/\//g, '/');
+  return normalized;
+}
+
 // Verificar sesión al cargar
 document.addEventListener('DOMContentLoaded', async () => {
   console.log('🔄 Student: Verificando sesión...');

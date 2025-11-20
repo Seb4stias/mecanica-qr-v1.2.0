@@ -3,9 +3,21 @@ let currentUser = null;
 // Función helper para normalizar rutas de imágenes
 function normalizeImagePath(path) {
   if (!path) return null;
-  // Asegurar que comience con / y no tenga doble //
-  let normalized = path.startsWith('/') ? path : '/' + path;
-  normalized = normalized.replace('//', '/');
+  
+  // Limpiar la ruta
+  let normalized = path.trim();
+  
+  // Quitar múltiples barras al inicio
+  normalized = normalized.replace(/^\/+/, '');
+  
+  // Asegurar que comience con una sola barra
+  normalized = '/' + normalized;
+  
+  // Quitar dobles barras
+  normalized = normalized.replace(/\/\//g, '/');
+  
+  console.log('Normalizando imagen:', path, '→', normalized);
+  
   return normalized;
 }
 
