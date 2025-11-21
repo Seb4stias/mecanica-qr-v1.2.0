@@ -175,6 +175,20 @@
           <textarea id="admin_modifications_description" name="modificationsDescription" rows="3"></textarea>
         </div>
 
+        <div class="form-group" style="margin-top: 20px;">
+          <label style="display: flex; align-items: center; cursor: pointer;">
+            <input type="checkbox" id="admin_acceptTerms" required style="margin-right: 10px; width: 20px; height: 20px;">
+            <span>Acepto los <a href="#" onclick="event.preventDefault(); openAdminTermsModal();" style="color: #007bff; text-decoration: underline;">términos y condiciones</a> *</span>
+          </label>
+        </div>
+
+        <div class="form-group">
+          <label style="display: flex; align-items: center; cursor: pointer;">
+            <input type="checkbox" id="admin_acceptClause" required style="margin-right: 10px; width: 20px; height: 20px;">
+            <span>Acepto la <a href="#" onclick="event.preventDefault(); openAdminClauseModal();" style="color: #007bff; text-decoration: underline;">cláusula de responsabilidad</a> *</span>
+          </label>
+        </div>
+
         <button type="submit" class="btn btn-primary">Crear Solicitud</button>
       </form>
     </div>
@@ -213,6 +227,30 @@
     <div class="modal-content">
       <span class="close" onclick="closeQRModal()">&times;</span>
       <div id="qrModalBody"></div>
+    </div>
+  </div>
+
+  <!-- Modal for Terms and Conditions -->
+  <div id="adminTermsModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeAdminTermsModal()">&times;</span>
+      <h2>Términos y Condiciones</h2>
+      <div style="max-height: 400px; overflow-y: auto; padding: 20px; border: 1px solid #ddd; margin: 20px 0;">
+        <p style="text-align: center; font-size: 18px; color: #666;">Falta agregarlo</p>
+      </div>
+      <button onclick="closeAdminTermsModal()" class="btn btn-primary" style="margin-top: 20px;">Aceptar</button>
+    </div>
+  </div>
+
+  <!-- Modal for Responsibility Clause -->
+  <div id="adminClauseModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeAdminClauseModal()">&times;</span>
+      <h2>Cláusula de Responsabilidad</h2>
+      <div style="max-height: 400px; overflow-y: auto; padding: 20px; border: 1px solid #ddd; margin: 20px 0;">
+        <p style="text-align: center; font-size: 18px; color: #666;">Falta agregar</p>
+      </div>
+      <button onclick="closeAdminClauseModal()" class="btn btn-primary" style="margin-top: 20px;">Aceptar</button>
     </div>
   </div>
 

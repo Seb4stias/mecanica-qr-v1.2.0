@@ -777,6 +777,22 @@ function closeQRModal() {
   document.getElementById('qrModal').style.display = 'none';
 }
 
+function openAdminTermsModal() {
+  document.getElementById('adminTermsModal').style.display = 'block';
+}
+
+function closeAdminTermsModal() {
+  document.getElementById('adminTermsModal').style.display = 'none';
+}
+
+function openAdminClauseModal() {
+  document.getElementById('adminClauseModal').style.display = 'block';
+}
+
+function closeAdminClauseModal() {
+  document.getElementById('adminClauseModal').style.display = 'none';
+}
+
 function closeModal() {
   document.getElementById('requestModal').style.display = 'none';
 }
