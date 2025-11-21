@@ -144,16 +144,27 @@ async function loadMyRequests() {
     if (data.requests && data.requests.length > 0) {
       container.innerHTML = data.requests.map(req => `
         <div class="request-card" style="border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; border-radius: 5px;">
-          <h3>Solicitud #${req.id}</h3>
-          <p><strong>Patente:</strong> ${req.vehicle_plate}</p>
-          <p><strong>Modelo:</strong> ${req.vehicle_model}</p>
-          <p><strong>Color:</strong> ${req.vehicle_color}</p>
-          <p><strong>Estado:</strong> <span class="status-${req.status}">${getStatusText(req.status)}</span></p>
-          <p><strong>Fecha:</strong> ${new Date(req.created_at).toLocaleDateString()}</p>
-          ${req.status === 'rejected' ? `<p style="color: red;"><strong>Razón de rechazo:</strong> ${req.denial_reason}</p>` : ''}
+          <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+            ${req.vehicle_photo_path ? `
+              <div style="flex-shrink: 0;">
+                <img src="${req.vehicle_photo_path}" alt="Foto del vehículo" style="width: 150px; height: 150px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;" onerror="this.style.display='none'">
+              </div>
+            ` : ''}
+            <div style="flex-grow: 1;">
+              <h3>Solicitud #${req.id}</h3>
+              <p><strong>Patente:</strong> ${req.vehicle_plate}</p>
+              <p><strong>Modelo:</strong> ${req.vehicle_model}</p>
+              <p><strong>Color:</strong> ${req.vehicle_color}</p>
+              <p><strong>Estado:</strong> <span class="status-${req.status}">${getStatusText(req.status)}</span></p>
+              <p><strong>Fecha:</strong> ${new Date(req.created_at).toLocaleDateString()}</p>
+              ${req.status === 'rejected' ? `<p style="color: red;"><strong>Razón de rechazo:</strong> ${req.denial_reason}</p>` : ''}
+            </div>
+          </div>
           ${req.status === 'approved' ? `
-            <button class="btn btn-success" onclick="downloadQR(${req.id})">📥 Ver QR</button>
-            <button class="btn btn-success" onclick="downloadForm(${req.id})">📄 Descargar Formulario</button>
+            <div style="margin-top: 10px;">
+              <button class="btn btn-success" onclick="downloadQR(${req.id})">📥 Ver QR</button>
+              <button class="btn btn-success" onclick="downloadForm(${req.id})">📄 Descargar Formulario</button>
+            </div>
           ` : ''}
         </div>
       `).join('');
@@ -296,6 +307,14 @@ function closeQRModal() {
   document.getElementById('qrModal').style.display = 'none';
 }
 
+function openTermsModal() {
+  document.getElementById('termsModal').style.display = 'block';
+}
+
+function closeTermsModal() {
+  document.getElementById('termsModal').style.display = 'none';
+}
+
 function showErrorModal(message) {
   alert(message); // Temporal, puedes agregar modal después
 }
@@ -313,4 +332,18 @@ async function logout() {
     // Siempre redirigir al login
     window.location.href = '/';
   }
+}
+
+function showTerms(event) {
+  event.preventDefault();
+  document.getElementById('termsModal').style.display = 'block';
+}
+
+function closeTermsModal() {
+  document.getElementById('termsModal').style.display = 'none';
+}
+
+function confirmTerms() {
+  document.getElementById('acceptTerms').checked = true;
+  closeTermsModal();
 }

@@ -130,6 +130,14 @@
           <textarea id="modifications_description" name="modificationsDescription" rows="3"></textarea>
         </div>
 
+        <div class="form-group" style="margin-top: 20px;">
+          <label style="display: flex; align-items: center; cursor: pointer;">
+            <input type="checkbox" id="acceptTerms" required style="margin-right: 10px; width: 20px; height: 20px;">
+            <span>Acepto los <a href="#" onclick="event.preventDefault(); openTermsModal();" style="color: #007bff; text-decoration: underline;">términos y condiciones</a> *</span>
+          </label>
+          <span class="error-message" id="termsError"></span>
+        </div>
+
         <button type="submit" class="btn btn-primary">Enviar Solicitud</button>
       </form>
     </div>
@@ -161,33 +169,7 @@
       <span class="close" onclick="closeTermsModal()">&times;</span>
       <h2>Términos y Condiciones</h2>
       <div style="max-height: 400px; overflow-y: auto; padding: 20px; border: 1px solid #ddd; margin: 20px 0;">
-        <p><strong>1. Aceptación de los Términos</strong></p>
-        <p>Al utilizar este sistema de acceso vehicular, usted acepta estos términos y condiciones en su totalidad.</p>
-        
-        <p><strong>2. Uso del Sistema</strong></p>
-        <p>El sistema de códigos QR es exclusivo para estudiantes de INACAP y debe ser utilizado únicamente para el acceso vehicular autorizado al campus.</p>
-        
-        <p><strong>3. Responsabilidades del Usuario</strong></p>
-        <ul>
-          <li>Mantener la confidencialidad de su código QR personal</li>
-          <li>No compartir su código QR con terceros</li>
-          <li>Reportar inmediatamente cualquier uso no autorizado</li>
-          <li>Proporcionar información vehicular precisa y actualizada</li>
-        </ul>
-        
-        <p><strong>4. Privacidad y Protección de Datos</strong></p>
-        <p>Sus datos personales y vehiculares serán tratados conforme a la Ley de Protección de Datos Personales y solo serán utilizados para fines de control de acceso y seguridad del campus.</p>
-        
-        <p><strong>5. Restricciones</strong></p>
-        <p>INACAP se reserva el derecho de suspender o revocar el acceso vehicular en caso de:</p>
-        <ul>
-          <li>Uso indebido del sistema</li>
-          <li>Violación de las normas de seguridad del campus</li>
-          <li>Proporcionar información falsa</li>
-        </ul>
-        
-        <p><strong>6. Modificaciones</strong></p>
-        <p>INACAP se reserva el derecho de modificar estos términos en cualquier momento. Los cambios serán notificados a través del sistema.</p>
+        <p style="text-align: center; font-size: 18px; color: #666;">Falta agregarlo</p>
       </div>
       <button onclick="closeTermsModal()" class="btn btn-primary" style="margin-top: 20px;">Aceptar</button>
     </div>
