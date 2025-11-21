@@ -145,11 +145,22 @@ async function loadMyRequests() {
       container.innerHTML = data.requests.map(req => `
         <div class="request-card" style="border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; border-radius: 5px;">
           <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-            ${req.vehicle_photo_path ? `
-              <div style="flex-shrink: 0;">
-                <img src="${req.vehicle_photo_path}" alt="Foto del vehículo" style="width: 150px; height: 150px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;" onerror="this.style.display='none'">
+            ${req.vehicle_photo_path || req.vehicle_id_photo_path ? `
+              <div style="flex-shrink: 0; display: flex; gap: 10px; flex-wrap: wrap;">
+                ${req.vehicle_photo_path ? `
+                  <div>
+                    <p style="margin: 0 0 5px 0; font-size: 12px; font-weight: bold;">Foto Vehículo</p>
+                    <img src="${req.vehicle_photo_path}" alt="Foto del vehículo" style="width: 150px; height: 150px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;" onerror="console.error('Error cargando foto vehículo'); this.parentElement.innerHTML='<p style=color:red>Error al cargar</p>'">
+                  </div>
+                ` : ''}
+                ${req.vehicle_id_photo_path ? `
+                  <div>
+                    <p style="margin: 0 0 5px 0; font-size: 12px; font-weight: bold;">Foto Patrón</p>
+                    <img src="${req.vehicle_id_photo_path}" alt="Foto Patrón" style="width: 150px; height: 150px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;" onerror="console.error('Error cargando foto patrón'); this.parentElement.innerHTML='<p style=color:red>Error al cargar</p>'">
+                  </div>
+                ` : ''}
               </div>
-            ` : ''}
+            ` : '<div style="flex-shrink: 0;"><p style="color: #999;">Sin fotos</p></div>'}
             <div style="flex-grow: 1;">
               <h3>Solicitud #${req.id}</h3>
               <p><strong>Patente:</strong> ${req.vehicle_plate}</p>
@@ -313,6 +324,14 @@ function openTermsModal() {
 
 function closeTermsModal() {
   document.getElementById('termsModal').style.display = 'none';
+}
+
+function openClauseModal() {
+  document.getElementById('clauseModal').style.display = 'block';
+}
+
+function closeClauseModal() {
+  document.getElementById('clauseModal').style.display = 'none';
 }
 
 function showErrorModal(message) {

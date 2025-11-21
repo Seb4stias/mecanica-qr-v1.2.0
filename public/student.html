@@ -73,8 +73,13 @@
 
         <div class="form-row">
           <div class="form-group">
-            <label for="student_carrera">Carrera *</label>
-            <input type="text" id="student_carrera" name="studentCarrera" required>
+            <label for="student_carrera">Tipo de Usuario *</label>
+            <select id="student_carrera" name="studentCarrera" required>
+              <option value="">Seleccione...</option>
+              <option value="estudiante">Estudiante</option>
+              <option value="profesor">Profesor</option>
+              <option value="administrativo">Administrativo</option>
+            </select>
             <span class="error-message" id="carreraError"></span>
           </div>
           <div class="form-group">
@@ -108,8 +113,13 @@
             <input type="text" id="vehicle_color" name="vehicleColor" required>
           </div>
           <div class="form-group">
-            <label for="garage_location">Ubicación de Garaje</label>
-            <input type="text" id="garage_location" name="garageLocation">
+            <label for="garage_location">Ubicación de Garaje *</label>
+            <select id="garage_location" name="garageLocation" required>
+              <option value="">Seleccione...</option>
+              <option value="taller 6">Taller 6</option>
+              <option value="taller 7">Taller 7</option>
+              <option value="taller 8">Taller 8</option>
+            </select>
           </div>
         </div>
 
@@ -120,7 +130,7 @@
         </div>
 
         <div class="form-group">
-          <label for="vehicleIdPhoto">Foto V2 (Número Identificador)</label>
+          <label for="vehicleIdPhoto">Foto Patrón</label>
           <input type="file" id="vehicleIdPhoto" name="vehicleIdPhoto" accept="image/*">
           <div id="idPhotoPreview"></div>
         </div>
@@ -136,6 +146,14 @@
             <span>Acepto los <a href="#" onclick="event.preventDefault(); openTermsModal();" style="color: #007bff; text-decoration: underline;">términos y condiciones</a> *</span>
           </label>
           <span class="error-message" id="termsError"></span>
+        </div>
+
+        <div class="form-group">
+          <label style="display: flex; align-items: center; cursor: pointer;">
+            <input type="checkbox" id="acceptClause" required style="margin-right: 10px; width: 20px; height: 20px;">
+            <span>Acepto la <a href="#" onclick="event.preventDefault(); openClauseModal();" style="color: #007bff; text-decoration: underline;">cláusula de responsabilidad</a> *</span>
+          </label>
+          <span class="error-message" id="clauseError"></span>
         </div>
 
         <button type="submit" class="btn btn-primary">Enviar Solicitud</button>
@@ -172,6 +190,18 @@
         <p style="text-align: center; font-size: 18px; color: #666;">Falta agregarlo</p>
       </div>
       <button onclick="closeTermsModal()" class="btn btn-primary" style="margin-top: 20px;">Aceptar</button>
+    </div>
+  </div>
+
+  <!-- Modal for Responsibility Clause -->
+  <div id="clauseModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeClauseModal()">&times;</span>
+      <h2>Cláusula de Responsabilidad</h2>
+      <div style="max-height: 400px; overflow-y: auto; padding: 20px; border: 1px solid #ddd; margin: 20px 0;">
+        <p style="text-align: center; font-size: 18px; color: #666;">Falta agregar</p>
+      </div>
+      <button onclick="closeClauseModal()" class="btn btn-primary" style="margin-top: 20px;">Aceptar</button>
     </div>
   </div>
 
