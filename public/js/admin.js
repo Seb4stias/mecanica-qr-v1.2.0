@@ -173,13 +173,13 @@ async function loadPendingRequests() {
                   ${req.vehicle_photo_path ? `
                     <div>
                       <p style="margin: 0 0 5px 0; font-size: 12px; font-weight: bold;">Foto Vehículo</p>
-                      <img src="${normalizeImagePath(req.vehicle_photo_path)}" onerror="console.error('Error cargando imagen:', this.src); this.parentElement.innerHTML='<p style=color:red>Error al cargar</p>'" alt="Foto del vehículo" style="width: 150px; height: 150px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;">
+                      <img src="${normalizeImagePath(req.vehicle_photo_path)}" onerror="console.error('Error cargando imagen:', this.src); this.style.display='none'; this.insertAdjacentHTML('afterend', '<p style=\"color:red;font-size:11px;\">No disponible</p>')" alt="Foto del vehículo" style="width: 150px; height: 150px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;">
                     </div>
                   ` : ''}
                   ${req.vehicle_id_photo_path ? `
                     <div>
                       <p style="margin: 0 0 5px 0; font-size: 12px; font-weight: bold;">Foto Patr�n</p>
-                      <img src="${normalizeImagePath(req.vehicle_id_photo_path)}" onerror="console.error('Error cargando imagen:', this.src); this.parentElement.innerHTML='<p style=color:red>Error al cargar</p>'" alt="Foto Patr�n" style="width: 150px; height: 150px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;">
+                      <img src="${normalizeImagePath(req.vehicle_id_photo_path)}" onerror="console.error('Error cargando imagen:', this.src); this.style.display='none'; this.insertAdjacentHTML('afterend', '<p style=\"color:red;font-size:11px;\">No disponible</p>')" alt="Foto Patr�n" style="width: 150px; height: 150px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;">
                     </div>
                   ` : ''}
                 </div>
@@ -246,13 +246,13 @@ async function loadApprovedRequests() {
                 ${req.vehicle_photo_path ? `
                   <div>
                     <p style="margin: 0 0 5px 0; font-size: 12px; font-weight: bold;">Foto Vehículo</p>
-                    <img src="${normalizeImagePath(req.vehicle_photo_path)}" onerror="console.error('Error cargando imagen:', this.src); this.parentElement.innerHTML='<p style=color:red>Error al cargar</p>'" alt="Foto del vehículo" style="width: 150px; height: 150px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;">
+                    <img src="${normalizeImagePath(req.vehicle_photo_path)}" onerror="console.error('Error cargando imagen:', this.src); this.style.display='none'; this.insertAdjacentHTML('afterend', '<p style=\"color:red;font-size:11px;\">No disponible</p>')" alt="Foto del vehículo" style="width: 150px; height: 150px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;">
                   </div>
                 ` : ''}
                 ${req.vehicle_id_photo_path ? `
                   <div>
                     <p style="margin: 0 0 5px 0; font-size: 12px; font-weight: bold;">Foto Patr�n</p>
-                    <img src="${normalizeImagePath(req.vehicle_id_photo_path)}" onerror="console.error('Error cargando imagen:', this.src); this.parentElement.innerHTML='<p style=color:red>Error al cargar</p>'" alt="Foto Patr�n" style="width: 150px; height: 150px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;">
+                    <img src="${normalizeImagePath(req.vehicle_id_photo_path)}" onerror="console.error('Error cargando imagen:', this.src); this.style.display='none'; this.insertAdjacentHTML('afterend', '<p style=\"color:red;font-size:11px;\">No disponible</p>')" alt="Foto Patr�n" style="width: 150px; height: 150px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;">
                   </div>
                 ` : ''}
               </div>
@@ -318,13 +318,13 @@ async function loadRejectedRequests() {
                   ${req.vehicle_photo_path ? `
                     <div>
                       <p style="margin: 0 0 5px 0; font-size: 12px; font-weight: bold;">Foto Vehículo</p>
-                      <img src="${normalizeImagePath(req.vehicle_photo_path)}" onerror="console.error('Error cargando imagen:', this.src); this.parentElement.innerHTML='<p style=color:red>Error al cargar</p>'" alt="Foto del vehículo" style="width: 150px; height: 150px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;">
+                      <img src="${normalizeImagePath(req.vehicle_photo_path)}" onerror="console.error('Error cargando imagen:', this.src); this.style.display='none'; this.insertAdjacentHTML('afterend', '<p style=\"color:red;font-size:11px;\">No disponible</p>')" alt="Foto del vehículo" style="width: 150px; height: 150px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;">
                     </div>
                   ` : ''}
                   ${req.vehicle_id_photo_path ? `
                     <div>
                       <p style="margin: 0 0 5px 0; font-size: 12px; font-weight: bold;">Foto Patr�n</p>
-                      <img src="${normalizeImagePath(req.vehicle_id_photo_path)}" onerror="console.error('Error cargando imagen:', this.src); this.parentElement.innerHTML='<p style=color:red>Error al cargar</p>'" alt="Foto Patr�n" style="width: 150px; height: 150px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;">
+                      <img src="${normalizeImagePath(req.vehicle_id_photo_path)}" onerror="console.error('Error cargando imagen:', this.src); this.style.display='none'; this.insertAdjacentHTML('afterend', '<p style=\"color:red;font-size:11px;\">No disponible</p>')" alt="Foto Patr�n" style="width: 150px; height: 150px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;">
                     </div>
                   ` : ''}
                 </div>
@@ -591,7 +591,7 @@ async function viewRequestDetails(id) {
         <p><strong>Color:</strong> ${req.vehicle_color}</p>
         <p><strong>Ubicación Garaje:</strong> ${req.garage_location || 'No especificada'}</p>
         <p><strong>Modificaciones:</strong> ${req.modifications_description || 'Ninguna'}</p>
-        ${req.vehicle_photo_path ? `<p><img src="/${req.vehicle_photo_path}" style="max-width: 300px;" onerror="console.error('Error cargando imagen:', this.src); this.parentElement.innerHTML='<p style=color:red>Error al cargar</p>'"></p>` : ''}
+        ${req.vehicle_photo_path ? `<p><img src="/${req.vehicle_photo_path}" style="max-width: 300px;" onerror="console.error('Error cargando imagen:', this.src); this.style.display='none'; this.insertAdjacentHTML('afterend', '<p style=\"color:red;font-size:11px;\">No disponible</p>')"></p>` : ''}
         
         <h3>Estado de Aprobación</h3>
         <p><strong>Estado:</strong> ${getStatusBadge(req)}</p>
