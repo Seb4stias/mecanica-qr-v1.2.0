@@ -580,4 +580,127 @@ async function generatePDF(requestData, qrImagePath, pdfPath) {
   });
 }
 
+/**
+ * POST /api/admin/create-request
+ * Crear una nueva solicitud como administrador
+ */
+router.post('/create-request', requireRole('admin_level1', 'admin_level2'), async (req, res, next) => {
+  const pool = db.getPool();
+  const connection = await pool.getConnection();
+  
+  try {
+    await connection.beginTransaction();
+    
+    const {
+      studentName,
+      studentRut,
+      studentCarrera,
+      studentEmail,
+      studentPhone,
+      vehiclePlate,
+      vehicleModel,
+      vehicleColor,
+      garageLocation,
+      modificationsDescription
+    } = req.body;
+    
+    // Validar que el estudiante no tenga ya una solicitud activa
+    const [existingRequests] = await connection.query(
+      'SELECT id FROM requests WHERE student_rut = ? AND status IN ("pending", "level1_approved", "level2_approved", "approved")',
+      [studentRut]
+    );
+    
+    if (existingRequests.length > 0) {
+      await connection.rollback();
+      return res.status(400).json({
+        success: false,
+        message: 'El estudiante ya tiene una solicitud activa'
+      });
+    }
+    
+    // Procesar las fotos
+    let vehiclePhotoPath = null;
+    let vehicleIdPhotoPath = null;
+    
+    if (req.files && req.files.vehiclePhoto) {
+      const vehiclePhoto = req.files.vehiclePhoto;
+      const uploadDir = path.join(__dirname, '../../public/uploads');
+      
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
+      
+      const timestamp = Date.now();
+      const photoFileName = `vehicle_${timestamp}_${vehiclePhoto.name}`;
+      vehiclePhotoPath = `/uploads/${photoFileName}`;
+      
+      await vehiclePhoto.mv(path.join(uploadDir, photoFileName));
+    }
+    
+    if (req.files && req.files.vehicleIdPhoto) {
+      const vehicleIdPhoto = req.files.vehicleIdPhoto;
+      const uploadDir = path.join(__dirname, '../../public/uploads');
+      
+      const timestamp = Date.now();
+      const idPhotoFileName = `vehicle_id_${timestamp}_${vehicleIdPhoto.name}`;
+      vehicleIdPhotoPath = `/uploads/${idPhotoFileName}`;
+      
+      await vehicleIdPhoto.mv(path.join(uploadDir, idPhotoFileName));
+    }
+    
+    // Insertar la solicitud con el user_id del admin que la crea
+    const [result] = await connection.query(
+      `INSERT INTO requests (
+        user_id,
+        student_name,
+        student_rut,
+        student_carrera,
+        student_email,
+        student_phone,
+        vehicle_plate,
+        vehicle_model,
+        vehicle_color,
+        garage_location,
+        vehicle_photo_path,
+        vehicle_id_photo_path,
+        modifications_description,
+        status,
+        created_by_admin,
+        created_by_admin_id
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 1, ?)`,
+      [
+        req.user.id, // El admin que crea la solicitud
+        studentName,
+        studentRut,
+        studentCarrera,
+        studentEmail,
+        studentPhone,
+        vehiclePlate,
+        vehicleModel,
+        vehicleColor,
+        garageLocation || null,
+        vehiclePhotoPath,
+        vehicleIdPhotoPath,
+        modificationsDescription || null,
+        req.user.id
+      ]
+    );
+    
+    await connection.commit();
+    
+    res.json({
+      success: true,
+      message: 'Solicitud creada exitosamente',
+      requestId: result.insertId
+    });
+    
+  } catch (error) {
+    await connection.rollback();
+    console.error('Error al crear solicitud:', error);
+    next(error);
+  } finally {
+    connection.release();
+  }
+});
+
 module.exports = router;

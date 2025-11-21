@@ -126,6 +126,9 @@ function showTab(tabName) {
     case 'denegadas':
       loadRejectedRequests();
       break;
+    case 'nueva-solicitud':
+      // No necesita cargar nada, el formulario ya está en el HTML
+      break;
     case 'scanner':
       loadScanner();
       break;
@@ -164,10 +167,21 @@ async function loadPendingRequests() {
         
         return `
           <div class="request-card" style="border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; border-radius: 5px;">
-            <div style="display: flex; gap: 15px;">
-              ${req.vehicle_photo_path ? `
-                <div style="flex-shrink: 0;">
-                  <img src="\${normalizeImagePath(req.vehicle_photo_path)}" onerror="this.style.display='none'" alt="Foto del vehículo" style="width: 150px; height: 150px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;">
+            <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+              ${req.vehicle_photo_path || req.vehicle_id_photo_path ? `
+                <div style="flex-shrink: 0; display: flex; gap: 10px; flex-wrap: wrap;">
+                  ${req.vehicle_photo_path ? `
+                    <div>
+                      <p style="margin: 0 0 5px 0; font-size: 12px; font-weight: bold;">Foto Vehículo</p>
+                      <img src="${normalizeImagePath(req.vehicle_photo_path)}" onerror="this.style.display='none'" alt="Foto del vehículo" style="width: 150px; height: 150px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;">
+                    </div>
+                  ` : ''}
+                  ${req.vehicle_id_photo_path ? `
+                    <div>
+                      <p style="margin: 0 0 5px 0; font-size: 12px; font-weight: bold;">Foto V2</p>
+                      <img src="${normalizeImagePath(req.vehicle_id_photo_path)}" onerror="this.style.display='none'" alt="Foto V2" style="width: 150px; height: 150px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;">
+                    </div>
+                  ` : ''}
                 </div>
               ` : ''}
               <div style="flex-grow: 1;">
@@ -226,10 +240,21 @@ async function loadApprovedRequests() {
     if (data.requests && data.requests.length > 0) {
       container.innerHTML = data.requests.map(req => `
         <div class="request-card" style="border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; border-radius: 5px;">
-          <div style="display: flex; gap: 15px;">
-            ${req.vehicle_photo_path ? `
-              <div style="flex-shrink: 0;">
-                <img src="\${normalizeImagePath(req.vehicle_photo_path)}" onerror="this.style.display='none'" alt="Foto del vehículo" style="width: 150px; height: 150px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;">
+          <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+            ${req.vehicle_photo_path || req.vehicle_id_photo_path ? `
+              <div style="flex-shrink: 0; display: flex; gap: 10px; flex-wrap: wrap;">
+                ${req.vehicle_photo_path ? `
+                  <div>
+                    <p style="margin: 0 0 5px 0; font-size: 12px; font-weight: bold;">Foto Vehículo</p>
+                    <img src="${normalizeImagePath(req.vehicle_photo_path)}" onerror="this.style.display='none'" alt="Foto del vehículo" style="width: 150px; height: 150px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;">
+                  </div>
+                ` : ''}
+                ${req.vehicle_id_photo_path ? `
+                  <div>
+                    <p style="margin: 0 0 5px 0; font-size: 12px; font-weight: bold;">Foto V2</p>
+                    <img src="${normalizeImagePath(req.vehicle_id_photo_path)}" onerror="this.style.display='none'" alt="Foto V2" style="width: 150px; height: 150px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;">
+                  </div>
+                ` : ''}
               </div>
             ` : ''}
             <div style="flex-grow: 1;">
@@ -287,10 +312,21 @@ async function loadRejectedRequests() {
         
         return `
           <div class="request-card" style="border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; border-radius: 5px;">
-            <div style="display: flex; gap: 15px;">
-              ${req.vehicle_photo_path ? `
-                <div style="flex-shrink: 0;">
-                  <img src="\${normalizeImagePath(req.vehicle_photo_path)}" onerror="this.style.display='none'" alt="Foto del vehículo" style="width: 150px; height: 150px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;">
+            <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+              ${req.vehicle_photo_path || req.vehicle_id_photo_path ? `
+                <div style="flex-shrink: 0; display: flex; gap: 10px; flex-wrap: wrap;">
+                  ${req.vehicle_photo_path ? `
+                    <div>
+                      <p style="margin: 0 0 5px 0; font-size: 12px; font-weight: bold;">Foto Vehículo</p>
+                      <img src="${normalizeImagePath(req.vehicle_photo_path)}" onerror="this.style.display='none'" alt="Foto del vehículo" style="width: 150px; height: 150px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;">
+                    </div>
+                  ` : ''}
+                  ${req.vehicle_id_photo_path ? `
+                    <div>
+                      <p style="margin: 0 0 5px 0; font-size: 12px; font-weight: bold;">Foto V2</p>
+                      <img src="${normalizeImagePath(req.vehicle_id_photo_path)}" onerror="this.style.display='none'" alt="Foto V2" style="width: 150px; height: 150px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;">
+                    </div>
+                  ` : ''}
                 </div>
               ` : ''}
               <div style="flex-grow: 1;">
@@ -1032,4 +1068,119 @@ async function deleteUser(userId) {
     console.error('Error:', error);
     alert('Error al eliminar usuario');
   }
+}
+
+
+// Manejar el formulario de nueva solicitud del admin
+document.addEventListener('DOMContentLoaded', () => {
+  const adminForm = document.getElementById('adminRequestForm');
+  if (adminForm) {
+    adminForm.addEventListener('submit', handleAdminRequestSubmit);
+  }
+  
+  // Preview de fotos
+  const vehiclePhoto = document.getElementById('admin_vehiclePhoto');
+  if (vehiclePhoto) {
+    vehiclePhoto.addEventListener('change', (e) => previewAdminPhoto(e, 'admin_photoPreview'));
+  }
+  
+  const vehicleIdPhoto = document.getElementById('admin_vehicleIdPhoto');
+  if (vehicleIdPhoto) {
+    vehicleIdPhoto.addEventListener('change', (e) => previewAdminPhoto(e, 'admin_idPhotoPreview'));
+  }
+});
+
+function previewAdminPhoto(event, previewId) {
+  const file = event.target.files[0];
+  const preview = document.getElementById(previewId);
+  
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      preview.innerHTML = `<img src="${e.target.result}" style="max-width: 200px; margin-top: 10px; border-radius: 5px;">`;
+    };
+    reader.readAsDataURL(file);
+  } else {
+    preview.innerHTML = '';
+  }
+}
+
+async function handleAdminRequestSubmit(e) {
+  e.preventDefault();
+  
+  // Limpiar mensajes de error previos
+  document.querySelectorAll('.error-message').forEach(el => el.textContent = '');
+  
+  const formData = new FormData(e.target);
+  
+  // Validaciones básicas
+  const rut = formData.get('studentRut');
+  if (!validateRUT(rut)) {
+    document.getElementById('admin_rutError').textContent = 'RUT inválido';
+    return;
+  }
+  
+  const email = formData.get('studentEmail');
+  if (!email.endsWith('@inacapmail.cl')) {
+    document.getElementById('admin_emailError').textContent = 'Debe ser un email institucional (@inacapmail.cl)';
+    return;
+  }
+  
+  try {
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Creando solicitud...';
+    
+    const response = await fetch('/api/admin/create-request', {
+      method: 'POST',
+      body: formData
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      alert('✅ Solicitud creada exitosamente. La solicitud pasará por el proceso de verificación normal.');
+      e.target.reset();
+      document.getElementById('admin_photoPreview').innerHTML = '';
+      document.getElementById('admin_idPhotoPreview').innerHTML = '';
+      
+      // Cambiar a la pestaña de pendientes
+      showTab('pendientes');
+    } else {
+      alert('❌ Error: ' + data.message);
+    }
+    
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Crear Solicitud';
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Error al crear la solicitud');
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Crear Solicitud';
+  }
+}
+
+function validateRUT(rut) {
+  // Eliminar puntos y guión
+  rut = rut.replace(/\./g, '').replace(/-/g, '');
+  
+  if (rut.length < 2) return false;
+  
+  const body = rut.slice(0, -1);
+  const dv = rut.slice(-1).toUpperCase();
+  
+  // Calcular dígito verificador
+  let sum = 0;
+  let multiplier = 2;
+  
+  for (let i = body.length - 1; i >= 0; i--) {
+    sum += parseInt(body[i]) * multiplier;
+    multiplier = multiplier === 7 ? 2 : multiplier + 1;
+  }
+  
+  const expectedDV = 11 - (sum % 11);
+  const calculatedDV = expectedDV === 11 ? '0' : expectedDV === 10 ? 'K' : expectedDV.toString();
+  
+  return dv === calculatedDV;
 }

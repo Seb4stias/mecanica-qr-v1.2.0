@@ -43,6 +43,10 @@
         <span class="drawer-icon">❌</span>
         Denegadas
       </button>
+      <button class="drawer-item" onclick="showTabFromDrawer('nueva-solicitud')">
+        <span class="drawer-icon">📝</span>
+        Nueva Solicitud
+      </button>
       <button class="drawer-item" onclick="showTabFromDrawer('scanner')">
         <span class="drawer-icon">📷</span>
         Escáner QR
@@ -63,6 +67,7 @@
       <button class="tab-btn active" onclick="showTab('pendientes')">Pendientes</button>
       <button class="tab-btn" onclick="showTab('aprobadas')">Aprobadas</button>
       <button class="tab-btn" onclick="showTab('denegadas')">Denegadas</button>
+      <button class="tab-btn" onclick="showTab('nueva-solicitud')">📝 Nueva Solicitud</button>
       <button class="tab-btn" onclick="showTab('scanner')">📷 Escáner QR</button>
       <button class="tab-btn" id="usersTab" onclick="showTab('usuarios')" style="display:none">Usuarios</button>
       <button class="tab-btn" onclick="showTab('mi-cuenta')">Mi Cuenta</button>
@@ -81,6 +86,87 @@
     <div id="denegadas-tab" class="tab-content">
       <h2>Solicitudes Denegadas</h2>
       <div id="denegadasList"></div>
+    </div>
+
+    <div id="nueva-solicitud-tab" class="tab-content">
+      <h2>Nueva Solicitud de Permiso Vehicular</h2>
+      <p class="info-message">Como administrador, puedes crear solicitudes en nombre de los estudiantes. Estas solicitudes pasarán por el proceso de verificación normal.</p>
+      <form id="adminRequestForm" enctype="multipart/form-data">
+        <h3>Datos del Estudiante</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="admin_student_name">Nombre Completo *</label>
+            <input type="text" id="admin_student_name" name="studentName" required>
+            <span class="error-message" id="admin_nameError"></span>
+          </div>
+          <div class="form-group">
+            <label for="admin_student_rut">RUT *</label>
+            <input type="text" id="admin_student_rut" name="studentRut" placeholder="12345678-9" required>
+            <span class="error-message" id="admin_rutError"></span>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="admin_student_carrera">Carrera *</label>
+            <input type="text" id="admin_student_carrera" name="studentCarrera" required>
+            <span class="error-message" id="admin_carreraError"></span>
+          </div>
+          <div class="form-group">
+            <label for="admin_student_email">Email Institucional *</label>
+            <input type="email" id="admin_student_email" name="studentEmail" placeholder="usuario@inacapmail.cl" required>
+            <span class="error-message" id="admin_emailError"></span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="admin_student_phone">Teléfono *</label>
+          <input type="tel" id="admin_student_phone" name="studentPhone" placeholder="12345678" required>
+          <span class="error-message" id="admin_phoneError"></span>
+        </div>
+
+        <h3>Datos del Vehículo</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="admin_vehicle_plate">Patente *</label>
+            <input type="text" id="admin_vehicle_plate" name="vehiclePlate" required>
+          </div>
+          <div class="form-group">
+            <label for="admin_vehicle_model">Modelo *</label>
+            <input type="text" id="admin_vehicle_model" name="vehicleModel" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="admin_vehicle_color">Color *</label>
+            <input type="text" id="admin_vehicle_color" name="vehicleColor" required>
+          </div>
+          <div class="form-group">
+            <label for="admin_garage_location">Ubicación de Garaje</label>
+            <input type="text" id="admin_garage_location" name="garageLocation">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="admin_vehiclePhoto">Foto del Vehículo *</label>
+          <input type="file" id="admin_vehiclePhoto" name="vehiclePhoto" accept="image/*" required>
+          <div id="admin_photoPreview"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="admin_vehicleIdPhoto">Foto V2 (Número Identificador)</label>
+          <input type="file" id="admin_vehicleIdPhoto" name="vehicleIdPhoto" accept="image/*">
+          <div id="admin_idPhotoPreview"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="admin_modifications_description">Descripción de Modificaciones</label>
+          <textarea id="admin_modifications_description" name="modificationsDescription" rows="3"></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Crear Solicitud</button>
+      </form>
     </div>
 
     <div id="scanner-tab" class="tab-content">
