@@ -1177,6 +1177,21 @@ async function handleAdminRequestSubmit(e) {
   }
 }
 
+function toggleAdminActivityDescription() {
+  const activityType = document.getElementById('admin_activity_type').value;
+  const descriptionGroup = document.getElementById('admin_activity_description_group');
+  const descriptionInput = document.getElementById('admin_activity_description');
+  
+  if (activityType) {
+    descriptionGroup.style.display = 'block';
+    descriptionInput.required = true;
+  } else {
+    descriptionGroup.style.display = 'none';
+    descriptionInput.required = false;
+    descriptionInput.value = '';
+  }
+}
+
 function validateRUT(rut) {
   // Eliminar puntos y guión
   rut = rut.replace(/\./g, '').replace(/-/g, '');

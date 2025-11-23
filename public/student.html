@@ -95,6 +95,21 @@
           <span class="error-message" id="phoneError"></span>
         </div>
 
+        <div class="form-row">
+          <div class="form-group">
+            <label for="activity_type">Tipo de Actividad *</label>
+            <select id="activity_type" name="activityType" required onchange="toggleActivityDescription()">
+              <option value="">Seleccione...</option>
+              <option value="curricular">Curricular</option>
+              <option value="extracurricular">Extracurricular</option>
+            </select>
+          </div>
+          <div class="form-group" id="activity_description_group" style="display: none;">
+            <label for="activity_description">Descripción de Actividad *</label>
+            <input type="text" id="activity_description" name="activityDescription" placeholder="Ej: Clase de mecánica, Taller de robótica">
+          </div>
+        </div>
+
         <h3>Datos del Vehículo</h3>
         <div class="form-row">
           <div class="form-group">

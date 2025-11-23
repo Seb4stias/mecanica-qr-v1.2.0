@@ -334,6 +334,21 @@ function closeClauseModal() {
   document.getElementById('clauseModal').style.display = 'none';
 }
 
+function toggleActivityDescription() {
+  const activityType = document.getElementById('activity_type').value;
+  const descriptionGroup = document.getElementById('activity_description_group');
+  const descriptionInput = document.getElementById('activity_description');
+  
+  if (activityType) {
+    descriptionGroup.style.display = 'block';
+    descriptionInput.required = true;
+  } else {
+    descriptionGroup.style.display = 'none';
+    descriptionInput.required = false;
+    descriptionInput.value = '';
+  }
+}
+
 function showErrorModal(message) {
   alert(message); // Temporal, puedes agregar modal después
 }
