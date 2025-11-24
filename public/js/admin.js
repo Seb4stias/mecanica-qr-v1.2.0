@@ -399,36 +399,43 @@ async function loadUsers() {
           </form>
           <div id="createUserMessage"></div>
         </div>
-        <div class="table-container">
-          <table>
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Nombre</th>
-                <th>Email</th>
-                <th>Rol</th>
-                <th>Estado</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
+        <div class="users-list">
               ${data.users.map(user => `
-                <tr>
-                  <td data-label="ID">${user.id}</td>
-                  <td data-label="Nombre">${user.name}</td>
-                  <td data-label="Email">${user.email}</td>
-                  <td data-label="Rol">${getRoleText(user.role)}</td>
-                  <td data-label="Estado">${user.is_active ? '✅ Activo' : '❌ Inactivo'}</td>
-                  <td data-label="Acciones">
-                    <button class="btn btn-primary" onclick="changeUserRole(${user.id}, '${user.role}')" style="font-size: 0.8rem; padding: 0.4rem 0.8rem; margin: 0.2rem;">Cambiar Rol</button>
-                    <button class="btn btn-primary" onclick="changeUserPassword(${user.id})" style="font-size: 0.8rem; padding: 0.4rem 0.8rem; margin: 0.2rem;">Cambiar Contraseña</button>
-                    <button class="btn btn-secondary" onclick="toggleUserActive(${user.id}, ${user.is_active})" style="font-size: 0.8rem; padding: 0.4rem 0.8rem; margin: 0.2rem;">${user.is_active ? 'Desactivar' : 'Activar'}</button>
-                    ${user.id !== currentUser.id ? `<button class="btn btn-danger" onclick="deleteUser(${user.id})" style="font-size: 0.8rem; padding: 0.4rem 0.8rem; margin: 0.2rem;">Eliminar</button>` : ''}
-                  </td>
-                </tr>
+                <div class="user-card">
+                  <div class="user-card-header" onclick="toggleUserDetails(${user.id})">
+                    <div class="user-card-info">
+                      <strong>${user.name}</strong>
+                      <span class="user-role-badge">${getRoleText(user.role)}</span>
+                      <span class="user-status-badge ${user.is_active ? 'active' : 'inactive'}">${user.is_active ? '✅ Activo' : '❌ Inactivo'}</span>
+                    </div>
+                    <span class="toggle-icon" id="toggle-icon-${user.id}">▼</span>
+                  </div>
+                  <div class="user-card-details" id="user-details-${user.id}" style="display: none;">
+                    <div class="user-detail-row">
+                      <span class="detail-label">ID:</span>
+                      <span class="detail-value">${user.id}</span>
+                    </div>
+                    <div class="user-detail-row">
+                      <span class="detail-label">RUT:</span>
+                      <span class="detail-value">${user.rut || 'No registrado'}</span>
+                    </div>
+                    <div class="user-detail-row">
+                      <span class="detail-label">Email:</span>
+                      <span class="detail-value">${user.email}</span>
+                    </div>
+                    <div class="user-detail-row">
+                      <span class="detail-label">Fecha de Registro:</span>
+                      <span class="detail-value">${new Date(user.created_at).toLocaleDateString('es-CL')}</span>
+                    </div>
+                    <div class="user-actions">
+                      <button class="btn btn-primary btn-sm" onclick="changeUserRole(${user.id}, '${user.role}')">Cambiar Rol</button>
+                      <button class="btn btn-primary btn-sm" onclick="changeUserPassword(${user.id})">Cambiar Contraseña</button>
+                      <button class="btn btn-secondary btn-sm" onclick="toggleUserActive(${user.id}, ${user.is_active})">${user.is_active ? 'Desactivar' : 'Activar'}</button>
+                      ${user.id !== currentUser.id ? `<button class="btn btn-danger btn-sm" onclick="deleteUser(${user.id})">Eliminar</button>` : ''}
+                    </div>
+                  </div>
+                </div>
               `).join('')}
-            </tbody>
-          </table>
         </div>
       `;
     } else {
@@ -1083,6 +1090,19 @@ async function deleteUser(userId) {
   } catch (error) {
     console.error('Error:', error);
     alert('Error al eliminar usuario');
+  }
+}
+
+function toggleUserDetails(userId) {
+  const details = document.getElementById(`user-details-${userId}`);
+  const icon = document.getElementById(`toggle-icon-${userId}`);
+  
+  if (details.style.display === 'none') {
+    details.style.display = 'block';
+    icon.textContent = '▲';
+  } else {
+    details.style.display = 'none';
+    icon.textContent = '▼';
   }
 }
 
