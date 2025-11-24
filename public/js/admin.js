@@ -82,12 +82,17 @@ async function checkSession() {
     currentUser = data.user;
     document.getElementById('userName').textContent = data.user.name;
     
-    // Mostrar tab de usuarios solo para admin_level2
+    // Mostrar tab de usuarios y auditoría solo para admin_level2
     if (data.user.role === 'admin_level2') {
       document.getElementById('usersTab').style.display = 'block';
+      document.getElementById('auditTab').style.display = 'block';
       const usersDrawerTab = document.getElementById('usersDrawerTab');
+      const auditDrawerTab = document.getElementById('auditDrawerTab');
       if (usersDrawerTab) {
         usersDrawerTab.style.display = 'block';
+      }
+      if (auditDrawerTab) {
+        auditDrawerTab.style.display = 'block';
       }
     }
     
@@ -134,6 +139,9 @@ function showTab(tabName) {
       break;
     case 'usuarios':
       loadUsers();
+      break;
+    case 'auditoria':
+      loadAudit();
       break;
     case 'mi-cuenta':
       loadMyAccount();
@@ -363,8 +371,11 @@ async function loadUsers() {
     
     if (data.users && data.users.length > 0) {
       container.innerHTML = `
-        <div style="margin-bottom: 20px;">
+        <div style="margin-bottom: 20px; display: flex; gap: 1rem; flex-wrap: wrap; align-items: center;">
           <button class="btn btn-primary" onclick="showCreateUserForm()">Crear Nuevo Usuario</button>
+          <div class="search-box" style="flex: 1; min-width: 250px;">
+            <input type="text" id="userSearchInput" placeholder="🔍 Buscar por nombre o RUT..." onkeyup="filterUsers()" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: 5px;">
+          </div>
         </div>
         <div id="createUserFormContainer" style="display: none; margin-bottom: 20px; padding: 20px; border: 1px solid #ddd; border-radius: 5px;">
           <h3>Crear Nuevo Usuario</h3>
@@ -399,9 +410,9 @@ async function loadUsers() {
           </form>
           <div id="createUserMessage"></div>
         </div>
-        <div class="users-list">
+        <div class="users-list" id="usersListContainer">
               ${data.users.map(user => `
-                <div class="user-card">
+                <div class="user-card" data-user-name="${user.name.toLowerCase()}" data-user-rut="${(user.rut || '').toLowerCase()}">
                   <div class="user-card-header" onclick="toggleUserDetails(${user.id})">
                     <div class="user-card-info">
                       <strong>${user.name}</strong>
@@ -1106,6 +1117,23 @@ function toggleUserDetails(userId) {
   }
 }
 
+function filterUsers() {
+  const searchInput = document.getElementById('userSearchInput');
+  const filter = searchInput.value.toLowerCase();
+  const userCards = document.querySelectorAll('.user-card');
+  
+  userCards.forEach(card => {
+    const name = card.getAttribute('data-user-name');
+    const rut = card.getAttribute('data-user-rut');
+    
+    if (name.includes(filter) || rut.includes(filter)) {
+      card.style.display = '';
+    } else {
+      card.style.display = 'none';
+    }
+  });
+}
+
 
 // Manejar el formulario de nueva solicitud del admin
 document.addEventListener('DOMContentLoaded', () => {
@@ -1234,4 +1262,153 @@ function validateRUT(rut) {
   const calculatedDV = expectedDV === 11 ? '0' : expectedDV === 10 ? 'K' : expectedDV.toString();
   
   return dv === calculatedDV;
+}
+
+
+async function loadAudit() {
+  const container = document.getElementById('auditContent');
+  
+  container.innerHTML = `
+    <div class="audit-filters" style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px; margin-bottom: 1.5rem;">
+      <h3 style="margin-top: 0;">Filtros</h3>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+        <div class="form-group">
+          <label>Tipo de Acción</label>
+          <select id="auditActionType" onchange="applyAuditFilters()">
+            <option value="">Todos</option>
+            <option value="user_registered">Usuario Registrado</option>
+            <option value="user_created">Usuario Creado</option>
+            <option value="user_role_changed">Cambio de Rol</option>
+            <option value="user_password_changed">Cambio de Contraseña</option>
+            <option value="user_status_changed">Cambio de Estado</option>
+            <option value="user_deleted">Usuario Eliminado</option>
+            <option value="request_approved_level1">Aprobación Nivel 1</option>
+            <option value="request_approved_level2">Aprobación Nivel 2</option>
+            <option value="request_rejected">Solicitud Rechazada</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Fecha Inicio</label>
+          <input type="date" id="auditStartDate" onchange="applyAuditFilters()">
+        </div>
+        <div class="form-group">
+          <label>Hora Inicio</label>
+          <input type="time" id="auditStartTime" onchange="applyAuditFilters()">
+        </div>
+        <div class="form-group">
+          <label>Fecha Fin</label>
+          <input type="date" id="auditEndDate" onchange="applyAuditFilters()">
+        </div>
+        <div class="form-group">
+          <label>Hora Fin</label>
+          <input type="time" id="auditEndTime" onchange="applyAuditFilters()">
+        </div>
+      </div>
+      <div style="margin-top: 1rem;">
+        <button class="btn btn-primary" onclick="applyAuditFilters()">Aplicar Filtros</button>
+        <button class="btn btn-secondary" onclick="clearAuditFilters()">Limpiar</button>
+      </div>
+    </div>
+    <div id="auditLogs">
+      <p style="text-align: center; color: #666;">Cargando registros...</p>
+    </div>
+  `;
+  
+  await fetchAuditLogs();
+}
+
+async function fetchAuditLogs(filters = {}) {
+  try {
+    const params = new URLSearchParams(filters);
+    const response = await fetch(`/api/audit?${params}`);
+    const data = await response.json();
+    
+    const container = document.getElementById('auditLogs');
+    
+    if (data.logs && data.logs.length > 0) {
+      container.innerHTML = `
+        <div class="audit-logs-list">
+          ${data.logs.map(log => `
+            <div class="audit-log-card">
+              <div class="audit-log-header">
+                <span class="audit-action-badge ${getActionTypeClass(log.action_type)}">${getActionTypeText(log.action_type)}</span>
+                <span class="audit-date">${new Date(log.created_at).toLocaleString('es-CL')}</span>
+              </div>
+              <div class="audit-log-body">
+                <p class="audit-description">${log.action_description}</p>
+                <div class="audit-details">
+                  <div><strong>Realizado por:</strong> ${log.performed_by_name || 'Sistema'} (${log.performed_by_email || 'N/A'})</div>
+                  ${log.target_user_name ? `<div><strong>Usuario afectado:</strong> ${log.target_user_name} (${log.target_user_email})</div>` : ''}
+                  ${log.request_student_name ? `<div><strong>Solicitud de:</strong> ${log.request_student_name}</div>` : ''}
+                  ${log.metadata ? `<div class="audit-metadata"><strong>Detalles:</strong> <pre>${JSON.stringify(JSON.parse(log.metadata), null, 2)}</pre></div>` : ''}
+                </div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    } else {
+      container.innerHTML = '<p style="text-align: center; color: #666;">No se encontraron registros con los filtros aplicados</p>';
+    }
+  } catch (error) {
+    console.error('Error cargando auditoría:', error);
+    document.getElementById('auditLogs').innerHTML = '<p style="color: red;">Error al cargar registros de auditoría</p>';
+  }
+}
+
+function applyAuditFilters() {
+  const filters = {};
+  
+  const actionType = document.getElementById('auditActionType').value;
+  const startDate = document.getElementById('auditStartDate').value;
+  const startTime = document.getElementById('auditStartTime').value;
+  const endDate = document.getElementById('auditEndDate').value;
+  const endTime = document.getElementById('auditEndTime').value;
+  
+  if (actionType) filters.actionType = actionType;
+  if (startDate) filters.startDate = startDate;
+  if (startTime) filters.startTime = startTime;
+  if (endDate) filters.endDate = endDate;
+  if (endTime) filters.endTime = endTime;
+  
+  fetchAuditLogs(filters);
+}
+
+function clearAuditFilters() {
+  document.getElementById('auditActionType').value = '';
+  document.getElementById('auditStartDate').value = '';
+  document.getElementById('auditStartTime').value = '';
+  document.getElementById('auditEndDate').value = '';
+  document.getElementById('auditEndTime').value = '';
+  fetchAuditLogs();
+}
+
+function getActionTypeClass(actionType) {
+  const classes = {
+    'user_registered': 'action-user',
+    'user_created': 'action-user',
+    'user_role_changed': 'action-warning',
+    'user_password_changed': 'action-warning',
+    'user_status_changed': 'action-warning',
+    'user_deleted': 'action-danger',
+    'request_approved_level1': 'action-success',
+    'request_approved_level2': 'action-success',
+    'request_rejected': 'action-danger'
+  };
+  return classes[actionType] || 'action-default';
+}
+
+function getActionTypeText(actionType) {
+  const texts = {
+    'user_registered': '👤 Usuario Registrado',
+    'user_created': '👤 Usuario Creado',
+    'user_role_changed': '🔄 Cambio de Rol',
+    'user_password_changed': '🔑 Cambio de Contraseña',
+    'user_status_changed': '⚡ Cambio de Estado',
+    'user_deleted': '🗑️ Usuario Eliminado',
+    'request_approved_level1': '✅ Aprobación Nivel 1',
+    'request_approved_level2': '✅ Aprobación Nivel 2',
+    'request_rejected': '❌ Solicitud Rechazada'
+  };
+  return texts[actionType] || actionType;
 }

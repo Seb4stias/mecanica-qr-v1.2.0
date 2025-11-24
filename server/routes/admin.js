@@ -6,6 +6,7 @@ const QRCode = require('qrcode');
 const PDFDocument = require('pdfkit');
 const fs = require('fs');
 const path = require('path');
+const { logAudit } = require('../utils/auditLogger');
 
 /**
  * GET /api/admin/requests
@@ -133,6 +134,9 @@ router.post('/requests/:id/approve', requireRole('admin_level1', 'admin_level2')
 
       console.log(`✅ Solicitud ${requestId} aprobada por nivel 1`);
 
+      // Registrar en auditoría
+      await logAudit('request_approved_level1', `Solicitud aprobada por nivel 1 para ${request.student_name}`, req.session.userId, null, requestId, { comments });
+
       // Volver a consultar para verificar si nivel 2 ya aprobó
       const [updatedRequests] = await pool.query('SELECT * FROM requests WHERE id = ?', [requestId]);
       const updatedRequest = updatedRequests[0];
@@ -185,6 +189,9 @@ router.post('/requests/:id/approve', requireRole('admin_level1', 'admin_level2')
       );
 
       console.log(`✅ Solicitud ${requestId} aprobada por nivel 2`);
+
+      // Registrar en auditoría
+      await logAudit('request_approved_level2', `Solicitud aprobada por nivel 2 para ${request.student_name}`, req.session.userId, null, requestId, { comments });
 
       // Volver a consultar la solicitud para obtener el estado actualizado
       const [updatedRequests] = await pool.query('SELECT * FROM requests WHERE id = ?', [requestId]);
@@ -259,6 +266,8 @@ router.post('/requests/:id/reject', requireRole('admin_level1', 'admin_level2'),
       });
     }
 
+    const request = requests[0];
+
     // Rechazar la solicitud y guardar quién la rechazó
     if (adminLevel === 1) {
       await pool.query(
@@ -285,6 +294,9 @@ router.post('/requests/:id/reject', requireRole('admin_level1', 'admin_level2'),
     }
 
     console.log(`✅ Solicitud ${requestId} rechazada por nivel ${adminLevel}`);
+
+    // Registrar en auditoría
+    await logAudit('request_rejected', `Solicitud rechazada por nivel ${adminLevel} para ${request.student_name}. Razón: ${reason}`, req.session.userId, null, requestId, { reason, adminLevel });
 
     res.json({
       success: true,

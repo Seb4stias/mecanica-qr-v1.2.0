@@ -55,6 +55,10 @@
         <span class="drawer-icon">👥</span>
         Usuarios
       </button>
+      <button class="drawer-item" id="auditDrawerTab" onclick="showTabFromDrawer('auditoria')" style="display:none">
+        <span class="drawer-icon">📊</span>
+        Auditoría
+      </button>
       <button class="drawer-item" onclick="showTabFromDrawer('mi-cuenta')">
         <span class="drawer-icon">👤</span>
         Mi Cuenta
@@ -70,6 +74,7 @@
       <button class="tab-btn" onclick="showTab('nueva-solicitud')">📝 Nueva Solicitud</button>
       <button class="tab-btn" onclick="showTab('scanner')">📷 Escáner QR</button>
       <button class="tab-btn" id="usersTab" onclick="showTab('usuarios')" style="display:none">Usuarios</button>
+      <button class="tab-btn" id="auditTab" onclick="showTab('auditoria')" style="display:none">Auditoría</button>
       <button class="tab-btn" onclick="showTab('mi-cuenta')">Mi Cuenta</button>
     </div>
 
@@ -214,6 +219,11 @@
     <div id="usuarios-tab" class="tab-content">
       <h2>Gestión de Usuarios</h2>
       <div id="userManagement"></div>
+    </div>
+
+    <div id="auditoria-tab" class="tab-content">
+      <h2>📊 Auditoría del Sistema</h2>
+      <div id="auditContent"></div>
     </div>
 
     <div id="mi-cuenta-tab" class="tab-content">

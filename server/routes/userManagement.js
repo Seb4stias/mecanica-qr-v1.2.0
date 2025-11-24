@@ -3,6 +3,7 @@ const router = express.Router();
 const bcrypt = require('bcrypt');
 const { requireRole } = require('../middleware/auth');
 const db = require('../config/database');
+const { logAudit } = require('../utils/auditLogger');
 
 /**
  * GET /api/admin/users
@@ -48,6 +49,9 @@ router.post('/', requireRole('admin_level2'), async (req, res, next) => {
       [email, passwordHash, name, role, rut, carrera, phone, req.session.userId]
     );
 
+    // Registrar en auditoría
+    await logAudit('user_created', `Usuario creado por admin: ${name} (${email}) con rol ${role}`, req.session.userId, result.insertId, null, { rut, role });
+
     res.json({
       success: true,
       message: 'Usuario creado exitosamente',
@@ -85,7 +89,15 @@ router.put('/:id/role', requireRole('admin_level2'), async (req, res, next) => {
     }
 
     const pool = db.getPool();
+    
+    // Obtener info del usuario antes del cambio
+    const [users] = await pool.query('SELECT name, email, role FROM users WHERE id = ?', [userId]);
+    const oldRole = users[0]?.role;
+    
     await pool.query('UPDATE users SET role = ? WHERE id = ?', [role, userId]);
+
+    // Registrar en auditoría
+    await logAudit('user_role_changed', `Rol cambiado de ${oldRole} a ${role} para usuario ${users[0]?.name}`, req.session.userId, userId, null, { oldRole, newRole: role });
 
     res.json({
       success: true,
@@ -115,7 +127,13 @@ router.put('/:id/password', requireRole('admin_level2'), async (req, res, next) 
     const passwordHash = await bcrypt.hash(newPassword, 10);
     const pool = db.getPool();
     
+    // Obtener info del usuario
+    const [users] = await pool.query('SELECT name, email FROM users WHERE id = ?', [userId]);
+    
     await pool.query('UPDATE users SET password_hash = ? WHERE id = ?', [passwordHash, userId]);
+
+    // Registrar en auditoría
+    await logAudit('user_password_changed', `Contraseña cambiada por admin para usuario ${users[0]?.name}`, req.session.userId, userId);
 
     res.json({
       success: true,
@@ -136,7 +154,7 @@ router.put('/:id/toggle-active', requireRole('admin_level2'), async (req, res, n
     const pool = db.getPool();
 
     // Obtener estado actual
-    const [users] = await pool.query('SELECT is_active FROM users WHERE id = ?', [userId]);
+    const [users] = await pool.query('SELECT is_active, name, email FROM users WHERE id = ?', [userId]);
     
     if (users.length === 0) {
       return res.status(404).json({
@@ -147,6 +165,10 @@ router.put('/:id/toggle-active', requireRole('admin_level2'), async (req, res, n
 
     const newStatus = users[0].is_active ? 0 : 1;
     await pool.query('UPDATE users SET is_active = ? WHERE id = ?', [newStatus, userId]);
+
+    // Registrar en auditoría
+    const action = newStatus ? 'activado' : 'desactivado';
+    await logAudit('user_status_changed', `Usuario ${users[0].name} ${action}`, req.session.userId, userId, null, { oldStatus: users[0].is_active, newStatus });
 
     res.json({
       success: true,
@@ -176,7 +198,7 @@ router.delete('/:id', requireRole('admin_level2'), async (req, res, next) => {
     }
 
     // Verificar que el usuario existe
-    const [users] = await pool.query('SELECT id FROM users WHERE id = ?', [userId]);
+    const [users] = await pool.query('SELECT id, name, email, role FROM users WHERE id = ?', [userId]);
     
     if (users.length === 0) {
       return res.status(404).json({
@@ -184,6 +206,9 @@ router.delete('/:id', requireRole('admin_level2'), async (req, res, next) => {
         message: 'Usuario no encontrado'
       });
     }
+
+    // Registrar en auditoría antes de eliminar
+    await logAudit('user_deleted', `Usuario eliminado: ${users[0].name} (${users[0].email})`, req.session.userId, userId, null, { deletedUser: users[0] });
 
     // Eliminar el usuario
     await pool.query('DELETE FROM users WHERE id = ?', [userId]);

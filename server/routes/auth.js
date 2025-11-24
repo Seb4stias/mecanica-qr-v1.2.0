@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcrypt');
 const db = require('../config/database');
+const { logAudit } = require('../utils/auditLogger');
 
 /**
  * POST /api/auth/login
@@ -126,6 +127,9 @@ router.post('/register', async (req, res, next) => {
        VALUES (?, ?, ?, 'student', ?, ?, ?, 1)`,
       [email, passwordHash, name, rut, carrera, phone]
     );
+
+    // Registrar en auditoría
+    await logAudit('user_registered', `Usuario registrado: ${name} (${email})`, result.insertId, result.insertId, null, { rut, carrera });
 
     // Crear sesión automáticamente
     req.session.userId = result.insertId;
