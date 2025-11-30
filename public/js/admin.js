@@ -1274,7 +1274,7 @@ async function loadAudit() {
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
         <div class="form-group">
           <label>Tipo de Acción</label>
-          <select id="auditActionType" onchange="applyAuditFilters()">
+          <select id="auditActionType">
             <option value="">Todos</option>
             <option value="user_registered">Usuario Registrado</option>
             <option value="user_created">Usuario Creado</option>
@@ -1289,19 +1289,19 @@ async function loadAudit() {
         </div>
         <div class="form-group">
           <label>Fecha Inicio</label>
-          <input type="date" id="auditStartDate" onchange="applyAuditFilters()">
+          <input type="date" id="auditStartDate">
         </div>
         <div class="form-group">
           <label>Hora Inicio</label>
-          <input type="time" id="auditStartTime" onchange="applyAuditFilters()">
+          <input type="time" id="auditStartTime">
         </div>
         <div class="form-group">
           <label>Fecha Fin</label>
-          <input type="date" id="auditEndDate" onchange="applyAuditFilters()">
+          <input type="date" id="auditEndDate">
         </div>
         <div class="form-group">
           <label>Hora Fin</label>
-          <input type="time" id="auditEndTime" onchange="applyAuditFilters()">
+          <input type="time" id="auditEndTime">
         </div>
       </div>
       <div style="margin-top: 1rem;">
@@ -1319,14 +1319,20 @@ async function loadAudit() {
 
 async function fetchAuditLogs(filters = {}) {
   try {
+    const container = document.getElementById('auditLogs');
+    container.innerHTML = '<p style="text-align: center; color: #666;">⏳ Cargando registros...</p>';
+    
     const params = new URLSearchParams(filters);
     const response = await fetch(`/api/audit?${params}`);
     const data = await response.json();
     
-    const container = document.getElementById('auditLogs');
+    console.log('Datos de auditoría recibidos:', data);
     
     if (data.logs && data.logs.length > 0) {
       container.innerHTML = `
+        <div style="margin-bottom: 1rem; padding: 0.75rem; background: #e7f3ff; border-radius: 5px; color: #004085;">
+          📊 Se encontraron <strong>${data.logs.length}</strong> registro(s)
+        </div>
         <div class="audit-logs-list">
           ${data.logs.map(log => `
             <div class="audit-log-card">
@@ -1348,11 +1354,45 @@ async function fetchAuditLogs(filters = {}) {
         </div>
       `;
     } else {
-      container.innerHTML = '<p style="text-align: center; color: #666;">No se encontraron registros con los filtros aplicados</p>';
+      // Crear mensaje descriptivo basado en los filtros aplicados
+      let message = '📭 No se encontraron registros';
+      const filterDescriptions = [];
+      
+      if (filters.actionType) {
+        filterDescriptions.push(`tipo: ${getActionTypeText(filters.actionType)}`);
+      }
+      if (filters.startDate) {
+        const dateStr = filters.startTime ? `${filters.startDate} ${filters.startTime}` : filters.startDate;
+        filterDescriptions.push(`desde: ${dateStr}`);
+      }
+      if (filters.endDate) {
+        const dateStr = filters.endTime ? `${filters.endDate} ${filters.endTime}` : filters.endDate;
+        filterDescriptions.push(`hasta: ${dateStr}`);
+      }
+      
+      if (filterDescriptions.length > 0) {
+        message += ` con los filtros: ${filterDescriptions.join(', ')}`;
+      } else {
+        message = '📭 No hay registros de auditoría en el sistema';
+      }
+      
+      container.innerHTML = `
+        <div style="text-align: center; padding: 3rem; background: #f8f9fa; border-radius: 8px; color: #666;">
+          <div style="font-size: 3rem; margin-bottom: 1rem;">📭</div>
+          <p style="font-size: 1.1rem; margin: 0;">${message}</p>
+          ${filterDescriptions.length > 0 ? '<p style="margin-top: 1rem; font-size: 0.9rem;">Intenta ajustar los filtros o limpiarlos para ver más resultados</p>' : ''}
+        </div>
+      `;
     }
   } catch (error) {
     console.error('Error cargando auditoría:', error);
-    document.getElementById('auditLogs').innerHTML = '<p style="color: red;">Error al cargar registros de auditoría</p>';
+    document.getElementById('auditLogs').innerHTML = `
+      <div style="text-align: center; padding: 3rem; background: #fff3cd; border-radius: 8px; color: #856404;">
+        <div style="font-size: 3rem; margin-bottom: 1rem;">⚠️</div>
+        <p style="font-size: 1.1rem; margin: 0;">Error al cargar registros de auditoría</p>
+        <p style="margin-top: 0.5rem; font-size: 0.9rem;">${error.message}</p>
+      </div>
+    `;
   }
 }
 
