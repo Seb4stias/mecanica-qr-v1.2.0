@@ -1411,6 +1411,7 @@ function applyAuditFilters() {
   if (endDate) filters.endDate = endDate;
   if (endTime) filters.endTime = endTime;
   
+  console.log('Aplicando filtros:', filters);
   fetchAuditLogs(filters);
 }
 
