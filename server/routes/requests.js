@@ -47,6 +47,8 @@ router.post('/', requireAuth, upload.fields([
       studentCarrera,
       studentEmail,
       studentPhone,
+      activityType,
+      activityDescription,
       vehiclePlate,
       vehicleModel,
       vehicleColor,
@@ -61,9 +63,9 @@ router.post('/', requireAuth, upload.fields([
     const [result] = await pool.query(
       `INSERT INTO requests (
         user_id, student_name, student_rut, student_carrera, student_email,
-        student_phone, vehicle_plate, vehicle_model, vehicle_color,
+        student_phone, activity_type, activity_description, vehicle_plate, vehicle_model, vehicle_color,
         vehicle_photo_path, vehicle_id_photo_path, garage_location, modifications_description, status
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
       [
         req.session.userId,
         studentName,
@@ -71,6 +73,8 @@ router.post('/', requireAuth, upload.fields([
         studentCarrera,
         studentEmail,
         studentPhone,
+        activityType,
+        activityDescription || null,
         vehiclePlate,
         vehicleModel,
         vehicleColor,

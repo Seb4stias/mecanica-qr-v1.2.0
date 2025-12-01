@@ -19,6 +19,8 @@ router.get('/', requireRole('admin_level2'), async (req, res, next) => {
       endTime 
     } = req.query;
 
+    console.log('📊 Filtros de auditoría recibidos:', { actionType, startDate, startTime, endDate, endTime });
+
     const pool = db.getPool();
     
     let query = `
@@ -58,8 +60,8 @@ router.get('/', requireRole('admin_level2'), async (req, res, next) => {
         query += ' AND a.created_at >= ?';
         params.push(`${startDate} ${startTime}`);
       } else {
-        query += ' AND DATE(a.created_at) >= ?';
-        params.push(startDate);
+        query += ' AND a.created_at >= ?';
+        params.push(`${startDate} 00:00:00`);
       }
     }
 
@@ -68,14 +70,19 @@ router.get('/', requireRole('admin_level2'), async (req, res, next) => {
         query += ' AND a.created_at <= ?';
         params.push(`${endDate} ${endTime}`);
       } else {
-        query += ' AND DATE(a.created_at) <= ?';
-        params.push(endDate);
+        query += ' AND a.created_at <= ?';
+        params.push(`${endDate} 23:59:59`);
       }
     }
 
     query += ' ORDER BY a.created_at DESC LIMIT 1000';
 
+    console.log('📊 Query SQL:', query);
+    console.log('📊 Parámetros:', params);
+
     const [logs] = await pool.query(query, params);
+
+    console.log(`📊 Registros encontrados: ${logs.length}`);
 
     res.json({
       success: true,
