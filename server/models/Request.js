@@ -86,6 +86,43 @@ const requestSchema = new mongoose.Schema({
     trim: true,
     default: null
   },
+  // Sistema de aprobación de dos niveles
+  level1_approved: {
+    type: Boolean,
+    default: false
+  },
+  level1_approved_by: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null
+  },
+  level1_approved_at: {
+    type: Date,
+    default: null
+  },
+  level2_approved: {
+    type: Boolean,
+    default: false
+  },
+  level2_approved_by: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null
+  },
+  level2_approved_at: {
+    type: Date,
+    default: null
+  },
+  rejected_by: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null
+  },
+  rejected_at: {
+    type: Date,
+    default: null
+  },
+  // Campo legacy para compatibilidad
   approved_by: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',

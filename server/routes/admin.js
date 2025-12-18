@@ -28,6 +28,7 @@ router.get('/requests', requireRole('admin_level1', 'admin_level2'), async (req,
       .populate('level1_approved_by', 'name email')
       .populate('level2_approved_by', 'name email')
       .populate('rejected_by', 'name email')
+      .populate('approved_by', 'name email')
       .sort({ created_at: -1 });
 
     res.json({
@@ -48,7 +49,8 @@ router.get('/requests/:id', requireRole('admin_level1', 'admin_level2'), async (
     const request = await Request.findById(req.params.id)
       .populate('level1_approved_by', 'name email')
       .populate('level2_approved_by', 'name email')
-      .populate('rejected_by', 'name email');
+      .populate('rejected_by', 'name email')
+      .populate('approved_by', 'name email');
     
     if (!request) {
       return res.status(404).json({
