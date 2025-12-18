@@ -17,15 +17,15 @@ const requestSchema = new mongoose.Schema({
     lowercase: true,
     trim: true
   },
-  carrera: {
+  student_carrera: {
     type: String,
-    required: true,
-    trim: true
+    trim: true,
+    default: null
   },
-  phone: {
+  student_phone: {
     type: String,
-    required: true,
-    trim: true
+    trim: true,
+    default: null
   },
   vehicle_plate: {
     type: String,
@@ -51,6 +51,15 @@ const requestSchema = new mongoose.Schema({
     type: String,
     default: null
   },
+  garage_location: {
+    type: String,
+    trim: true,
+    default: null
+  },
+  modifications_description: {
+    type: String,
+    default: null
+  },
   status: {
     type: String,
     enum: ['pending', 'level1_approved', 'level2_approved', 'approved', 'rejected'],
@@ -69,6 +78,10 @@ const requestSchema = new mongoose.Schema({
     type: Date,
     default: null
   },
+  level1_comments: {
+    type: String,
+    default: null
+  },
   level2_approved: {
     type: Boolean,
     default: false
@@ -82,6 +95,10 @@ const requestSchema = new mongoose.Schema({
     type: Date,
     default: null
   },
+  level2_comments: {
+    type: String,
+    default: null
+  },
   rejection_reason: {
     type: String,
     default: null
@@ -93,6 +110,29 @@ const requestSchema = new mongoose.Schema({
   },
   rejected_at: {
     type: Date,
+    default: null
+  },
+  denial_reason: {
+    type: String,
+    default: null
+  },
+  denied_by_level: {
+    type: Number,
+    enum: [1, 2],
+    default: null
+  },
+  created_by_admin: {
+    type: Boolean,
+    default: false
+  },
+  created_by_admin_id: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null
+  },
+  user_id: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
     default: null
   },
   created_at: {

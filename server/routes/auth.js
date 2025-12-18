@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcrypt');
-const db = require('../config/database');
+const User = require('../models/User');
 const { logAudit } = require('../utils/auditLogger');
 
 /**
@@ -19,20 +19,15 @@ router.post('/login', async (req, res, next) => {
       });
     }
 
-    const pool = db.getPool();
-    const [users] = await pool.query(
-      'SELECT * FROM users WHERE rut = ? AND is_active = 1',
-      [rut]
-    );
+    const user = await User.findOne({ rut, is_active: true });
 
-    if (users.length === 0) {
+    if (!user) {
       return res.status(401).json({
         success: false,
         message: 'Credenciales inválidas'
       });
     }
 
-    const user = users[0];
     const validPassword = await bcrypt.compare(password, user.password_hash);
 
     if (!validPassword) {
@@ -43,7 +38,7 @@ router.post('/login', async (req, res, next) => {
     }
 
     // Crear sesión
-    req.session.userId = user.id;
+    req.session.userId = user._id.toString();
     req.session.userEmail = user.email;
     req.session.userRole = user.role;
     req.session.userName = user.name;
@@ -54,7 +49,7 @@ router.post('/login', async (req, res, next) => {
       success: true,
       message: 'Inicio de sesión exitoso',
       user: {
-        id: user.id,
+        id: user._id,
         email: user.email,
         name: user.name,
         role: user.role
@@ -88,15 +83,9 @@ router.post('/register', async (req, res, next) => {
       });
     }
 
-    const pool = db.getPool();
-
     // Verificar si el email ya existe
-    const [existing] = await pool.query(
-      'SELECT id FROM users WHERE email = ?',
-      [email]
-    );
-
-    if (existing.length > 0) {
+    const existingEmail = await User.findOne({ email });
+    if (existingEmail) {
       return res.status(409).json({
         success: false,
         message: 'El email ya está registrado'
@@ -105,12 +94,8 @@ router.post('/register', async (req, res, next) => {
 
     // Verificar si el RUT ya existe (si se proporcionó)
     if (rut) {
-      const [existingRut] = await pool.query(
-        'SELECT id FROM users WHERE rut = ?',
-        [rut]
-      );
-
-      if (existingRut.length > 0) {
+      const existingRut = await User.findOne({ rut });
+      if (existingRut) {
         return res.status(409).json({
           success: false,
           message: 'El RUT ya está registrado'
@@ -122,17 +107,24 @@ router.post('/register', async (req, res, next) => {
     const passwordHash = await bcrypt.hash(password, 10);
 
     // Crear usuario con rol de estudiante
-    const [result] = await pool.query(
-      `INSERT INTO users (email, password_hash, name, role, rut, carrera, phone, is_active)
-       VALUES (?, ?, ?, 'student', ?, ?, ?, 1)`,
-      [email, passwordHash, name, rut, carrera, phone]
-    );
+    const newUser = new User({
+      email,
+      password_hash: passwordHash,
+      name,
+      role: 'student',
+      rut,
+      carrera,
+      phone,
+      is_active: true
+    });
+
+    const savedUser = await newUser.save();
 
     // Registrar en auditoría
-    await logAudit('user_registered', `Usuario registrado: ${name} (${email})`, result.insertId, result.insertId, null, { rut, carrera });
+    await logAudit('user_registered', `Usuario registrado: ${name} (${email})`, savedUser._id, savedUser._id, null, { rut, carrera });
 
     // Crear sesión automáticamente
-    req.session.userId = result.insertId;
+    req.session.userId = savedUser._id.toString();
     req.session.userEmail = email;
     req.session.userRole = 'student';
     req.session.userName = name;
@@ -141,7 +133,7 @@ router.post('/register', async (req, res, next) => {
       success: true,
       message: 'Usuario registrado exitosamente',
       user: {
-        id: result.insertId,
+        id: savedUser._id,
         email: email,
         name: name,
         role: 'student'
@@ -184,19 +176,14 @@ router.get('/session', async (req, res, next) => {
       console.log('✅ Sesión encontrada para user ID:', req.session.userId);
       
       // Obtener datos actualizados del usuario
-      const pool = db.getPool();
-      const [users] = await pool.query(
-        'SELECT id, email, name, role, rut, carrera, phone FROM users WHERE id = ? AND is_active = 1',
-        [req.session.userId]
-      );
+      const user = await User.findById(req.session.userId, 'email name role rut carrera phone is_active');
       
-      if (users.length > 0) {
-        const user = users[0];
+      if (user && user.is_active) {
         console.log('✅ Usuario encontrado:', user.name, '- Rol:', user.role);
         res.json({
           success: true,
           user: {
-            id: user.id,
+            id: user._id,
             email: user.email,
             name: user.name,
             role: user.role,
@@ -254,22 +241,17 @@ router.post('/change-password', async (req, res, next) => {
       });
     }
     
-    const pool = db.getPool();
-    
     // Verificar contraseña actual
-    const [users] = await pool.query(
-      'SELECT password_hash FROM users WHERE id = ?',
-      [req.session.userId]
-    );
+    const user = await User.findById(req.session.userId, 'password_hash');
     
-    if (users.length === 0) {
+    if (!user) {
       return res.status(404).json({
         success: false,
         message: 'Usuario no encontrado'
       });
     }
     
-    const validPassword = await bcrypt.compare(currentPassword, users[0].password_hash);
+    const validPassword = await bcrypt.compare(currentPassword, user.password_hash);
     
     if (!validPassword) {
       return res.status(401).json({
@@ -280,10 +262,7 @@ router.post('/change-password', async (req, res, next) => {
     
     // Actualizar contraseña
     const newPasswordHash = await bcrypt.hash(newPassword, 10);
-    await pool.query(
-      'UPDATE users SET password_hash = ? WHERE id = ?',
-      [newPasswordHash, req.session.userId]
-    );
+    await User.findByIdAndUpdate(req.session.userId, { password_hash: newPasswordHash });
     
     res.json({
       success: true,

@@ -1,7 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const { requireRole } = require('../middleware/auth');
-const db = require('../config/database');
+const Request = require('../models/Request');
+const QRCodeModel = require('../models/QRCode');
+const User = require('../models/User');
 const QRCode = require('qrcode');
 const PDFDocument = require('pdfkit');
 const fs = require('fs');
@@ -15,35 +17,18 @@ const { logAudit } = require('../utils/auditLogger');
 router.get('/requests', requireRole('admin_level1', 'admin_level2'), async (req, res, next) => {
   try {
     const { status } = req.query;
-    const pool = db.getPool();
     
-    let query = `
-      SELECT r.*, 
-             u.name as user_name, 
-             u.email as user_email,
-             admin1.name as level1_admin_name,
-             admin2.name as level2_admin_name,
-             CASE 
-               WHEN r.denied_by_level = 1 THEN admin1.name
-               WHEN r.denied_by_level = 2 THEN admin2.name
-               ELSE NULL
-             END as rejected_by_name
-      FROM requests r 
-      JOIN users u ON r.user_id = u.id
-      LEFT JOIN users admin1 ON r.level1_admin_id = admin1.id
-      LEFT JOIN users admin2 ON r.level2_admin_id = admin2.id
-    `;
-    const params = [];
-    
+    let filter = {};
     if (status) {
       const statuses = status.split(',');
-      query += ' WHERE r.status IN (' + statuses.map(() => '?').join(',') + ')';
-      params.push(...statuses);
+      filter.status = { $in: statuses };
     }
     
-    query += ' ORDER BY r.created_at DESC';
-    
-    const [requests] = await pool.query(query, params);
+    const requests = await Request.find(filter)
+      .populate('level1_approved_by', 'name email')
+      .populate('level2_approved_by', 'name email')
+      .populate('rejected_by', 'name email')
+      .sort({ created_at: -1 });
 
     res.json({
       success: true,
@@ -60,10 +45,12 @@ router.get('/requests', requireRole('admin_level1', 'admin_level2'), async (req,
  */
 router.get('/requests/:id', requireRole('admin_level1', 'admin_level2'), async (req, res, next) => {
   try {
-    const pool = db.getPool();
-    const [requests] = await pool.query('SELECT * FROM requests WHERE id = ?', [req.params.id]);
+    const request = await Request.findById(req.params.id)
+      .populate('level1_approved_by', 'name email')
+      .populate('level2_approved_by', 'name email')
+      .populate('rejected_by', 'name email');
     
-    if (requests.length === 0) {
+    if (!request) {
       return res.status(404).json({
         success: false,
         message: 'Solicitud no encontrada'
@@ -72,7 +59,7 @@ router.get('/requests/:id', requireRole('admin_level1', 'admin_level2'), async (
     
     res.json({
       success: true,
-      request: requests[0]
+      request
     });
   } catch (error) {
     next(error);
@@ -93,16 +80,14 @@ router.post('/requests/:id/approve', requireRole('admin_level1', 'admin_level2')
     console.log(`📝 Admin nivel ${adminLevel} (ID: ${req.session.userId}) aprobando solicitud ${requestId}`);
 
     // Obtener solicitud actual
-    const [requests] = await pool.query('SELECT * FROM requests WHERE id = ?', [requestId]);
+    const request = await Request.findById(requestId);
     
-    if (requests.length === 0) {
+    if (!request) {
       return res.status(404).json({
         success: false,
         message: 'Solicitud no encontrada'
       });
     }
-
-    const request = requests[0];
 
     // Verificar que no esté ya rechazada
     if (request.status === 'rejected') {
@@ -122,15 +107,12 @@ router.post('/requests/:id/approve', requireRole('admin_level1', 'admin_level2')
       }
 
       // Aprobación nivel 1
-      await pool.query(
-        `UPDATE requests SET 
-          level1_approved = 1,
-          level1_admin_id = ?,
-          level1_date = NOW(),
-          level1_comments = ?
-        WHERE id = ?`,
-        [req.session.userId, comments || '', requestId]
-      );
+      await Request.findByIdAndUpdate(requestId, {
+        level1_approved: true,
+        level1_approved_by: req.session.userId,
+        level1_approved_at: new Date(),
+        level1_comments: comments || ''
+      });
 
       console.log(`✅ Solicitud ${requestId} aprobada por nivel 1`);
 
@@ -138,17 +120,13 @@ router.post('/requests/:id/approve', requireRole('admin_level1', 'admin_level2')
       await logAudit('request_approved_level1', `Solicitud aprobada por nivel 1 para ${request.student_name}`, req.session.userId, null, requestId, { comments });
 
       // Volver a consultar para verificar si nivel 2 ya aprobó
-      const [updatedRequests] = await pool.query('SELECT * FROM requests WHERE id = ?', [requestId]);
-      const updatedRequest = updatedRequests[0];
+      const updatedRequest = await Request.findById(requestId);
 
       console.log(`🔍 Estado después de aprobar nivel 1: level1=${updatedRequest.level1_approved}, level2=${updatedRequest.level2_approved}`);
 
       // Si AMBOS niveles están aprobados, cambiar estado a 'approved' y generar QR
-      if (updatedRequest.level1_approved === 1 && updatedRequest.level2_approved === 1) {
-        await pool.query(
-          `UPDATE requests SET status = 'approved' WHERE id = ?`,
-          [requestId]
-        );
+      if (updatedRequest.level1_approved && updatedRequest.level2_approved) {
+        await Request.findByIdAndUpdate(requestId, { status: 'approved' });
         
         console.log(`✅ Solicitud ${requestId} COMPLETAMENTE APROBADA - Generando QR...`);
 
@@ -162,10 +140,7 @@ router.post('/requests/:id/approve', requireRole('admin_level1', 'admin_level2')
         }
       } else {
         // Solo nivel 1 aprobado, falta nivel 2
-        await pool.query(
-          `UPDATE requests SET status = 'level1_approved' WHERE id = ?`,
-          [requestId]
-        );
+        await Request.findByIdAndUpdate(requestId, { status: 'level1_approved' });
         console.log(`✅ Solicitud ${requestId} aprobada por nivel 1, falta nivel 2`);
       }
     } else {
@@ -178,15 +153,12 @@ router.post('/requests/:id/approve', requireRole('admin_level1', 'admin_level2')
       }
 
       // Aprobar nivel 2
-      await pool.query(
-        `UPDATE requests SET 
-          level2_approved = 1,
-          level2_admin_id = ?,
-          level2_date = NOW(),
-          level2_comments = ?
-        WHERE id = ?`,
-        [req.session.userId, comments || '', requestId]
-      );
+      await Request.findByIdAndUpdate(requestId, {
+        level2_approved: true,
+        level2_approved_by: req.session.userId,
+        level2_approved_at: new Date(),
+        level2_comments: comments || ''
+      });
 
       console.log(`✅ Solicitud ${requestId} aprobada por nivel 2`);
 
@@ -194,17 +166,13 @@ router.post('/requests/:id/approve', requireRole('admin_level1', 'admin_level2')
       await logAudit('request_approved_level2', `Solicitud aprobada por nivel 2 para ${request.student_name}`, req.session.userId, null, requestId, { comments });
 
       // Volver a consultar la solicitud para obtener el estado actualizado
-      const [updatedRequests] = await pool.query('SELECT * FROM requests WHERE id = ?', [requestId]);
-      const updatedRequest = updatedRequests[0];
+      const updatedRequest = await Request.findById(requestId);
 
       console.log(`🔍 Estado después de aprobar nivel 2: level1=${updatedRequest.level1_approved}, level2=${updatedRequest.level2_approved}`);
 
       // Si AMBOS niveles están aprobados, cambiar estado a 'approved' y generar QR
-      if (updatedRequest.level1_approved === 1 && updatedRequest.level2_approved === 1) {
-        await pool.query(
-          `UPDATE requests SET status = 'approved' WHERE id = ?`,
-          [requestId]
-        );
+      if (updatedRequest.level1_approved && updatedRequest.level2_approved) {
+        await Request.findByIdAndUpdate(requestId, { status: 'approved' });
         
         console.log(`✅ Solicitud ${requestId} COMPLETAMENTE APROBADA - Generando QR...`);
 
@@ -219,10 +187,7 @@ router.post('/requests/:id/approve', requireRole('admin_level1', 'admin_level2')
         }
       } else {
         // Solo nivel 2 aprobado, falta nivel 1
-        await pool.query(
-          `UPDATE requests SET status = 'level2_approved' WHERE id = ?`,
-          [requestId]
-        );
+        await Request.findByIdAndUpdate(requestId, { status: 'level2_approved' });
         console.log(`✅ Solicitud ${requestId} aprobada por nivel 2, falta nivel 1`);
       }
     }
@@ -257,41 +222,33 @@ router.post('/requests/:id/reject', requireRole('admin_level1', 'admin_level2'),
     console.log(`❌ Admin nivel ${adminLevel} (ID: ${req.session.userId}) rechazando solicitud ${requestId}`);
 
     // Verificar que la solicitud existe
-    const [requests] = await pool.query('SELECT * FROM requests WHERE id = ?', [requestId]);
+    const request = await Request.findById(requestId);
     
-    if (requests.length === 0) {
+    if (!request) {
       return res.status(404).json({
         success: false,
         message: 'Solicitud no encontrada'
       });
     }
 
-    const request = requests[0];
-
     // Rechazar la solicitud y guardar quién la rechazó
+    const updateData = {
+      status: 'rejected',
+      denial_reason: reason,
+      denied_by_level: adminLevel,
+      rejected_by: req.session.userId,
+      rejected_at: new Date()
+    };
+
     if (adminLevel === 1) {
-      await pool.query(
-        `UPDATE requests SET 
-          status = 'rejected',
-          denial_reason = ?,
-          denied_by_level = ?,
-          level1_admin_id = ?,
-          level1_date = NOW()
-        WHERE id = ?`,
-        [reason, adminLevel, req.session.userId, requestId]
-      );
+      updateData.level1_approved_by = req.session.userId;
+      updateData.level1_approved_at = new Date();
     } else {
-      await pool.query(
-        `UPDATE requests SET 
-          status = 'rejected',
-          denial_reason = ?,
-          denied_by_level = ?,
-          level2_admin_id = ?,
-          level2_date = NOW()
-        WHERE id = ?`,
-        [reason, adminLevel, req.session.userId, requestId]
-      );
+      updateData.level2_approved_by = req.session.userId;
+      updateData.level2_approved_at = new Date();
     }
+
+    await Request.findByIdAndUpdate(requestId, updateData);
 
     console.log(`✅ Solicitud ${requestId} rechazada por nivel ${adminLevel}`);
 
@@ -319,16 +276,14 @@ router.post('/requests/:id/regenerate-qr', requireRole('admin_level1', 'admin_le
     console.log(`🔄 Regenerando QR para solicitud ${requestId}`);
 
     // Verificar que la solicitud existe y está aprobada
-    const [requests] = await pool.query('SELECT * FROM requests WHERE id = ?', [requestId]);
+    const request = await Request.findById(requestId);
     
-    if (requests.length === 0) {
+    if (!request) {
       return res.status(404).json({
         success: false,
         message: 'Solicitud no encontrada'
       });
     }
-
-    const request = requests[0];
 
     if (request.status !== 'approved') {
       return res.status(400).json({
@@ -338,7 +293,7 @@ router.post('/requests/:id/regenerate-qr', requireRole('admin_level1', 'admin_le
     }
 
     // Eliminar QR anterior si existe
-    await pool.query('DELETE FROM qr_codes WHERE request_id = ?', [requestId]);
+    await QRCodeModel.deleteMany({ request_id: requestId });
 
     // Generar nuevo QR
     try {
@@ -373,9 +328,9 @@ router.delete('/requests/:id', requireRole('admin_level2'), async (req, res, nex
     console.log(`🗑️ Admin nivel 2 (ID: ${req.session.userId}) eliminando solicitud ${requestId}`);
 
     // Verificar que la solicitud existe
-    const [requests] = await pool.query('SELECT * FROM requests WHERE id = ?', [requestId]);
+    const request = await Request.findById(requestId);
     
-    if (requests.length === 0) {
+    if (!request) {
       return res.status(404).json({
         success: false,
         message: 'Solicitud no encontrada'
@@ -383,10 +338,10 @@ router.delete('/requests/:id', requireRole('admin_level2'), async (req, res, nex
     }
 
     // Eliminar QR asociado si existe
-    await pool.query('DELETE FROM qr_codes WHERE request_id = ?', [requestId]);
+    await QRCodeModel.deleteMany({ request_id: requestId });
 
     // Eliminar la solicitud
-    await pool.query('DELETE FROM requests WHERE id = ?', [requestId]);
+    await Request.findByIdAndDelete(requestId);
 
     console.log(`✅ Solicitud ${requestId} eliminada exitosamente`);
 
@@ -403,7 +358,6 @@ router.delete('/requests/:id', requireRole('admin_level2'), async (req, res, nex
  * Función auxiliar para generar código QR
  */
 async function generateQRCode(requestId, requestData) {
-  const pool = db.getPool();
   
   // Crear carpeta qr-codes si no existe (ruta absoluta)
   const qrDir = path.join(__dirname, '../../public/qr-codes');
@@ -471,11 +425,16 @@ async function generateQRCode(requestId, requestData) {
   const relativeQrPath = `public/qr-codes/qr-${requestId}.png`;
   const relativePdfPath = `public/qr-codes/permit-${requestId}.pdf`;
   
-  await pool.query(
-    `INSERT INTO qr_codes (request_id, qr_data, qr_image_path, pdf_path, expires_at, is_active)
-     VALUES (?, ?, ?, ?, ?, 1)`,
-    [requestId, qrData, relativeQrPath, relativePdfPath, expiresAt]
-  );
+  const qrCode = new QRCodeModel({
+    request_id: requestId,
+    qr_code: qrData,
+    qr_image_path: relativeQrPath,
+    pdf_path: relativePdfPath,
+    expires_at: expiresAt,
+    is_active: true
+  });
+
+  await qrCode.save();
   
   console.log(`💾 Rutas guardadas en BD: ${relativeQrPath}, ${relativePdfPath}`);
 }
@@ -597,12 +556,7 @@ async function generatePDF(requestData, qrImagePath, pdfPath) {
  * Crear una nueva solicitud como administrador
  */
 router.post('/create-request', requireRole('admin_level1', 'admin_level2'), async (req, res, next) => {
-  const pool = db.getPool();
-  const connection = await pool.getConnection();
-  
   try {
-    await connection.beginTransaction();
-    
     const {
       studentName,
       studentRut,
@@ -617,13 +571,12 @@ router.post('/create-request', requireRole('admin_level1', 'admin_level2'), asyn
     } = req.body;
     
     // Validar que el estudiante no tenga ya una solicitud activa
-    const [existingRequests] = await connection.query(
-      'SELECT id FROM requests WHERE student_rut = ? AND status IN ("pending", "level1_approved", "level2_approved", "approved")',
-      [studentRut]
-    );
+    const existingRequest = await Request.findOne({
+      student_rut: studentRut,
+      status: { $in: ['pending', 'level1_approved', 'level2_approved', 'approved'] }
+    });
     
-    if (existingRequests.length > 0) {
-      await connection.rollback();
+    if (existingRequest) {
       return res.status(400).json({
         success: false,
         message: 'El estudiante ya tiene una solicitud activa'
@@ -660,58 +613,37 @@ router.post('/create-request', requireRole('admin_level1', 'admin_level2'), asyn
       await vehicleIdPhoto.mv(path.join(uploadDir, idPhotoFileName));
     }
     
-    // Insertar la solicitud con el user_id del admin que la crea
-    const [result] = await connection.query(
-      `INSERT INTO requests (
-        user_id,
-        student_name,
-        student_rut,
-        student_carrera,
-        student_email,
-        student_phone,
-        vehicle_plate,
-        vehicle_model,
-        vehicle_color,
-        garage_location,
-        vehicle_photo_path,
-        vehicle_id_photo_path,
-        modifications_description,
-        status,
-        created_by_admin,
-        created_by_admin_id
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 1, ?)`,
-      [
-        req.user.id, // El admin que crea la solicitud
-        studentName,
-        studentRut,
-        studentCarrera,
-        studentEmail,
-        studentPhone,
-        vehiclePlate,
-        vehicleModel,
-        vehicleColor,
-        garageLocation || null,
-        vehiclePhotoPath,
-        vehicleIdPhotoPath,
-        modificationsDescription || null,
-        req.user.id
-      ]
-    );
+    // Crear la nueva solicitud
+    const newRequest = new Request({
+      user_id: req.session.userId, // El admin que crea la solicitud
+      student_name: studentName,
+      student_rut: studentRut,
+      student_carrera: studentCarrera,
+      student_email: studentEmail,
+      student_phone: studentPhone,
+      vehicle_plate: vehiclePlate,
+      vehicle_model: vehicleModel,
+      vehicle_color: vehicleColor,
+      garage_location: garageLocation || null,
+      vehicle_photo_path: vehiclePhotoPath,
+      vehicle_id_photo_path: vehicleIdPhotoPath,
+      modifications_description: modificationsDescription || null,
+      status: 'pending',
+      created_by_admin: true,
+      created_by_admin_id: req.session.userId
+    });
     
-    await connection.commit();
+    const savedRequest = await newRequest.save();
     
     res.json({
       success: true,
       message: 'Solicitud creada exitosamente',
-      requestId: result.insertId
+      requestId: savedRequest._id
     });
     
   } catch (error) {
-    await connection.rollback();
     console.error('Error al crear solicitud:', error);
     next(error);
-  } finally {
-    connection.release();
   }
 });
 

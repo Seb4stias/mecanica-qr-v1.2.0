@@ -29,6 +29,21 @@ const userSchema = new mongoose.Schema({
     unique: true,
     trim: true
   },
+  carrera: {
+    type: String,
+    trim: true,
+    default: null
+  },
+  phone: {
+    type: String,
+    trim: true,
+    default: null
+  },
+  created_by: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null
+  },
   is_active: {
     type: Boolean,
     default: true

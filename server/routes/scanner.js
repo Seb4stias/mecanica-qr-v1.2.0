@@ -1,7 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const { requireRole } = require('../middleware/auth');
-const db = require('../config/database');
+const Request = require('../models/Request');
+const QRCodeModel = require('../models/QRCode');
+const AuditLog = require('../models/AuditLog');
 
 /**
  * POST /api/scanner/validate
@@ -28,18 +30,13 @@ router.post('/validate', requireRole('scanner', 'admin_level1', 'admin_level2'),
       });
     }
 
-    const pool = db.getPool();
-
     // Buscar el QR en la base de datos
-    const [qrCodes] = await pool.query(
-      `SELECT qr.*, r.student_name, r.student_rut, r.vehicle_plate, r.vehicle_model, r.vehicle_color, r.status, r.vehicle_photo_path, r.vehicle_id_photo_path
-       FROM qr_codes qr
-       JOIN requests r ON qr.request_id = r.id
-       WHERE qr.request_id = ? AND qr.is_active = 1`,
-      [parsedData.requestId]
-    );
+    const qrCode = await QRCodeModel.findOne({
+      request_id: parsedData.requestId,
+      is_active: true
+    }).populate('request_id');
 
-    if (qrCodes.length === 0) {
+    if (!qrCode) {
       return res.json({
         success: false,
         valid: false,
@@ -47,7 +44,7 @@ router.post('/validate', requireRole('scanner', 'admin_level1', 'admin_level2'),
       });
     }
 
-    const qrCode = qrCodes[0];
+    const request = qrCode.request_id;
 
     // Verificar si está expirado
     if (qrCode.expires_at && new Date(qrCode.expires_at) < new Date()) {
@@ -56,54 +53,56 @@ router.post('/validate', requireRole('scanner', 'admin_level1', 'admin_level2'),
         valid: false,
         message: 'Código QR expirado',
         data: {
-          studentName: qrCode.student_name,
-          studentRut: qrCode.student_rut,
-          vehiclePlate: qrCode.vehicle_plate,
+          studentName: request.student_name,
+          studentRut: request.student_rut,
+          vehiclePlate: request.vehicle_plate,
           expiresAt: qrCode.expires_at
         }
       });
     }
 
     // Verificar que la solicitud esté aprobada
-    if (qrCode.status !== 'approved') {
+    if (request.status !== 'approved') {
       return res.json({
         success: true,
         valid: false,
         message: 'Solicitud no está aprobada',
         data: {
-          studentName: qrCode.student_name,
-          studentRut: qrCode.student_rut,
-          vehiclePlate: qrCode.vehicle_plate,
-          status: qrCode.status
+          studentName: request.student_name,
+          studentRut: request.student_rut,
+          vehiclePlate: request.vehicle_plate,
+          status: request.status
         }
       });
     }
 
     // QR válido
-    console.log('✅ QR válido - Foto del vehículo:', qrCode.vehicle_photo_path);
+    console.log('✅ QR válido - Foto del vehículo:', request.vehicle_photo_path);
     
     res.json({
       success: true,
       valid: true,
       message: 'Acceso autorizado',
       data: {
-        studentName: qrCode.student_name,
-        studentRut: qrCode.student_rut,
-        vehiclePlate: qrCode.vehicle_plate,
-        vehicleModel: qrCode.vehicle_model,
-        vehicleColor: qrCode.vehicle_color,
-        vehiclePhotoPath: qrCode.vehicle_photo_path,
-        vehicleIdPhotoPath: qrCode.vehicle_id_photo_path,
+        studentName: request.student_name,
+        studentRut: request.student_rut,
+        vehiclePlate: request.vehicle_plate,
+        vehicleModel: request.vehicle_model,
+        vehicleColor: request.vehicle_color,
+        vehiclePhotoPath: request.vehicle_photo_path,
+        vehicleIdPhotoPath: request.vehicle_id_photo_path,
         expiresAt: qrCode.expires_at
       }
     });
 
     // Registrar el escaneo en audit_logs
-    await pool.query(
-      `INSERT INTO audit_logs (user_id, action, entity_type, entity_id, details)
-       VALUES (?, 'qr_scan', 'qr_code', ?, ?)`,
-      [req.session.userId, qrCode.id, JSON.stringify({ valid: true, plate: qrCode.vehicle_plate })]
-    );
+    const auditLog = new AuditLog({
+      action_type: 'qr_scan',
+      action_description: `QR escaneado para vehículo ${request.vehicle_plate}`,
+      performed_by: req.session.userId,
+      metadata: { valid: true, plate: request.vehicle_plate }
+    });
+    await auditLog.save();
 
   } catch (error) {
     next(error);
@@ -116,15 +115,10 @@ router.post('/validate', requireRole('scanner', 'admin_level1', 'admin_level2'),
  */
 router.get('/history', requireRole('scanner', 'admin_level1', 'admin_level2'), async (req, res, next) => {
   try {
-    const pool = db.getPool();
-    const [logs] = await pool.query(
-      `SELECT al.*, u.name as scanner_name
-       FROM audit_logs al
-       JOIN users u ON al.user_id = u.id
-       WHERE al.action = 'qr_scan'
-       ORDER BY al.created_at DESC
-       LIMIT 100`
-    );
+    const logs = await AuditLog.find({ action_type: 'qr_scan' })
+      .populate('performed_by', 'name email')
+      .sort({ created_at: -1 })
+      .limit(100);
 
     res.json({
       success: true,

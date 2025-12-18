@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcrypt');
 const { requireRole } = require('../middleware/auth');
-const db = require('../config/database');
+const User = require('../models/User');
 const { logAudit } = require('../utils/auditLogger');
 
 /**
@@ -11,10 +11,8 @@ const { logAudit } = require('../utils/auditLogger');
  */
 router.get('/', requireRole('admin_level2'), async (req, res, next) => {
   try {
-    const pool = db.getPool();
-    const [users] = await pool.query(
-      'SELECT id, email, name, role, rut, carrera, phone, is_active, created_at FROM users ORDER BY created_at DESC'
-    );
+    const users = await User.find({}, 'email name role rut carrera phone is_active created_at')
+      .sort({ created_at: -1 });
 
     res.json({
       success: true,
@@ -41,21 +39,27 @@ router.post('/', requireRole('admin_level2'), async (req, res, next) => {
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
-    const pool = db.getPool();
 
-    const [result] = await pool.query(
-      `INSERT INTO users (email, password_hash, name, role, rut, carrera, phone, created_by)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [email, passwordHash, name, role, rut, carrera, phone, req.session.userId]
-    );
+    const newUser = new User({
+      email,
+      password_hash: passwordHash,
+      name,
+      role,
+      rut,
+      carrera,
+      phone,
+      created_by: req.session.userId
+    });
+
+    const savedUser = await newUser.save();
 
     // Registrar en auditoría
-    await logAudit('user_created', `Usuario creado por admin: ${name} (${email}) con rol ${role}`, req.session.userId, result.insertId, null, { rut, role });
+    await logAudit('user_created', `Usuario creado por admin: ${name} (${email}) con rol ${role}`, req.session.userId, savedUser._id, null, { rut, role });
 
     res.json({
       success: true,
       message: 'Usuario creado exitosamente',
-      userId: result.insertId
+      userId: savedUser._id
     });
   } catch (error) {
     next(error);
@@ -88,16 +92,21 @@ router.put('/:id/role', requireRole('admin_level2'), async (req, res, next) => {
       });
     }
 
-    const pool = db.getPool();
-    
     // Obtener info del usuario antes del cambio
-    const [users] = await pool.query('SELECT name, email, role FROM users WHERE id = ?', [userId]);
-    const oldRole = users[0]?.role;
+    const user = await User.findById(userId, 'name email role');
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'Usuario no encontrado'
+      });
+    }
+
+    const oldRole = user.role;
     
-    await pool.query('UPDATE users SET role = ? WHERE id = ?', [role, userId]);
+    await User.findByIdAndUpdate(userId, { role });
 
     // Registrar en auditoría
-    await logAudit('user_role_changed', `Rol cambiado de ${oldRole} a ${role} para usuario ${users[0]?.name}`, req.session.userId, userId, null, { oldRole, newRole: role });
+    await logAudit('user_role_changed', `Rol cambiado de ${oldRole} a ${role} para usuario ${user.name}`, req.session.userId, userId, null, { oldRole, newRole: role });
 
     res.json({
       success: true,
@@ -125,15 +134,20 @@ router.put('/:id/password', requireRole('admin_level2'), async (req, res, next) 
     }
 
     const passwordHash = await bcrypt.hash(newPassword, 10);
-    const pool = db.getPool();
     
     // Obtener info del usuario
-    const [users] = await pool.query('SELECT name, email FROM users WHERE id = ?', [userId]);
+    const user = await User.findById(userId, 'name email');
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'Usuario no encontrado'
+      });
+    }
     
-    await pool.query('UPDATE users SET password_hash = ? WHERE id = ?', [passwordHash, userId]);
+    await User.findByIdAndUpdate(userId, { password_hash: passwordHash });
 
     // Registrar en auditoría
-    await logAudit('user_password_changed', `Contraseña cambiada por admin para usuario ${users[0]?.name}`, req.session.userId, userId);
+    await logAudit('user_password_changed', `Contraseña cambiada por admin para usuario ${user.name}`, req.session.userId, userId);
 
     res.json({
       success: true,
@@ -151,24 +165,23 @@ router.put('/:id/password', requireRole('admin_level2'), async (req, res, next) 
 router.put('/:id/toggle-active', requireRole('admin_level2'), async (req, res, next) => {
   try {
     const userId = req.params.id;
-    const pool = db.getPool();
 
     // Obtener estado actual
-    const [users] = await pool.query('SELECT is_active, name, email FROM users WHERE id = ?', [userId]);
+    const user = await User.findById(userId, 'is_active name email');
     
-    if (users.length === 0) {
+    if (!user) {
       return res.status(404).json({
         success: false,
         message: 'Usuario no encontrado'
       });
     }
 
-    const newStatus = users[0].is_active ? 0 : 1;
-    await pool.query('UPDATE users SET is_active = ? WHERE id = ?', [newStatus, userId]);
+    const newStatus = !user.is_active;
+    await User.findByIdAndUpdate(userId, { is_active: newStatus });
 
     // Registrar en auditoría
     const action = newStatus ? 'activado' : 'desactivado';
-    await logAudit('user_status_changed', `Usuario ${users[0].name} ${action}`, req.session.userId, userId, null, { oldStatus: users[0].is_active, newStatus });
+    await logAudit('user_status_changed', `Usuario ${user.name} ${action}`, req.session.userId, userId, null, { oldStatus: user.is_active, newStatus });
 
     res.json({
       success: true,
@@ -187,10 +200,9 @@ router.put('/:id/toggle-active', requireRole('admin_level2'), async (req, res, n
 router.delete('/:id', requireRole('admin_level2'), async (req, res, next) => {
   try {
     const userId = req.params.id;
-    const pool = db.getPool();
 
     // No permitir eliminar al propio usuario
-    if (parseInt(userId) === req.session.userId) {
+    if (userId === req.session.userId) {
       return res.status(400).json({
         success: false,
         message: 'No puedes eliminar tu propia cuenta'
@@ -198,9 +210,9 @@ router.delete('/:id', requireRole('admin_level2'), async (req, res, next) => {
     }
 
     // Verificar que el usuario existe
-    const [users] = await pool.query('SELECT id, name, email, role FROM users WHERE id = ?', [userId]);
+    const user = await User.findById(userId, 'name email role');
     
-    if (users.length === 0) {
+    if (!user) {
       return res.status(404).json({
         success: false,
         message: 'Usuario no encontrado'
@@ -208,10 +220,10 @@ router.delete('/:id', requireRole('admin_level2'), async (req, res, next) => {
     }
 
     // Registrar en auditoría antes de eliminar
-    await logAudit('user_deleted', `Usuario eliminado: ${users[0].name} (${users[0].email})`, req.session.userId, userId, null, { deletedUser: users[0] });
+    await logAudit('user_deleted', `Usuario eliminado: ${user.name} (${user.email})`, req.session.userId, userId, null, { deletedUser: user });
 
     // Eliminar el usuario
-    await pool.query('DELETE FROM users WHERE id = ?', [userId]);
+    await User.findByIdAndDelete(userId);
 
     res.json({
       success: true,
