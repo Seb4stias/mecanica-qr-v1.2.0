@@ -44,6 +44,8 @@ router.post('/', requireAuth, upload.fields([
   try {
     console.log('📝 Datos recibidos del formulario:', req.body);
     console.log('📷 Archivos recibidos:', req.files);
+    console.log('🔍 Claves en req.body:', Object.keys(req.body));
+    console.log('🔍 Valores en req.body:', Object.values(req.body));
     
     const {
       studentName,

@@ -1,6 +1,5 @@
 const express = require('express');
 const session = require('express-session');
-const fileUpload = require('express-fileupload');
 // const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 require('dotenv').config();
@@ -19,12 +18,7 @@ app.set('trust proxy', 1);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// File upload middleware
-app.use(fileUpload({
-  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB max
-  abortOnLimit: true,
-  createParentPath: true
-}));
+// File upload será manejado por multer en las rutas específicas
 
 // Session configuration
 app.use(session({
