@@ -41,6 +41,9 @@ router.post('/', requireAuth, upload.fields([
   { name: 'vehicleIdPhoto', maxCount: 1 }
 ]), async (req, res, next) => {
   try {
+    console.log('📝 Datos recibidos del formulario:', req.body);
+    console.log('📷 Archivos recibidos:', req.files);
+    
     const {
       studentName,
       studentRut,
@@ -58,6 +61,24 @@ router.post('/', requireAuth, upload.fields([
 
     const vehiclePhotoPath = req.files['vehiclePhoto'] ? `/uploads/${req.files['vehiclePhoto'][0].filename}` : null;
     const vehicleIdPhotoPath = req.files['vehicleIdPhoto'] ? `/uploads/${req.files['vehicleIdPhoto'][0].filename}` : null;
+
+    console.log('📊 Datos a insertar:', {
+      userId: req.session.userId,
+      studentName,
+      studentRut,
+      studentCarrera,
+      studentEmail,
+      studentPhone,
+      activityType,
+      activityDescription,
+      vehiclePlate,
+      vehicleModel,
+      vehicleColor,
+      vehiclePhotoPath,
+      vehicleIdPhotoPath,
+      garageLocation,
+      modificationsDescription
+    });
 
     const pool = db.getPool();
     const [result] = await pool.query(

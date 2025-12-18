@@ -1,0 +1,86 @@
+{
+  "users": [],
+  "requests": [],
+  "auditLogs": [
+    {
+      "id": 1,
+      "action_type": "user_registered",
+      "action_description": "Usuario registrado: Juan Pérez (juan@inacapmail.cl)",
+      "performed_by": null,
+      "target_user_id": null,
+      "target_request_id": null,
+      "metadata": "{\"rut\":\"12345678-9\",\"carrera\":\"estudiante\"}",
+      "created_at": "2025-11-09T15:20:58.000Z"
+    },
+    {
+      "id": 2,
+      "action_type": "user_created",
+      "action_description": "Usuario creado por admin: María González (maria@inacapmail.cl) con rol student",
+      "performed_by": null,
+      "target_user_id": null,
+      "target_request_id": null,
+      "metadata": "{\"rut\":\"98765432-1\",\"role\":\"student\"}",
+      "created_at": "2025-11-05T15:20:58.000Z"
+    },
+    {
+      "id": 3,
+      "action_type": "request_approved_level1",
+      "action_description": "Solicitud aprobada por nivel 1 para Pedro López",
+      "performed_by": null,
+      "target_user_id": null,
+      "target_request_id": null,
+      "metadata": "{\"comments\":\"Todo en orden\"}",
+      "created_at": "2025-11-01T15:20:58.000Z"
+    },
+    {
+      "id": 4,
+      "action_type": "request_approved_level2",
+      "action_description": "Solicitud aprobada por nivel 2 para Ana Martínez",
+      "performed_by": null,
+      "target_user_id": null,
+      "target_request_id": null,
+      "metadata": "{\"comments\":\"Aprobado\"}",
+      "created_at": "2025-11-17T15:20:58.000Z"
+    },
+    {
+      "id": 5,
+      "action_type": "request_rejected",
+      "action_description": "Solicitud rechazada por nivel 1 para Carlos Rojas. Razón: Documentación incompleta",
+      "performed_by": null,
+      "target_user_id": null,
+      "target_request_id": null,
+      "metadata": "{\"reason\":\"Documentación incompleta\",\"adminLevel\":1}",
+      "created_at": "2025-11-20T15:20:58.000Z"
+    },
+    {
+      "id": 6,
+      "action_type": "user_role_changed",
+      "action_description": "Rol cambiado de student a scanner para usuario Test User",
+      "performed_by": null,
+      "target_user_id": null,
+      "target_request_id": null,
+      "metadata": "{\"oldRole\":\"student\",\"newRole\":\"scanner\"}",
+      "created_at": "2025-11-21T15:20:58.000Z"
+    },
+    {
+      "id": 7,
+      "action_type": "user_password_changed",
+      "action_description": "Contraseña cambiada por admin para usuario Test User",
+      "performed_by": null,
+      "target_user_id": null,
+      "target_request_id": null,
+      "metadata": "{}",
+      "created_at": "2025-11-13T15:20:58.000Z"
+    },
+    {
+      "id": 8,
+      "action_type": "user_status_changed",
+      "action_description": "Usuario Test User desactivado",
+      "performed_by": null,
+      "target_user_id": null,
+      "target_request_id": null,
+      "metadata": "{\"oldStatus\":1,\"newStatus\":0}",
+      "created_at": "2025-11-01T15:20:58.000Z"
+    }
+  ]
+}
