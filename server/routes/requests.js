@@ -4,7 +4,8 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const { requireAuth } = require('../middleware/auth');
-const db = require('../config/database');
+const Request = require('../models/Request');
+const QRCode = require('../models/QRCode');
 
 // Configuración de multer para subir fotos
 const storage = multer.diskStorage({
@@ -80,36 +81,31 @@ router.post('/', requireAuth, upload.fields([
       modificationsDescription
     });
 
-    const pool = db.getPool();
-    const [result] = await pool.query(
-      `INSERT INTO requests (
-        user_id, student_name, student_rut, student_carrera, student_email,
-        student_phone, activity_type, activity_description, vehicle_plate, vehicle_model, vehicle_color,
-        vehicle_photo_path, vehicle_id_photo_path, garage_location, modifications_description, status
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
-      [
-        req.session.userId,
-        studentName,
-        studentRut,
-        studentCarrera,
-        studentEmail,
-        studentPhone,
-        activityType,
-        activityDescription || null,
-        vehiclePlate,
-        vehicleModel,
-        vehicleColor,
-        vehiclePhotoPath,
-        vehicleIdPhotoPath,
-        garageLocation,
-        modificationsDescription
-      ]
-    );
+    const newRequest = new Request({
+      user_id: req.session.userId,
+      student_name: studentName,
+      student_rut: studentRut,
+      student_carrera: studentCarrera,
+      student_email: studentEmail,
+      student_phone: studentPhone,
+      activity_type: activityType,
+      activity_description: activityDescription || null,
+      vehicle_plate: vehiclePlate,
+      vehicle_model: vehicleModel,
+      vehicle_color: vehicleColor,
+      vehicle_photo_path: vehiclePhotoPath,
+      vehicle_id_photo_path: vehicleIdPhotoPath,
+      garage_location: garageLocation,
+      modifications_description: modificationsDescription,
+      status: 'pending'
+    });
+
+    const result = await newRequest.save();
 
     res.json({
       success: true,
       message: 'Solicitud creada exitosamente',
-      requestId: result.insertId
+      requestId: result._id
     });
   } catch (error) {
     next(error);
@@ -122,11 +118,8 @@ router.post('/', requireAuth, upload.fields([
  */
 router.get('/', requireAuth, async (req, res, next) => {
   try {
-    const pool = db.getPool();
-    const [requests] = await pool.query(
-      'SELECT * FROM requests WHERE user_id = ? ORDER BY created_at DESC',
-      [req.session.userId]
-    );
+    const requests = await Request.find({ user_id: req.session.userId })
+      .sort({ created_at: -1 });
 
     res.json({
       success: true,
@@ -143,13 +136,12 @@ router.get('/', requireAuth, async (req, res, next) => {
  */
 router.get('/:id', requireAuth, async (req, res, next) => {
   try {
-    const pool = db.getPool();
-    const [requests] = await pool.query(
-      'SELECT * FROM requests WHERE id = ? AND user_id = ?',
-      [req.params.id, req.session.userId]
-    );
+    const request = await Request.findOne({ 
+      _id: req.params.id, 
+      user_id: req.session.userId 
+    });
 
-    if (requests.length === 0) {
+    if (!request) {
       return res.status(404).json({
         success: false,
         message: 'Solicitud no encontrada'
@@ -158,7 +150,7 @@ router.get('/:id', requireAuth, async (req, res, next) => {
 
     res.json({
       success: true,
-      request: requests[0]
+      request
     });
   } catch (error) {
     next(error);
@@ -171,22 +163,22 @@ router.get('/:id', requireAuth, async (req, res, next) => {
  */
 router.get('/:id/qr', requireAuth, async (req, res, next) => {
   try {
-    const pool = db.getPool();
-    
     // Verificar que la solicitud existe y está aprobada
-    const [requests] = await pool.query(
-      'SELECT * FROM requests WHERE id = ? AND (user_id = ? OR ? IN (SELECT role FROM users WHERE id = ? AND role IN ("admin_level1", "admin_level2")))',
-      [req.params.id, req.session.userId, req.session.userRole, req.session.userId]
-    );
+    const request = await Request.findOne({ 
+      _id: req.params.id,
+      $or: [
+        { user_id: req.session.userId },
+        // Si es admin, puede acceder a cualquier solicitud
+        ...(req.session.userRole && ['admin_level1', 'admin_level2'].includes(req.session.userRole) ? [{}] : [])
+      ]
+    });
     
-    if (requests.length === 0) {
+    if (!request) {
       return res.status(404).json({
         success: false,
         message: 'Solicitud no encontrada'
       });
     }
-    
-    const request = requests[0];
     
     if (request.status !== 'approved') {
       return res.status(400).json({
@@ -196,19 +188,14 @@ router.get('/:id/qr', requireAuth, async (req, res, next) => {
     }
     
     // Buscar el QR en la base de datos
-    const [qrCodes] = await pool.query(
-      'SELECT * FROM qr_codes WHERE request_id = ?',
-      [req.params.id]
-    );
+    const qrCode = await QRCode.findOne({ request_id: req.params.id });
     
-    if (qrCodes.length === 0) {
+    if (!qrCode) {
       return res.status(404).json({
         success: false,
         message: 'QR no encontrado'
       });
     }
-    
-    const qrCode = qrCodes[0];
     console.log('🔍 QR path en BD:', qrCode.qr_image_path);
     console.log('🔍 __dirname:', __dirname);
     const qrPath = path.join(__dirname, '../../', qrCode.qr_image_path);
@@ -235,22 +222,15 @@ router.get('/:id/qr', requireAuth, async (req, res, next) => {
  */
 router.get('/:id/pdf', requireAuth, async (req, res, next) => {
   try {
-    const pool = db.getPool();
-    
     // Verificar que la solicitud existe y está aprobada
-    const [requests] = await pool.query(
-      'SELECT * FROM requests WHERE id = ?',
-      [req.params.id]
-    );
+    const request = await Request.findById(req.params.id);
     
-    if (requests.length === 0) {
+    if (!request) {
       return res.status(404).json({
         success: false,
         message: 'Solicitud no encontrada'
       });
     }
-    
-    const request = requests[0];
     
     if (request.status !== 'approved') {
       return res.status(400).json({
@@ -260,19 +240,14 @@ router.get('/:id/pdf', requireAuth, async (req, res, next) => {
     }
     
     // Buscar el QR en la base de datos
-    const [qrCodes] = await pool.query(
-      'SELECT * FROM qr_codes WHERE request_id = ?',
-      [req.params.id]
-    );
+    const qrCode = await QRCode.findOne({ request_id: req.params.id });
     
-    if (qrCodes.length === 0) {
+    if (!qrCode) {
       return res.status(404).json({
         success: false,
         message: 'QR no encontrado'
       });
     }
-    
-    const qrCode = qrCodes[0];
     console.log('🔍 PDF path en BD:', qrCode.pdf_path);
     const pdfPath = path.join(__dirname, '../../', qrCode.pdf_path);
     console.log('🔍 Path completo PDF:', pdfPath);

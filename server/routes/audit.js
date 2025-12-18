@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../config/database');
+const AuditLog = require('../models/AuditLog');
+const User = require('../models/User');
+const Request = require('../models/Request');
 const { requireRole } = require('../middleware/auth');
 
 /**
@@ -21,66 +23,44 @@ router.get('/', requireRole('admin_level2'), async (req, res, next) => {
 
     console.log('📊 Filtros de auditoría recibidos:', { actionType, startDate, startTime, endDate, endTime });
 
-    const pool = db.getPool();
-    
-    let query = `
-      SELECT 
-        a.*,
-        u1.name as performed_by_name,
-        u1.email as performed_by_email,
-        u2.name as target_user_name,
-        u2.email as target_user_email,
-        r.student_name as request_student_name
-      FROM audit_log a
-      LEFT JOIN users u1 ON a.performed_by = u1.id
-      LEFT JOIN users u2 ON a.target_user_id = u2.id
-      LEFT JOIN requests r ON a.target_request_id = r.id
-      WHERE 1=1
-    `;
-    
-    const params = [];
+    // Construir filtros para MongoDB
+    const filters = {};
 
     if (actionType) {
-      query += ' AND a.action_type = ?';
-      params.push(actionType);
+      filters.action_type = actionType;
     }
 
     if (performedBy) {
-      query += ' AND a.performed_by = ?';
-      params.push(performedBy);
+      filters.performed_by = performedBy;
     }
 
     if (targetUserId) {
-      query += ' AND a.target_user_id = ?';
-      params.push(targetUserId);
+      filters.target_user_id = targetUserId;
     }
 
-    if (startDate) {
-      if (startTime) {
-        query += ' AND a.created_at >= ?';
-        params.push(`${startDate} ${startTime}`);
-      } else {
-        query += ' AND a.created_at >= ?';
-        params.push(`${startDate} 00:00:00`);
+    // Filtros de fecha
+    if (startDate || endDate) {
+      filters.created_at = {};
+      
+      if (startDate) {
+        const startDateTime = startTime ? `${startDate}T${startTime}` : `${startDate}T00:00:00`;
+        filters.created_at.$gte = new Date(startDateTime);
+      }
+      
+      if (endDate) {
+        const endDateTime = endTime ? `${endDate}T${endTime}` : `${endDate}T23:59:59`;
+        filters.created_at.$lte = new Date(endDateTime);
       }
     }
 
-    if (endDate) {
-      if (endTime) {
-        query += ' AND a.created_at <= ?';
-        params.push(`${endDate} ${endTime}`);
-      } else {
-        query += ' AND a.created_at <= ?';
-        params.push(`${endDate} 23:59:59`);
-      }
-    }
+    console.log('📊 Filtros MongoDB:', filters);
 
-    query += ' ORDER BY a.created_at DESC LIMIT 1000';
-
-    console.log('📊 Query SQL:', query);
-    console.log('📊 Parámetros:', params);
-
-    const [logs] = await pool.query(query, params);
+    const logs = await AuditLog.find(filters)
+      .populate('performed_by', 'name email')
+      .populate('target_user_id', 'name email')
+      .populate('target_request_id', 'student_name')
+      .sort({ created_at: -1 })
+      .limit(1000);
 
     console.log(`📊 Registros encontrados: ${logs.length}`);
 
@@ -99,16 +79,24 @@ router.get('/', requireRole('admin_level2'), async (req, res, next) => {
  */
 router.get('/stats', requireRole('admin_level2'), async (req, res, next) => {
   try {
-    const pool = db.getPool();
-    
-    const [stats] = await pool.query(`
-      SELECT 
-        action_type,
-        COUNT(*) as count
-      FROM audit_log
-      GROUP BY action_type
-      ORDER BY count DESC
-    `);
+    const stats = await AuditLog.aggregate([
+      {
+        $group: {
+          _id: '$action_type',
+          count: { $sum: 1 }
+        }
+      },
+      {
+        $sort: { count: -1 }
+      },
+      {
+        $project: {
+          action_type: '$_id',
+          count: 1,
+          _id: 0
+        }
+      }
+    ]);
 
     res.json({
       success: true,

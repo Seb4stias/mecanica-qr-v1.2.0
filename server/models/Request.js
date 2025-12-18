@@ -1,6 +1,11 @@
 const mongoose = require('mongoose');
 
 const requestSchema = new mongoose.Schema({
+  user_id: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
   student_name: {
     type: String,
     required: true,
@@ -11,18 +16,28 @@ const requestSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
+  student_carrera: {
+    type: String,
+    required: true,
+    trim: true
+  },
   student_email: {
     type: String,
     required: true,
     lowercase: true,
     trim: true
   },
-  student_carrera: {
-    type: String,
-    trim: true,
-    default: null
-  },
   student_phone: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  activity_type: {
+    type: String,
+    required: true,
+    enum: ['academica', 'deportiva', 'cultural', 'otra']
+  },
+  activity_description: {
     type: String,
     trim: true,
     default: null
@@ -30,8 +45,8 @@ const requestSchema = new mongoose.Schema({
   vehicle_plate: {
     type: String,
     required: true,
-    uppercase: true,
-    trim: true
+    trim: true,
+    uppercase: true
   },
   vehicle_model: {
     type: String,
@@ -53,86 +68,31 @@ const requestSchema = new mongoose.Schema({
   },
   garage_location: {
     type: String,
-    trim: true,
-    default: null
+    required: true,
+    trim: true
   },
   modifications_description: {
     type: String,
+    trim: true,
     default: null
   },
   status: {
     type: String,
-    enum: ['pending', 'level1_approved', 'level2_approved', 'approved', 'rejected'],
+    enum: ['pending', 'approved', 'rejected'],
     default: 'pending'
   },
-  level1_approved: {
-    type: Boolean,
-    default: false
+  admin_comments: {
+    type: String,
+    trim: true,
+    default: null
   },
-  level1_approved_by: {
+  approved_by: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     default: null
   },
-  level1_approved_at: {
+  approved_at: {
     type: Date,
-    default: null
-  },
-  level1_comments: {
-    type: String,
-    default: null
-  },
-  level2_approved: {
-    type: Boolean,
-    default: false
-  },
-  level2_approved_by: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    default: null
-  },
-  level2_approved_at: {
-    type: Date,
-    default: null
-  },
-  level2_comments: {
-    type: String,
-    default: null
-  },
-  rejection_reason: {
-    type: String,
-    default: null
-  },
-  rejected_by: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    default: null
-  },
-  rejected_at: {
-    type: Date,
-    default: null
-  },
-  denial_reason: {
-    type: String,
-    default: null
-  },
-  denied_by_level: {
-    type: Number,
-    enum: [1, 2],
-    default: null
-  },
-  created_by_admin: {
-    type: Boolean,
-    default: false
-  },
-  created_by_admin_id: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    default: null
-  },
-  user_id: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
     default: null
   },
   created_at: {
@@ -146,9 +106,8 @@ const requestSchema = new mongoose.Schema({
 });
 
 // Middleware para actualizar updated_at
-requestSchema.pre('save', function(next) {
+requestSchema.pre('save', function() {
   this.updated_at = new Date();
-  next();
 });
 
 module.exports = mongoose.model('Request', requestSchema);

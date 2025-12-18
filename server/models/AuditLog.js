@@ -4,11 +4,19 @@ const auditLogSchema = new mongoose.Schema({
   action_type: {
     type: String,
     required: true,
-    trim: true
-  },
-  action_description: {
-    type: String,
-    required: true
+    enum: [
+      'user_login',
+      'user_logout', 
+      'user_created',
+      'user_updated',
+      'user_deleted',
+      'request_created',
+      'request_approved',
+      'request_rejected',
+      'qr_generated',
+      'qr_scanned',
+      'admin_action'
+    ]
   },
   performed_by: {
     type: mongoose.Schema.Types.ObjectId,
@@ -25,7 +33,20 @@ const auditLogSchema = new mongoose.Schema({
     ref: 'Request',
     default: null
   },
-  metadata: {
+  description: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  ip_address: {
+    type: String,
+    default: null
+  },
+  user_agent: {
+    type: String,
+    default: null
+  },
+  additional_data: {
     type: mongoose.Schema.Types.Mixed,
     default: null
   },
@@ -35,8 +56,9 @@ const auditLogSchema = new mongoose.Schema({
   }
 });
 
-// Índices para búsquedas rápidas
-auditLogSchema.index({ performed_by: 1, created_at: -1 });
-auditLogSchema.index({ action_type: 1, created_at: -1 });
+// Índices para mejorar rendimiento
+auditLogSchema.index({ action_type: 1 });
+auditLogSchema.index({ performed_by: 1 });
+auditLogSchema.index({ created_at: -1 });
 
 module.exports = mongoose.model('AuditLog', auditLogSchema);

@@ -59,9 +59,8 @@ const userSchema = new mongoose.Schema({
 });
 
 // Middleware para actualizar updated_at
-userSchema.pre('save', function(next) {
+userSchema.pre('save', function() {
   this.updated_at = new Date();
-  next();
 });
 
 // Método para verificar contraseña
