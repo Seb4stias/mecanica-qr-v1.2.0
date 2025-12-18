@@ -10,6 +10,8 @@ const auditLogSchema = new mongoose.Schema({
       'user_created',
       'user_updated',
       'user_deleted',
+      'user_registered',
+      'user_role_changed',
       'request_created',
       'request_approved',
       'request_rejected',
