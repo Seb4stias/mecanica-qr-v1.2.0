@@ -150,13 +150,13 @@ async function loadMyRequests() {
                 ${req.vehicle_photo_path ? `
                   <div>
                     <p style="margin: 0 0 5px 0; font-size: 12px; font-weight: bold;">Foto Vehículo</p>
-                    <img src="${req.vehicle_photo_path}" alt="Foto del vehículo" style="width: 150px; height: 150px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;" onerror="console.error('Error cargando foto vehículo'); this.parentElement.innerHTML='<p style=color:red>Error al cargar</p>'">
+                    <img src="${req.vehicle_photo_path}" alt="Foto del vehículo" style="width: 75px; height: 75px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;" onerror="console.error('Error cargando foto vehículo'); this.parentElement.innerHTML='<p style=color:red>Error al cargar</p>'">
                   </div>
                 ` : ''}
                 ${req.vehicle_id_photo_path ? `
                   <div>
                     <p style="margin: 0 0 5px 0; font-size: 12px; font-weight: bold;">Foto Patrón</p>
-                    <img src="${req.vehicle_id_photo_path}" alt="Foto Patrón" style="width: 150px; height: 150px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;" onerror="console.error('Error cargando foto patrón'); this.parentElement.innerHTML='<p style=color:red>Error al cargar</p>'">
+                    <img src="${req.vehicle_id_photo_path}" alt="Foto Patrón" style="width: 75px; height: 75px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;" onerror="console.error('Error cargando foto patrón'); this.parentElement.innerHTML='<p style=color:red>Error al cargar</p>'">
                   </div>
                 ` : ''}
               </div>

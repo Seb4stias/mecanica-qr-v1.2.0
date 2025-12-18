@@ -27,7 +27,7 @@ function generateImageHTML(imagePath, altText, label) {
       <p style="margin: 0 0 5px 0; font-size: 12px; font-weight: bold;">${label}</p>
       <img src="${normalizeImagePath(imagePath)}" 
            alt="${altText}" 
-           style="width: 150px; height: 150px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;" 
+           style="width: 75px; height: 75px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;" 
            onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
       <p style="color: red; font-size: 11px; display: none;">No disponible</p>
     </div>
@@ -197,13 +197,13 @@ async function loadPendingRequests() {
                   ${req.vehicle_photo_path ? `
                     <div>
                       <p style="margin: 0 0 5px 0; font-size: 12px; font-weight: bold;">Foto Vehículo</p>
-                      <img src="${normalizeImagePath(req.vehicle_photo_path)}" onerror="this.style.display='none'" alt="Foto del vehículo" style="width: 150px; height: 150px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;">
+                      <img src="${normalizeImagePath(req.vehicle_photo_path)}" onerror="this.style.display='none'" alt="Foto del vehículo" style="width: 75px; height: 75px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;">
                     </div>
                   ` : ''}
                   ${req.vehicle_id_photo_path ? `
                     <div>
                       <p style="margin: 0 0 5px 0; font-size: 12px; font-weight: bold;">Foto Patr�n</p>
-                      <img src="${normalizeImagePath(req.vehicle_id_photo_path)}" onerror="this.style.display='none'" alt="Foto Patr�n" style="width: 150px; height: 150px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;">
+                      <img src="${normalizeImagePath(req.vehicle_id_photo_path)}" onerror="this.style.display='none'" alt="Foto Patr�n" style="width: 75px; height: 75px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;">
                     </div>
                   ` : ''}
                 </div>
@@ -270,13 +270,13 @@ async function loadApprovedRequests() {
                 ${req.vehicle_photo_path ? `
                   <div>
                     <p style="margin: 0 0 5px 0; font-size: 12px; font-weight: bold;">Foto Vehículo</p>
-                    <img src="${normalizeImagePath(req.vehicle_photo_path)}" onerror="this.style.display='none'" alt="Foto del vehículo" style="width: 150px; height: 150px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;">
+                    <img src="${normalizeImagePath(req.vehicle_photo_path)}" onerror="this.style.display='none'" alt="Foto del vehículo" style="width: 75px; height: 75px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;">
                   </div>
                 ` : ''}
                 ${req.vehicle_id_photo_path ? `
                   <div>
                     <p style="margin: 0 0 5px 0; font-size: 12px; font-weight: bold;">Foto Patr�n</p>
-                    <img src="${normalizeImagePath(req.vehicle_id_photo_path)}" onerror="this.style.display='none'" alt="Foto Patr�n" style="width: 150px; height: 150px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;">
+                    <img src="${normalizeImagePath(req.vehicle_id_photo_path)}" onerror="this.style.display='none'" alt="Foto Patr�n" style="width: 75px; height: 75px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;">
                   </div>
                 ` : ''}
               </div>
@@ -342,13 +342,13 @@ async function loadRejectedRequests() {
                   ${req.vehicle_photo_path ? `
                     <div>
                       <p style="margin: 0 0 5px 0; font-size: 12px; font-weight: bold;">Foto Vehículo</p>
-                      <img src="${normalizeImagePath(req.vehicle_photo_path)}" onerror="this.style.display='none'" alt="Foto del vehículo" style="width: 150px; height: 150px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;">
+                      <img src="${normalizeImagePath(req.vehicle_photo_path)}" onerror="this.style.display='none'" alt="Foto del vehículo" style="width: 75px; height: 75px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;">
                     </div>
                   ` : ''}
                   ${req.vehicle_id_photo_path ? `
                     <div>
                       <p style="margin: 0 0 5px 0; font-size: 12px; font-weight: bold;">Foto Patr�n</p>
-                      <img src="${normalizeImagePath(req.vehicle_id_photo_path)}" onerror="this.style.display='none'" alt="Foto Patr�n" style="width: 150px; height: 150px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;">
+                      <img src="${normalizeImagePath(req.vehicle_id_photo_path)}" onerror="this.style.display='none'" alt="Foto Patr�n" style="width: 75px; height: 75px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;">
                     </div>
                   ` : ''}
                 </div>
