@@ -6,10 +6,18 @@ function errorHandler(err, req, res, next) {
 
   // Error de validación
   if (err.name === 'ValidationError') {
+    const validationErrors = {};
+    for (let field in err.errors) {
+      validationErrors[field] = err.errors[field].message;
+    }
+    
+    console.error('❌ Errores de validación:', validationErrors);
+    
     return res.status(400).json({
       success: false,
       message: 'Error de validación',
-      errors: err.errors
+      errors: validationErrors,
+      details: Object.values(validationErrors).join(', ')
     });
   }
 

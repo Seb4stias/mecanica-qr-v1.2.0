@@ -35,7 +35,7 @@ const requestSchema = new mongoose.Schema({
   activity_type: {
     type: String,
     required: true,
-    enum: ['academica', 'deportiva', 'cultural', 'otra']
+    enum: ['curricular', 'extracurricular']
   },
   activity_description: {
     type: String,

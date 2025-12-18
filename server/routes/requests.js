@@ -108,6 +108,10 @@ router.post('/', requireAuth, upload.fields([
       requestId: result._id
     });
   } catch (error) {
+    console.error('❌ Error al crear solicitud:', error);
+    if (error.name === 'ValidationError') {
+      console.error('❌ Detalles de validación:', error.errors);
+    }
     next(error);
   }
 });
