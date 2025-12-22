@@ -89,6 +89,7 @@ const adminRoutes = require('./routes/admin');
 const scannerRoutes = require('./routes/scanner');
 const userManagementRoutes = require('./routes/userManagement');
 const auditRoutes = require('./routes/audit');
+const debugRoutes = require('./routes/debug');
 
 // Apply rate limiter to login route
 app.use('/api/auth/login', loginLimiter);
@@ -100,6 +101,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/scanner', scannerRoutes);
 app.use('/api/admin/users', userManagementRoutes);
 app.use('/api/audit', auditRoutes);
+app.use('/api/debug', debugRoutes);
 
 // Error handling middleware
 const errorHandler = require('./middleware/errorHandler');
