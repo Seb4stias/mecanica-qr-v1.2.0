@@ -260,10 +260,10 @@ async function loadPendingRequests() {
               </div>
             </div>
             <div style="margin-top: 10px;">
-              <button class="btn btn-primary" onclick="viewRequestDetails(${req._id})">Ver Detalles</button>
-              ${canApprove ? `<button class="btn btn-success" onclick="approveRequest(${req._id})">✅ Aprobar</button>` : ''}
-              <button class="btn btn-danger" onclick="rejectRequest(${req._id})">❌ Rechazar</button>
-              ${currentUser.role === 'admin_level2' ? `<button class="btn btn-secondary" onclick="deleteRequest(${req._id})" style="background: #6c757d;">🗑️ Eliminar</button>` : ''}
+              <button class="btn btn-primary" onclick="viewRequestDetails('${req._id}')">Ver Detalles</button>
+              ${canApprove ? `<button class="btn btn-success" onclick="approveRequest('${req._id}')">✅ Aprobar</button>` : ''}
+              <button class="btn btn-danger" onclick="rejectRequest('${req._id}')">❌ Rechazar</button>
+              ${currentUser.role === 'admin_level2' ? `<button class="btn btn-secondary" onclick="deleteRequest('${req._id}')" style="background: #6c757d;">🗑️ Eliminar</button>` : ''}
             </div>
           </div>
         `;
@@ -328,11 +328,11 @@ async function loadApprovedRequests() {
             </div>
           </div>
           <div style="margin-top: 10px;">
-            <button class="btn btn-primary" onclick="viewRequestDetails(${req._id})">Ver Detalles</button>
-            <button class="btn btn-success" onclick="downloadQR(${req._id})">📥 Ver QR</button>
-            <button class="btn btn-success" onclick="downloadForm(${req._id})">📄 Descargar Formulario</button>
-            <button class="btn btn-warning" onclick="regenerateQR(${req._id})" style="background: #ffc107; color: #000;">🔄 Regenerar QR</button>
-            ${currentUser.role === 'admin_level2' ? `<button class="btn btn-secondary" onclick="deleteRequest(${req._id})" style="background: #6c757d;">🗑️ Eliminar</button>` : ''}
+            <button class="btn btn-primary" onclick="viewRequestDetails('${req._id}')">Ver Detalles</button>
+            <button class="btn btn-success" onclick="downloadQR('${req._id}')">📥 Ver QR</button>
+            <button class="btn btn-success" onclick="downloadForm('${req._id}')">📄 Descargar Formulario</button>
+            <button class="btn btn-warning" onclick="regenerateQR('${req._id}')" style="background: #ffc107; color: #000;">🔄 Regenerar QR</button>
+            ${currentUser.role === 'admin_level2' ? `<button class="btn btn-secondary" onclick="deleteRequest('${req._id}')" style="background: #6c757d;">🗑️ Eliminar</button>` : ''}
           </div>
         </div>
       `).join('');
@@ -400,8 +400,8 @@ async function loadRejectedRequests() {
               </div>
             </div>
             <div style="margin-top: 10px;">
-              <button class="btn btn-primary" onclick="viewRequestDetails(${req._id})">Ver Detalles</button>
-              ${currentUser.role === 'admin_level2' ? `<button class="btn btn-secondary" onclick="deleteRequest(${req._id})" style="background: #6c757d;">🗑️ Eliminar</button>` : ''}
+              <button class="btn btn-primary" onclick="viewRequestDetails('${req._id}')">Ver Detalles</button>
+              ${currentUser.role === 'admin_level2' ? `<button class="btn btn-secondary" onclick="deleteRequest('${req._id}')" style="background: #6c757d;">🗑️ Eliminar</button>` : ''}
             </div>
           </div>
         `;
@@ -465,7 +465,7 @@ async function loadUsers() {
         <div class="users-list" id="usersListContainer">
               ${data.users.map(user => `
                 <div class="user-card" data-user-name="${user.name.toLowerCase()}" data-user-rut="${(user.rut || '').toLowerCase()}">
-                  <div class="user-card-header" onclick="toggleUserDetails(${user.id})">
+                  <div class="user-card-header" onclick="toggleUserDetails('${user.id}')">>
                     <div class="user-card-info">
                       <strong>${user.name}</strong>
                       <span class="user-role-badge">${getRoleText(user.role)}</span>
@@ -491,10 +491,10 @@ async function loadUsers() {
                       <span class="detail-value">${new Date(user.created_at).toLocaleDateString('es-CL')}</span>
                     </div>
                     <div class="user-actions">
-                      <button class="btn btn-primary btn-sm" onclick="changeUserRole(${user.id}, '${user.role}')">Cambiar Rol</button>
-                      <button class="btn btn-primary btn-sm" onclick="changeUserPassword(${user.id})">Cambiar Contraseña</button>
-                      <button class="btn btn-secondary btn-sm" onclick="toggleUserActive(${user.id}, ${user.is_active})">${user.is_active ? 'Desactivar' : 'Activar'}</button>
-                      ${user.id !== currentUser.id ? `<button class="btn btn-danger btn-sm" onclick="deleteUser(${user.id})">Eliminar</button>` : ''}
+                      <button class="btn btn-primary btn-sm" onclick="changeUserRole('${user.id}', '${user.role}')">Cambiar Rol</button>
+                      <button class="btn btn-primary btn-sm" onclick="changeUserPassword('${user.id}')">Cambiar Contraseña</button>
+                      <button class="btn btn-secondary btn-sm" onclick="toggleUserActive('${user.id}', ${user.is_active})">${user.is_active ? 'Desactivar' : 'Activar'}</button>
+                      ${user.id !== currentUser.id ? `<button class="btn btn-danger btn-sm" onclick="deleteUser('${user.id}')">Eliminar</button>` : ''}
                     </div>
                   </div>
                 </div>
