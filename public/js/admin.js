@@ -465,7 +465,7 @@ async function loadUsers() {
         <div class="users-list" id="usersListContainer">
               ${data.users.map(user => `
                 <div class="user-card" data-user-name="${user.name.toLowerCase()}" data-user-rut="${(user.rut || '').toLowerCase()}">
-                  <div class="user-card-header" onclick="toggleUserDetails('${user.id}')">>
+                  <div class="user-card-header" onclick="toggleUserDetails('${user._id}')">>>
                     <div class="user-card-info">
                       <strong>${user.name}</strong>
                       <span class="user-role-badge">${getRoleText(user.role)}</span>
@@ -491,10 +491,10 @@ async function loadUsers() {
                       <span class="detail-value">${new Date(user.created_at).toLocaleDateString('es-CL')}</span>
                     </div>
                     <div class="user-actions">
-                      <button class="btn btn-primary btn-sm" onclick="changeUserRole('${user.id}', '${user.role}')">Cambiar Rol</button>
-                      <button class="btn btn-primary btn-sm" onclick="changeUserPassword('${user.id}')">Cambiar Contraseña</button>
-                      <button class="btn btn-secondary btn-sm" onclick="toggleUserActive('${user.id}', ${user.is_active})">${user.is_active ? 'Desactivar' : 'Activar'}</button>
-                      ${user.id !== currentUser.id ? `<button class="btn btn-danger btn-sm" onclick="deleteUser('${user.id}')">Eliminar</button>` : ''}
+                      <button class="btn btn-primary btn-sm" onclick="changeUserRole('${user._id}', '${user.role}')">Cambiar Rol</button>
+                      <button class="btn btn-primary btn-sm" onclick="changeUserPassword('${user._id}')">Cambiar Contraseña</button>
+                      <button class="btn btn-secondary btn-sm" onclick="toggleUserActive('${user._id}', ${user.is_active})">${user.is_active ? 'Desactivar' : 'Activar'}</button>
+                      ${user._id !== currentUser.id ? `<button class="btn btn-danger btn-sm" onclick="deleteUser('${user._id}')">Eliminar</button>` : ''}
                     </div>
                   </div>
                 </div>
