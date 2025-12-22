@@ -10,6 +10,11 @@ function normalizeImagePath(path) {
   // Quitar múltiples barras al inicio
   normalized = normalized.replace(/^\/+/, '');
   
+  // Si la ruta comienza con 'public/', quitarla porque Express sirve desde public/
+  if (normalized.startsWith('public/')) {
+    normalized = normalized.substring(7); // Quitar 'public/'
+  }
+  
   // Asegurar que comience con una sola barra
   normalized = '/' + normalized;
   
