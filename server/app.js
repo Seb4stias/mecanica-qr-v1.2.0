@@ -48,6 +48,22 @@ const loginLimiter = rateLimit({
 // Static files
 app.use(express.static('public'));
 
+// Middleware para manejar imágenes que no existen
+app.use('/uploads', (req, res, next) => {
+  const fs = require('fs');
+  const path = require('path');
+  const filePath = path.join(__dirname, '../public', req.url);
+  
+  // Si el archivo existe, continuar normalmente
+  if (fs.existsSync(filePath)) {
+    return next();
+  }
+  
+  // Si no existe, devolver una respuesta 404 silenciosa
+  console.log(`⚠️ Imagen no encontrada: ${req.url}`);
+  res.status(404).json({ error: 'Imagen no encontrada' });
+});
+
 // Routes
 const authRoutes = require('./routes/auth');
 const requestRoutes = require('./routes/requests');

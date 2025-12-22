@@ -1,13 +1,13 @@
 let currentUser = null;
 
-// Funci√≥n helper para normalizar rutas de im√°genes
+// FunciÛn helper para normalizar rutas de im·genes
 function normalizeImagePath(path) {
   if (!path) return null;
   
   // Limpiar la ruta
   let normalized = path.trim();
   
-  // Quitar m√∫ltiples barras al inicio
+  // Quitar m˙ltiples barras al inicio
   normalized = normalized.replace(/^\/+/, '');
   
   // Asegurar que comience con una sola barra
@@ -16,20 +16,27 @@ function normalizeImagePath(path) {
   // Quitar dobles barras
   normalized = normalized.replace(/\/\//g, '/');
   
-  console.log('Normalizando imagen:', path, '‚Üí', normalized);
+  console.log('Normalizando imagen:', path, '?', normalized);
+  return normalized;
+}
 
-// Funci√≥n helper para generar HTML de imagen
-function generateImageHTML(imagePath, altText, label) {
+// FunciÛn para verificar si una imagen existe antes de mostrarla
+function createImageElement(imagePath, altText, label) {
   if (!imagePath) return '';
+  
+  const normalizedPath = normalizeImagePath(imagePath);
   
   return `
     <div>
       <p style="margin: 0 0 5px 0; font-size: 12px; font-weight: bold;">${label}</p>
-      <img src="${normalizeImagePath(imagePath)}" 
+      <img src="${normalizedPath}" 
            alt="${altText}" 
            style="width: 75px; height: 75px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;" 
-           onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-      <p style="color: red; font-size: 11px; display: none;">No disponible</p>
+           onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+           onload="console.log('? Imagen cargada:', '${normalizedPath}')">
+      <div style="display: none; width: 75px; height: 75px; background: #f8f9fa; border: 1px solid #ddd; border-radius: 5px; align-items: center; justify-content: center; font-size: 10px; color: #6c757d; text-align: center;">
+        Sin<br>imagen
+      </div>
     </div>
   `;
 }
@@ -37,17 +44,17 @@ function generateImageHTML(imagePath, altText, label) {
   return normalized;
 }
 
-// Verificar sesi√≥n al cargar
+// Verificar sesiÛn al cargar
 document.addEventListener('DOMContentLoaded', async () => {
-  console.log('üîÑ Admin: Verificando sesi√≥n...');
+  console.log('?? Admin: Verificando sesiÛn...');
   const sessionValid = await checkSession();
   if (sessionValid) {
-    console.log('‚úÖ Admin: Sesi√≥n v√°lida, cargando solicitudes...');
+    console.log('? Admin: SesiÛn v·lida, cargando solicitudes...');
     loadPendingRequests();
   }
 });
 
-// Funciones del Drawer (Men√∫ Hamburguesa)
+// Funciones del Drawer (Men˙ Hamburguesa)
 function toggleDrawer() {
   const drawer = document.querySelector('.drawer');
   const overlay = document.querySelector('.drawer-overlay');
@@ -82,23 +89,23 @@ async function checkSession() {
     const data = await response.json();
     
     if (!data.success) {
-      console.log('‚ùå No hay sesi√≥n, redirigiendo a login...');
+      console.log('? No hay sesiÛn, redirigiendo a login...');
       window.location.href = '/index.html';
       return false;
     }
     
     // Verificar que sea admin
     if (data.user.role !== 'admin_level1' && data.user.role !== 'admin_level2') {
-      console.log('‚ùå Usuario no es admin, redirigiendo...');
+      console.log('? Usuario no es admin, redirigiendo...');
       window.location.href = '/index.html';
       return false;
     }
     
-    console.log('‚úÖ Sesi√≥n v√°lida:', data.user);
+    console.log('? SesiÛn v·lida:', data.user);
     currentUser = data.user;
     document.getElementById('userName').textContent = data.user.name;
     
-    // Mostrar tab de usuarios y auditor√≠a solo para admin_level2
+    // Mostrar tab de usuarios y auditorÌa solo para admin_level2
     if (data.user.role === 'admin_level2') {
       document.getElementById('usersTab').style.display = 'block';
       document.getElementById('auditTab').style.display = 'block';
@@ -114,7 +121,7 @@ async function checkSession() {
     
     return true;
   } catch (error) {
-    console.error('üí• Error verificando sesi√≥n:', error);
+    console.error('?? Error verificando sesiÛn:', error);
     window.location.href = '/index.html';
     return false;
   }
@@ -136,7 +143,7 @@ function showTab(tabName) {
   document.getElementById(`${tabName}-tab`).classList.add('active');
   event.target.classList.add('active');
   
-  // Cargar contenido seg√∫n el tab
+  // Cargar contenido seg˙n el tab
   switch(tabName) {
     case 'pendientes':
       loadPendingRequests();
@@ -148,7 +155,7 @@ function showTab(tabName) {
       loadRejectedRequests();
       break;
     case 'nueva-solicitud':
-      // No necesita cargar nada, el formulario ya est√° en el HTML
+      // No necesita cargar nada, el formulario ya est· en el HTML
       break;
     case 'scanner':
       loadScanner();
@@ -174,7 +181,7 @@ async function loadPendingRequests() {
     
     if (data.requests && data.requests.length > 0) {
       container.innerHTML = data.requests.map(req => {
-        // Admin nivel 1: puede aprobar si no est√° aprobado nivel 1
+        // Admin nivel 1: puede aprobar si no est· aprobado nivel 1
         // Admin nivel 2: puede aprobar SIEMPRE (en cualquier momento)
         let canApprove = false;
         
@@ -182,8 +189,8 @@ async function loadPendingRequests() {
           canApprove = req.level1_approved !== 1;
         } else if (currentUser.role === 'admin_level2') {
           // Nivel 2 puede aprobar si:
-          // - No est√° aprobado nivel 1 (puede aprobar como nivel 1)
-          // - O est√° aprobado nivel 1 pero no nivel 2 (aprobaci√≥n final)
+          // - No est· aprobado nivel 1 (puede aprobar como nivel 1)
+          // - O est· aprobado nivel 1 pero no nivel 2 (aprobaciÛn final)
           canApprove = req.level1_approved !== 1 || (req.level1_approved === 1 && req.level2_approved !== 1);
         }
         
@@ -196,14 +203,14 @@ async function loadPendingRequests() {
                 <div style="flex-shrink: 0; display: flex; gap: 10px; flex-wrap: wrap;">
                   ${req.vehicle_photo_path ? `
                     <div>
-                      <p style="margin: 0 0 5px 0; font-size: 12px; font-weight: bold;">Foto Veh√≠culo</p>
-                      <img src="${normalizeImagePath(req.vehicle_photo_path)}" onerror="this.style.display='none'" alt="Foto del veh√≠culo" style="width: 75px; height: 75px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;">
+                      <p style="margin: 0 0 5px 0; font-size: 12px; font-weight: bold;">Foto VehÌculo</p>
+                      <img src="${normalizeImagePath(req.vehicle_photo_path)}" onerror="this.style.display='none'" alt="Foto del vehÌculo" style="width: 75px; height: 75px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;">
                     </div>
                   ` : ''}
                   ${req.vehicle_id_photo_path ? `
                     <div>
-                      <p style="margin: 0 0 5px 0; font-size: 12px; font-weight: bold;">Foto PatrÔøΩn</p>
-                      <img src="${normalizeImagePath(req.vehicle_id_photo_path)}" onerror="this.style.display='none'" alt="Foto PatrÔøΩn" style="width: 75px; height: 75px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;">
+                      <p style="margin: 0 0 5px 0; font-size: 12px; font-weight: bold;">Foto Patr?n</p>
+                      <img src="${normalizeImagePath(req.vehicle_id_photo_path)}" onerror="this.style.display='none'" alt="Foto Patr?n" style="width: 75px; height: 75px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;">
                     </div>
                   ` : ''}
                 </div>
@@ -216,18 +223,18 @@ async function loadPendingRequests() {
                 <p><strong>Color:</strong> ${req.vehicle_color}</p>
                 <p><strong>Estado:</strong> ${getStatusBadge(req)}</p>
                 ${req.level1_approved === 1 ? `
-                  <p style="color: green;"><strong>‚úÖ Aprobado Nivel 1:</strong> ${req.level1_admin_name || 'Admin'} - ${req.level1_date ? new Date(req.level1_date).toLocaleString() : 'N/A'}</p>
+                  <p style="color: green;"><strong>? Aprobado Nivel 1:</strong> ${req.level1_admin_name || 'Admin'} - ${req.level1_date ? new Date(req.level1_date).toLocaleString() : 'N/A'}</p>
                 ` : ''}
                 ${req.level2_approved === 1 ? `
-                  <p style="color: green;"><strong>‚úÖ Aprobado Nivel 2:</strong> ${req.level2_admin_name || 'Admin'} - ${req.level2_date ? new Date(req.level2_date).toLocaleString() : 'N/A'}</p>
+                  <p style="color: green;"><strong>? Aprobado Nivel 2:</strong> ${req.level2_admin_name || 'Admin'} - ${req.level2_date ? new Date(req.level2_date).toLocaleString() : 'N/A'}</p>
                 ` : ''}
               </div>
             </div>
             <div style="margin-top: 10px;">
               <button class="btn btn-primary" onclick="viewRequestDetails(${req._id})">Ver Detalles</button>
-              ${canApprove ? `<button class="btn btn-success" onclick="approveRequest(${req._id})">‚úÖ Aprobar</button>` : ''}
-              <button class="btn btn-danger" onclick="rejectRequest(${req._id})">‚ùå Rechazar</button>
-              ${currentUser.role === 'admin_level2' ? `<button class="btn btn-secondary" onclick="deleteRequest(${req._id})" style="background: #6c757d;">üóëÔ∏è Eliminar</button>` : ''}
+              ${canApprove ? `<button class="btn btn-success" onclick="approveRequest(${req._id})">? Aprobar</button>` : ''}
+              <button class="btn btn-danger" onclick="rejectRequest(${req._id})">? Rechazar</button>
+              ${currentUser.role === 'admin_level2' ? `<button class="btn btn-secondary" onclick="deleteRequest(${req._id})" style="background: #6c757d;">??? Eliminar</button>` : ''}
             </div>
           </div>
         `;
@@ -242,15 +249,15 @@ async function loadPendingRequests() {
 
 function getStatusBadge(req) {
   if (req.status === 'approved') {
-    return '<span style="color: green; font-weight: bold;">‚úÖ Aprobada (Nivel 1 + Nivel 2)</span>';
+    return '<span style="color: green; font-weight: bold;">? Aprobada (Nivel 1 + Nivel 2)</span>';
   } else if (req.status === 'level1_approved') {
-    return '<span style="color: orange; font-weight: bold;">‚è≥ Aprobada Nivel 1 (Falta Nivel 2)</span>';
+    return '<span style="color: orange; font-weight: bold;">? Aprobada Nivel 1 (Falta Nivel 2)</span>';
   } else if (req.status === 'level2_approved') {
-    return '<span style="color: orange; font-weight: bold;">‚è≥ Aprobada Nivel 2 (Falta Nivel 1)</span>';
+    return '<span style="color: orange; font-weight: bold;">? Aprobada Nivel 2 (Falta Nivel 1)</span>';
   } else if (req.status === 'rejected') {
-    return '<span style="color: red; font-weight: bold;">‚ùå Rechazada</span>';
+    return '<span style="color: red; font-weight: bold;">? Rechazada</span>';
   } else {
-    return '<span style="color: gray; font-weight: bold;">‚è≥ Pendiente</span>';
+    return '<span style="color: gray; font-weight: bold;">? Pendiente</span>';
   }
 }
 
@@ -269,14 +276,14 @@ async function loadApprovedRequests() {
               <div style="flex-shrink: 0; display: flex; gap: 10px; flex-wrap: wrap;">
                 ${req.vehicle_photo_path ? `
                   <div>
-                    <p style="margin: 0 0 5px 0; font-size: 12px; font-weight: bold;">Foto Veh√≠culo</p>
-                    <img src="${normalizeImagePath(req.vehicle_photo_path)}" onerror="this.style.display='none'" alt="Foto del veh√≠culo" style="width: 75px; height: 75px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;">
+                    <p style="margin: 0 0 5px 0; font-size: 12px; font-weight: bold;">Foto VehÌculo</p>
+                    <img src="${normalizeImagePath(req.vehicle_photo_path)}" onerror="this.style.display='none'" alt="Foto del vehÌculo" style="width: 75px; height: 75px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;">
                   </div>
                 ` : ''}
                 ${req.vehicle_id_photo_path ? `
                   <div>
-                    <p style="margin: 0 0 5px 0; font-size: 12px; font-weight: bold;">Foto PatrÔøΩn</p>
-                    <img src="${normalizeImagePath(req.vehicle_id_photo_path)}" onerror="this.style.display='none'" alt="Foto PatrÔøΩn" style="width: 75px; height: 75px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;">
+                    <p style="margin: 0 0 5px 0; font-size: 12px; font-weight: bold;">Foto Patr?n</p>
+                    <img src="${normalizeImagePath(req.vehicle_id_photo_path)}" onerror="this.style.display='none'" alt="Foto Patr?n" style="width: 75px; height: 75px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;">
                   </div>
                 ` : ''}
               </div>
@@ -287,16 +294,16 @@ async function loadApprovedRequests() {
               <p><strong>Patente:</strong> ${req.vehicle_plate}</p>
               <p><strong>Modelo:</strong> ${req.vehicle_model}</p>
               <p><strong>Color:</strong> ${req.vehicle_color}</p>
-              <p style="color: green;"><strong>‚úÖ Aprobado Nivel 1:</strong> ${req.level1_admin_name || 'Admin'} - ${req.level1_date ? new Date(req.level1_date).toLocaleString() : 'N/A'}</p>
-              <p style="color: green;"><strong>‚úÖ Aprobado Nivel 2:</strong> ${req.level2_admin_name || 'Admin'} - ${req.level2_date ? new Date(req.level2_date).toLocaleString() : 'N/A'}</p>
+              <p style="color: green;"><strong>? Aprobado Nivel 1:</strong> ${req.level1_admin_name || 'Admin'} - ${req.level1_date ? new Date(req.level1_date).toLocaleString() : 'N/A'}</p>
+              <p style="color: green;"><strong>? Aprobado Nivel 2:</strong> ${req.level2_admin_name || 'Admin'} - ${req.level2_date ? new Date(req.level2_date).toLocaleString() : 'N/A'}</p>
             </div>
           </div>
           <div style="margin-top: 10px;">
             <button class="btn btn-primary" onclick="viewRequestDetails(${req._id})">Ver Detalles</button>
-            <button class="btn btn-success" onclick="downloadQR(${req._id})">üì• Ver QR</button>
-            <button class="btn btn-success" onclick="downloadForm(${req._id})">üìÑ Descargar Formulario</button>
-            <button class="btn btn-warning" onclick="regenerateQR(${req._id})" style="background: #ffc107; color: #000;">üîÑ Regenerar QR</button>
-            ${currentUser.role === 'admin_level2' ? `<button class="btn btn-secondary" onclick="deleteRequest(${req._id})" style="background: #6c757d;">üóëÔ∏è Eliminar</button>` : ''}
+            <button class="btn btn-success" onclick="downloadQR(${req._id})">?? Ver QR</button>
+            <button class="btn btn-success" onclick="downloadForm(${req._id})">?? Descargar Formulario</button>
+            <button class="btn btn-warning" onclick="regenerateQR(${req._id})" style="background: #ffc107; color: #000;">?? Regenerar QR</button>
+            ${currentUser.role === 'admin_level2' ? `<button class="btn btn-secondary" onclick="deleteRequest(${req._id})" style="background: #6c757d;">??? Eliminar</button>` : ''}
           </div>
         </div>
       `).join('');
@@ -317,7 +324,7 @@ async function loadRejectedRequests() {
     
     if (data.requests && data.requests.length > 0) {
       container.innerHTML = data.requests.map(req => {
-        // Determinar el nombre correcto seg√∫n el nivel que rechaz√≥
+        // Determinar el nombre correcto seg˙n el nivel que rechazÛ
         let rejectedByName = 'Admin';
         if (req.denied_by_level === 1 && req.level1_admin_name) {
           rejectedByName = req.level1_admin_name;
@@ -341,14 +348,14 @@ async function loadRejectedRequests() {
                 <div style="flex-shrink: 0; display: flex; gap: 10px; flex-wrap: wrap;">
                   ${req.vehicle_photo_path ? `
                     <div>
-                      <p style="margin: 0 0 5px 0; font-size: 12px; font-weight: bold;">Foto Veh√≠culo</p>
-                      <img src="${normalizeImagePath(req.vehicle_photo_path)}" onerror="this.style.display='none'" alt="Foto del veh√≠culo" style="width: 75px; height: 75px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;">
+                      <p style="margin: 0 0 5px 0; font-size: 12px; font-weight: bold;">Foto VehÌculo</p>
+                      <img src="${normalizeImagePath(req.vehicle_photo_path)}" onerror="this.style.display='none'" alt="Foto del vehÌculo" style="width: 75px; height: 75px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;">
                     </div>
                   ` : ''}
                   ${req.vehicle_id_photo_path ? `
                     <div>
-                      <p style="margin: 0 0 5px 0; font-size: 12px; font-weight: bold;">Foto PatrÔøΩn</p>
-                      <img src="${normalizeImagePath(req.vehicle_id_photo_path)}" onerror="this.style.display='none'" alt="Foto PatrÔøΩn" style="width: 75px; height: 75px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;">
+                      <p style="margin: 0 0 5px 0; font-size: 12px; font-weight: bold;">Foto Patr?n</p>
+                      <img src="${normalizeImagePath(req.vehicle_id_photo_path)}" onerror="this.style.display='none'" alt="Foto Patr?n" style="width: 75px; height: 75px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd;">
                     </div>
                   ` : ''}
                 </div>
@@ -359,13 +366,13 @@ async function loadRejectedRequests() {
                 <p><strong>Patente:</strong> ${req.vehicle_plate}</p>
                 <p><strong>Modelo:</strong> ${req.vehicle_model}</p>
                 <p><strong>Color:</strong> ${req.vehicle_color}</p>
-                <p style="color: red;"><strong>‚ùå Rechazada por:</strong> ${rejectedByName}</p>
-                <p><strong>Raz√≥n:</strong> ${req.denial_reason || 'No especificada'}</p>
+                <p style="color: red;"><strong>? Rechazada por:</strong> ${rejectedByName}</p>
+                <p><strong>RazÛn:</strong> ${req.denial_reason || 'No especificada'}</p>
               </div>
             </div>
             <div style="margin-top: 10px;">
               <button class="btn btn-primary" onclick="viewRequestDetails(${req._id})">Ver Detalles</button>
-              ${currentUser.role === 'admin_level2' ? `<button class="btn btn-secondary" onclick="deleteRequest(${req._id})" style="background: #6c757d;">üóëÔ∏è Eliminar</button>` : ''}
+              ${currentUser.role === 'admin_level2' ? `<button class="btn btn-secondary" onclick="deleteRequest(${req._id})" style="background: #6c757d;">??? Eliminar</button>` : ''}
             </div>
           </div>
         `;
@@ -390,7 +397,7 @@ async function loadUsers() {
         <div style="margin-bottom: 20px; display: flex; gap: 1rem; flex-wrap: wrap; align-items: center;">
           <button class="btn btn-primary" onclick="showCreateUserForm()">Crear Nuevo Usuario</button>
           <div class="search-box" style="flex: 1; min-width: 250px;">
-            <input type="text" id="userSearchInput" placeholder="üîç Buscar por nombre o RUT..." onkeyup="filterUsers()" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: 5px;">
+            <input type="text" id="userSearchInput" placeholder="?? Buscar por nombre o RUT..." onkeyup="filterUsers()" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: 5px;">
           </div>
         </div>
         <div id="createUserFormContainer" style="display: none; margin-bottom: 20px; padding: 20px; border: 1px solid #ddd; border-radius: 5px;">
@@ -409,7 +416,7 @@ async function loadUsers() {
               <input type="email" id="newUserEmail" required>
             </div>
             <div class="form-group">
-              <label>Contrase√±a</label>
+              <label>ContraseÒa</label>
               <input type="password" id="newUserPassword" required minlength="6">
             </div>
             <div class="form-group">
@@ -433,9 +440,9 @@ async function loadUsers() {
                     <div class="user-card-info">
                       <strong>${user.name}</strong>
                       <span class="user-role-badge">${getRoleText(user.role)}</span>
-                      <span class="user-status-badge ${user.is_active ? 'active' : 'inactive'}">${user.is_active ? '‚úÖ Activo' : '‚ùå Inactivo'}</span>
+                      <span class="user-status-badge ${user.is_active ? 'active' : 'inactive'}">${user.is_active ? '? Activo' : '? Inactivo'}</span>
                     </div>
-                    <span class="toggle-icon" id="toggle-icon-${user.id}">‚ñº</span>
+                    <span class="toggle-icon" id="toggle-icon-${user.id}">?</span>
                   </div>
                   <div class="user-card-details" id="user-details-${user.id}" style="display: none;">
                     <div class="user-detail-row">
@@ -456,7 +463,7 @@ async function loadUsers() {
                     </div>
                     <div class="user-actions">
                       <button class="btn btn-primary btn-sm" onclick="changeUserRole(${user.id}, '${user.role}')">Cambiar Rol</button>
-                      <button class="btn btn-primary btn-sm" onclick="changeUserPassword(${user.id})">Cambiar Contrase√±a</button>
+                      <button class="btn btn-primary btn-sm" onclick="changeUserPassword(${user.id})">Cambiar ContraseÒa</button>
                       <button class="btn btn-secondary btn-sm" onclick="toggleUserActive(${user.id}, ${user.is_active})">${user.is_active ? 'Desactivar' : 'Activar'}</button>
                       ${user.id !== currentUser.id ? `<button class="btn btn-danger btn-sm" onclick="deleteUser(${user.id})">Eliminar</button>` : ''}
                     </div>
@@ -503,17 +510,17 @@ async function createUser(event) {
     const data = await response.json();
     
     if (data.success) {
-      messageDiv.innerHTML = '<p style="color: green;">‚úÖ Usuario creado exitosamente</p>';
+      messageDiv.innerHTML = '<p style="color: green;">? Usuario creado exitosamente</p>';
       setTimeout(() => {
         hideCreateUserForm();
         loadUsers();
       }, 1500);
     } else {
-      messageDiv.innerHTML = `<p style="color: red;">‚ùå ${data.message}</p>`;
+      messageDiv.innerHTML = `<p style="color: red;">? ${data.message}</p>`;
     }
   } catch (error) {
     console.error('Error:', error);
-    messageDiv.innerHTML = '<p style="color: red;">Error de conexi√≥n</p>';
+    messageDiv.innerHTML = '<p style="color: red;">Error de conexiÛn</p>';
   }
 }
 
@@ -521,7 +528,7 @@ async function loadMyAccount() {
   if (currentUser) {
     document.getElementById('myAccountContent').innerHTML = `
       <div class="account-info">
-        <h3>Informaci√≥n de la Cuenta</h3>
+        <h3>InformaciÛn de la Cuenta</h3>
         <p><strong>Nombre:</strong> ${currentUser.name}</p>
         <p><strong>Email:</strong> ${currentUser.email}</p>
         <p><strong>RUT:</strong> ${currentUser.rut || 'No configurado'}</p>
@@ -529,21 +536,21 @@ async function loadMyAccount() {
         
         <hr style="margin: 20px 0;">
         
-        <h3>Cambiar Contrase√±a</h3>
+        <h3>Cambiar ContraseÒa</h3>
         <form id="changePasswordForm" onsubmit="changePassword(event)">
           <div class="form-group">
-            <label>Contrase√±a Actual</label>
+            <label>ContraseÒa Actual</label>
             <input type="password" id="currentPassword" required>
           </div>
           <div class="form-group">
-            <label>Nueva Contrase√±a</label>
+            <label>Nueva ContraseÒa</label>
             <input type="password" id="newPassword" required minlength="6">
           </div>
           <div class="form-group">
-            <label>Confirmar Nueva Contrase√±a</label>
+            <label>Confirmar Nueva ContraseÒa</label>
             <input type="password" id="confirmPassword" required>
           </div>
-          <button type="submit" class="btn btn-primary">Cambiar Contrase√±a</button>
+          <button type="submit" class="btn btn-primary">Cambiar ContraseÒa</button>
         </form>
         <div id="passwordChangeMessage"></div>
       </div>
@@ -556,7 +563,7 @@ function getRoleText(role) {
     'admin_level1': 'Administrador Nivel 1',
     'admin_level2': 'Administrador Nivel 2',
     'student': 'Estudiante',
-    'scanner': 'Esc√°ner'
+    'scanner': 'Esc·ner'
   };
   return roles[role] || role;
 }
@@ -570,12 +577,12 @@ async function changePassword(event) {
   const messageDiv = document.getElementById('passwordChangeMessage');
   
   if (newPassword !== confirmPassword) {
-    messageDiv.innerHTML = '<p style="color: red;">Las contrase√±as no coinciden</p>';
+    messageDiv.innerHTML = '<p style="color: red;">Las contraseÒas no coinciden</p>';
     return;
   }
   
   if (newPassword.length < 6) {
-    messageDiv.innerHTML = '<p style="color: red;">La contrase√±a debe tener al menos 6 caracteres</p>';
+    messageDiv.innerHTML = '<p style="color: red;">La contraseÒa debe tener al menos 6 caracteres</p>';
     return;
   }
   
@@ -589,14 +596,14 @@ async function changePassword(event) {
     const data = await response.json();
     
     if (data.success) {
-      messageDiv.innerHTML = '<p style="color: green;">‚úÖ Contrase√±a cambiada exitosamente</p>';
+      messageDiv.innerHTML = '<p style="color: green;">? ContraseÒa cambiada exitosamente</p>';
       document.getElementById('changePasswordForm').reset();
     } else {
-      messageDiv.innerHTML = `<p style="color: red;">‚ùå ${data.message}</p>`;
+      messageDiv.innerHTML = `<p style="color: red;">? ${data.message}</p>`;
     }
   } catch (error) {
     console.error('Error:', error);
-    messageDiv.innerHTML = '<p style="color: red;">Error de conexi√≥n</p>';
+    messageDiv.innerHTML = '<p style="color: red;">Error de conexiÛn</p>';
   }
 }
 
@@ -617,35 +624,35 @@ async function viewRequestDetails(id) {
         <p><strong>RUT:</strong> ${req.student_rut}</p>
         <p><strong>Carrera:</strong> ${req.student_carrera}</p>
         <p><strong>Email:</strong> ${req.student_email}</p>
-        <p><strong>Tel√©fono:</strong> ${req.student_phone}</p>
+        <p><strong>TelÈfono:</strong> ${req.student_phone}</p>
         
-        <h3>Datos del Veh√≠culo</h3>
+        <h3>Datos del VehÌculo</h3>
         <p><strong>Patente:</strong> ${req.vehicle_plate}</p>
         <p><strong>Modelo:</strong> ${req.vehicle_model}</p>
         <p><strong>Color:</strong> ${req.vehicle_color}</p>
-        <p><strong>Ubicaci√≥n Garaje:</strong> ${req.garage_location || 'No especificada'}</p>
+        <p><strong>UbicaciÛn Garaje:</strong> ${req.garage_location || 'No especificada'}</p>
         <p><strong>Modificaciones:</strong> ${req.modifications_description || 'Ninguna'}</p>
         ${req.vehicle_photo_path ? `<p><img src="/${req.vehicle_photo_path}" style="max-width: 300px;" onerror="this.style.display='none'"></p>` : ''}
         
-        <h3>Estado de Aprobaci√≥n</h3>
+        <h3>Estado de AprobaciÛn</h3>
         <p><strong>Estado:</strong> ${getStatusBadge(req)}</p>
         ${req.level1_approved ? `
-          <p style="color: green;"><strong>‚úÖ Aprobado Nivel 1 por:</strong> ${req.level1_admin_name || 'Admin ID ' + req.level1_admin_id}</p>
+          <p style="color: green;"><strong>? Aprobado Nivel 1 por:</strong> ${req.level1_admin_name || 'Admin ID ' + req.level1_admin_id}</p>
           <p><strong>Fecha:</strong> ${new Date(req.level1_date).toLocaleString()}</p>
           <p><strong>Comentarios:</strong> ${req.level1_comments || 'Sin comentarios'}</p>
         ` : ''}
         ${req.level2_approved ? `
-          <p style="color: green;"><strong>‚úÖ Aprobado Nivel 2 por:</strong> ${req.level2_admin_name || 'Admin ID ' + req.level2_admin_id}</p>
+          <p style="color: green;"><strong>? Aprobado Nivel 2 por:</strong> ${req.level2_admin_name || 'Admin ID ' + req.level2_admin_id}</p>
           <p><strong>Fecha:</strong> ${new Date(req.level2_date).toLocaleString()}</p>
           <p><strong>Comentarios:</strong> ${req.level2_comments || 'Sin comentarios'}</p>
         ` : ''}
         ${req.status === 'rejected' ? `
-          <p style="color: red;"><strong>‚ùå Rechazada por:</strong> ${
+          <p style="color: red;"><strong>? Rechazada por:</strong> ${
             req.denied_by_level === 1 && req.level1_admin_name ? req.level1_admin_name :
             req.denied_by_level === 2 && req.level2_admin_name ? req.level2_admin_name :
             req.rejected_by_name || 'Admin'
           }</p>
-          <p><strong>Raz√≥n:</strong> ${req.denial_reason}</p>
+          <p><strong>RazÛn:</strong> ${req.denial_reason}</p>
         ` : ''}
       `;
       
@@ -670,10 +677,10 @@ async function approveRequest(id) {
     const data = await response.json();
     
     if (data.success) {
-      alert('‚úÖ Solicitud aprobada exitosamente');
+      alert('? Solicitud aprobada exitosamente');
       loadPendingRequests();
     } else {
-      alert('‚ùå ' + data.message);
+      alert('? ' + data.message);
     }
   } catch (error) {
     console.error('Error:', error);
@@ -682,10 +689,10 @@ async function approveRequest(id) {
 }
 
 async function rejectRequest(id) {
-  const reason = prompt('Raz√≥n del rechazo (requerido):');
+  const reason = prompt('RazÛn del rechazo (requerido):');
   
   if (!reason || reason.trim() === '') {
-    alert('Debe proporcionar una raz√≥n para rechazar');
+    alert('Debe proporcionar una razÛn para rechazar');
     return;
   }
   
@@ -699,10 +706,10 @@ async function rejectRequest(id) {
     const data = await response.json();
     
     if (data.success) {
-      alert('‚ùå Solicitud rechazada');
+      alert('? Solicitud rechazada');
       loadPendingRequests();
     } else {
-      alert('‚ùå ' + data.message);
+      alert('? ' + data.message);
     }
   } catch (error) {
     console.error('Error:', error);
@@ -711,7 +718,7 @@ async function rejectRequest(id) {
 }
 
 async function regenerateQR(requestId) {
-  if (!confirm('¬øDesea regenerar el c√≥digo QR y PDF para esta solicitud?')) {
+  if (!confirm('øDesea regenerar el cÛdigo QR y PDF para esta solicitud?')) {
     return;
   }
   
@@ -723,10 +730,10 @@ async function regenerateQR(requestId) {
     const data = await response.json();
     
     if (data.success) {
-      alert('‚úÖ QR y PDF regenerados exitosamente');
+      alert('? QR y PDF regenerados exitosamente');
       loadApprovedRequests();
     } else {
-      alert('‚ùå ' + data.message);
+      alert('? ' + data.message);
     }
   } catch (error) {
     console.error('Error:', error);
@@ -735,7 +742,7 @@ async function regenerateQR(requestId) {
 }
 
 async function deleteRequest(requestId) {
-  if (!confirm('¬øEst√° seguro de que desea eliminar esta solicitud? Esta acci√≥n no se puede deshacer.')) {
+  if (!confirm('øEst· seguro de que desea eliminar esta solicitud? Esta acciÛn no se puede deshacer.')) {
     return;
   }
   
@@ -747,7 +754,7 @@ async function deleteRequest(requestId) {
     const data = await response.json();
     
     if (data.success) {
-      alert('‚úÖ Solicitud eliminada exitosamente');
+      alert('? Solicitud eliminada exitosamente');
       // Recargar la lista actual
       const activeTab = document.querySelector('.tab-btn.active').textContent.toLowerCase();
       if (activeTab.includes('pendiente')) {
@@ -758,7 +765,7 @@ async function deleteRequest(requestId) {
         loadRejectedRequests();
       }
     } else {
-      alert('‚ùå ' + data.message);
+      alert('? ' + data.message);
     }
   } catch (error) {
     console.error('Error:', error);
@@ -781,17 +788,17 @@ async function downloadQR(requestId) {
     const qrModalBody = document.getElementById('qrModalBody');
     
     qrModalBody.innerHTML = `
-      <h2>C√≥digo QR - Solicitud #${requestId}</h2>
+      <h2>CÛdigo QR - Solicitud #${requestId}</h2>
       <hr>
       <div style="text-align: center; margin: 20px 0;">
         <p><strong>Estudiante:</strong> ${req.student_name}</p>
         <p><strong>Patente:</strong> ${req.vehicle_plate}</p>
         <p><strong>Modelo:</strong> ${req.vehicle_model}</p>
-        <img src="/api/requests/${requestId}/qr" alt="C√≥digo QR" style="max-width: 400px; width: 100%; border: 2px solid #ED1C24; border-radius: 10px; padding: 10px; background: white;">
+        <img src="/api/requests/${requestId}/qr" alt="CÛdigo QR" style="max-width: 400px; width: 100%; border: 2px solid #ED1C24; border-radius: 10px; padding: 10px; background: white;">
       </div>
       <div style="text-align: center; margin-top: 20px;">
-        <a href="/api/requests/${requestId}/qr" download="QR-${req.vehicle_plate}.png" class="btn btn-primary">üì• Descargar QR</a>
-        <a href="/api/requests/${requestId}/pdf" download="Permiso-${req.vehicle_plate}.pdf" class="btn btn-success">üìÑ Descargar PDF</a>
+        <a href="/api/requests/${requestId}/qr" download="QR-${req.vehicle_plate}.png" class="btn btn-primary">?? Descargar QR</a>
+        <a href="/api/requests/${requestId}/pdf" download="Permiso-${req.vehicle_plate}.pdf" class="btn btn-success">?? Descargar PDF</a>
         <button onclick="closeQRModal()" class="btn btn-secondary">Cerrar</button>
       </div>
     `;
@@ -835,7 +842,7 @@ async function logout() {
   try {
     await fetch('/api/auth/logout', { method: 'POST' });
   } catch (error) {
-    console.error('Error al cerrar sesi√≥n:', error);
+    console.error('Error al cerrar sesiÛn:', error);
   } finally {
     // Siempre redirigir al login
     window.location.href = '/';
@@ -844,7 +851,7 @@ async function logout() {
 
 async function loadScanner() {
   const scanResult = document.getElementById('scanResult');
-  scanResult.innerHTML = '<p>Iniciando c√°mara...</p>';
+  scanResult.innerHTML = '<p>Iniciando c·mara...</p>';
   
   // Detener scanner anterior si existe
   if (html5QrCode && html5QrCode.isScanning) {
@@ -871,10 +878,10 @@ async function loadScanner() {
       onScanSuccess,
       onScanError
     );
-    scanResult.innerHTML = '<p style="color: blue;">üì∑ C√°mara activa. Apunte al c√≥digo QR...</p>';
+    scanResult.innerHTML = '<p style="color: blue;">?? C·mara activa. Apunte al cÛdigo QR...</p>';
   } catch (err) {
     console.error('Error iniciando scanner:', err);
-    scanResult.innerHTML = `<p style="color: red;">‚ùå Error al iniciar c√°mara: ${err}</p>`;
+    scanResult.innerHTML = `<p style="color: red;">? Error al iniciar c·mara: ${err}</p>`;
   }
 }
 
@@ -898,44 +905,44 @@ async function onScanSuccess(decodedText, decodedResult) {
     const scanResult = document.getElementById('scanResult');
     
     if (data.success && data.valid) {
-      // Las fotos vienen directamente del endpoint de validaci√≥n
+      // Las fotos vienen directamente del endpoint de validaciÛn
       let vehiclePhoto = normalizeImagePath(data.data.vehiclePhotoPath);
       let vehicleIdPhoto = normalizeImagePath(data.data.vehicleIdPhotoPath);
       
-      console.log('Foto del veh√≠culo:', vehiclePhoto);
-      console.log('Foto PatrÔøΩn:', vehicleIdPhoto);
+      console.log('Foto del vehÌculo:', vehiclePhoto);
+      console.log('Foto Patr?n:', vehicleIdPhoto);
       console.log('Datos completos:', data.data);
       
       scanResult.innerHTML = `
         <div style="padding: 20px; background: #d4edda; border: 2px solid #28a745; border-radius: 10px; margin-top: 20px;">
-          <h2 style="color: #155724; margin-top: 0;">‚úÖ ACCESO AUTORIZADO</h2>
+          <h2 style="color: #155724; margin-top: 0;">? ACCESO AUTORIZADO</h2>
           ${vehiclePhoto || vehicleIdPhoto ? `
             <div style="text-align: center; margin: 20px 0; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
               ${vehiclePhoto ? `
                 <div style="flex: 1; min-width: 200px; max-width: 45%;">
-                  <p style="font-weight: bold; margin-bottom: 5px;">Foto del Veh√≠culo:</p>
-                  <img src="${vehiclePhoto}" alt="Foto del veh√≠culo" 
+                  <p style="font-weight: bold; margin-bottom: 5px;">Foto del VehÌculo:</p>
+                  <img src="${vehiclePhoto}" alt="Foto del vehÌculo" 
                        style="width: 100%; max-height: 300px; object-fit: cover; border-radius: 10px; border: 3px solid #28a745;" 
-                       onerror="console.error('Error cargando imagen:', this.src); this.parentElement.innerHTML='<p style=\\'color: #856404;\\'>‚ö†Ô∏è Error al cargar</p>';">
+                       onerror="console.error('Error cargando imagen:', this.src); this.parentElement.innerHTML='<p style=\\'color: #856404;\\'>?? Error al cargar</p>';">
                 </div>
               ` : ''}
               ${vehicleIdPhoto ? `
                 <div style="flex: 1; min-width: 200px; max-width: 45%;">
-                  <p style="font-weight: bold; margin-bottom: 5px;">Foto PatrÔøΩn (ID):</p>
-                  <img src="${vehicleIdPhoto}" alt="Foto PatrÔøΩn" 
+                  <p style="font-weight: bold; margin-bottom: 5px;">Foto Patr?n (ID):</p>
+                  <img src="${vehicleIdPhoto}" alt="Foto Patr?n" 
                        style="width: 100%; max-height: 300px; object-fit: cover; border-radius: 10px; border: 3px solid #28a745;" 
-                       onerror="console.error('Error cargando imagen:', this.src); this.parentElement.innerHTML='<p style=\\'color: #856404;\\'>‚ö†Ô∏è Error al cargar</p>';">
+                       onerror="console.error('Error cargando imagen:', this.src); this.parentElement.innerHTML='<p style=\\'color: #856404;\\'>?? Error al cargar</p>';">
                 </div>
               ` : ''}
             </div>
-          ` : '<p style="color: #856404; background: #fff3cd; padding: 10px; border-radius: 5px;">‚ö†Ô∏è No hay fotos del veh√≠culo disponibles</p>'}
+          ` : '<p style="color: #856404; background: #fff3cd; padding: 10px; border-radius: 5px;">?? No hay fotos del vehÌculo disponibles</p>'}
           <div style="text-align: left; margin-top: 15px;">
             <p><strong>Estudiante:</strong> ${data.data.studentName}</p>
             <p><strong>RUT:</strong> ${data.data.studentRut}</p>
             <p><strong>Patente:</strong> ${data.data.vehiclePlate}</p>
             <p><strong>Modelo:</strong> ${data.data.vehicleModel}</p>
             <p><strong>Color:</strong> ${data.data.vehicleColor}</p>
-            ${data.data.expiresAt ? `<p><strong>V√°lido hasta:</strong> ${new Date(data.data.expiresAt).toLocaleDateString('es-CL')}</p>` : ''}
+            ${data.data.expiresAt ? `<p><strong>V·lido hasta:</strong> ${new Date(data.data.expiresAt).toLocaleDateString('es-CL')}</p>` : ''}
           </div>
           <button class="btn btn-primary" onclick="resumeScanner()" style="margin-top: 15px; width: 100%;">Escanear Otro QR</button>
         </div>
@@ -943,8 +950,8 @@ async function onScanSuccess(decodedText, decodedResult) {
     } else {
       scanResult.innerHTML = `
         <div style="padding: 20px; background: #f8d7da; border: 2px solid #dc3545; border-radius: 10px; margin-top: 20px;">
-          <h2 style="color: #721c24; margin-top: 0;">‚ùå ACCESO DENEGADO</h2>
-          <p><strong>Raz√≥n:</strong> ${data.message}</p>
+          <h2 style="color: #721c24; margin-top: 0;">? ACCESO DENEGADO</h2>
+          <p><strong>RazÛn:</strong> ${data.message}</p>
           ${data.data ? `
             <p><strong>Estudiante:</strong> ${data.data.studentName || 'N/A'}</p>
             <p><strong>RUT:</strong> ${data.data.studentRut || 'N/A'}</p>
@@ -958,8 +965,8 @@ async function onScanSuccess(decodedText, decodedResult) {
     console.error('Error validando QR:', error);
     document.getElementById('scanResult').innerHTML = `
       <div style="padding: 20px; background: #f8d7da; border: 2px solid #dc3545; border-radius: 10px; margin-top: 20px;">
-        <h2 style="color: #721c24; margin-top: 0;">‚ùå ERROR</h2>
-        <p>Error al validar el c√≥digo QR</p>
+        <h2 style="color: #721c24; margin-top: 0;">? ERROR</h2>
+        <p>Error al validar el cÛdigo QR</p>
         <button class="btn btn-primary" onclick="resumeScanner()" style="margin-top: 15px;">Intentar de Nuevo</button>
       </div>
     `;
@@ -971,7 +978,7 @@ function onScanError(errorMessage) {
 }
 
 async function resumeScanner() {
-  document.getElementById('scanResult').innerHTML = '<p style="color: blue;">üì∑ C√°mara activa. Apunte al c√≥digo QR...</p>';
+  document.getElementById('scanResult').innerHTML = '<p style="color: blue;">?? C·mara activa. Apunte al cÛdigo QR...</p>';
   if (html5QrCode) {
     await html5QrCode.resume();
   }
@@ -982,7 +989,7 @@ async function resumeScanner() {
 
 
 
-// Funciones de gesti√≥n de usuarios
+// Funciones de gestiÛn de usuarios
 
 async function changeUserRole(userId, currentRole) {
   const roles = {
@@ -1001,14 +1008,14 @@ async function changeUserRole(userId, currentRole) {
   
   const currentRoleNumber = Object.keys(roleMapping).find(key => roleMapping[key] === currentRole);
   
-  const input = prompt(`Selecciona el nuevo rol:\n\nOpciones:\n1. Estudiante\n2. Scanner\n3. Admin Nivel 1\n4. Admin Nivel 2\n\nRol actual: ${roles[currentRole]}\n\nIngresa el n√∫mero (1-4):`);
+  const input = prompt(`Selecciona el nuevo rol:\n\nOpciones:\n1. Estudiante\n2. Scanner\n3. Admin Nivel 1\n4. Admin Nivel 2\n\nRol actual: ${roles[currentRole]}\n\nIngresa el n˙mero (1-4):`);
   
   if (!input) return;
   
   const newRole = roleMapping[input.trim()];
   
   if (!newRole) {
-    alert('N√∫mero inv√°lido. Debes ingresar 1, 2, 3 o 4');
+    alert('N˙mero inv·lido. Debes ingresar 1, 2, 3 o 4');
     return;
   }
   
@@ -1022,10 +1029,10 @@ async function changeUserRole(userId, currentRole) {
     const data = await response.json();
     
     if (data.success) {
-      alert('‚úÖ Rol actualizado exitosamente');
+      alert('? Rol actualizado exitosamente');
       loadUsers();
     } else {
-      alert('‚ùå ' + data.message);
+      alert('? ' + data.message);
     }
   } catch (error) {
     console.error('Error:', error);
@@ -1034,12 +1041,12 @@ async function changeUserRole(userId, currentRole) {
 }
 
 async function changeUserPassword(userId) {
-  const newPassword = prompt('Ingresa la nueva contrase√±a (m√≠nimo 6 caracteres):');
+  const newPassword = prompt('Ingresa la nueva contraseÒa (mÌnimo 6 caracteres):');
   
   if (!newPassword) return;
   
   if (newPassword.length < 6) {
-    alert('La contrase√±a debe tener al menos 6 caracteres');
+    alert('La contraseÒa debe tener al menos 6 caracteres');
     return;
   }
   
@@ -1053,20 +1060,20 @@ async function changeUserPassword(userId) {
     const data = await response.json();
     
     if (data.success) {
-      alert('‚úÖ Contrase√±a actualizada exitosamente');
+      alert('? ContraseÒa actualizada exitosamente');
     } else {
-      alert('‚ùå ' + data.message);
+      alert('? ' + data.message);
     }
   } catch (error) {
     console.error('Error:', error);
-    alert('Error al cambiar contrase√±a');
+    alert('Error al cambiar contraseÒa');
   }
 }
 
 async function toggleUserActive(userId, isActive) {
   const action = isActive ? 'desactivar' : 'activar';
   
-  if (!confirm(`¬øEst√°s seguro de que deseas ${action} este usuario?`)) {
+  if (!confirm(`øEst·s seguro de que deseas ${action} este usuario?`)) {
     return;
   }
   
@@ -1078,10 +1085,10 @@ async function toggleUserActive(userId, isActive) {
     const data = await response.json();
     
     if (data.success) {
-      alert('‚úÖ ' + data.message);
+      alert('? ' + data.message);
       loadUsers();
     } else {
-      alert('‚ùå ' + data.message);
+      alert('? ' + data.message);
     }
   } catch (error) {
     console.error('Error:', error);
@@ -1090,14 +1097,14 @@ async function toggleUserActive(userId, isActive) {
 }
 
 async function deleteUser(userId) {
-  if (!confirm('¬øEst√°s seguro de que deseas ELIMINAR este usuario? Esta acci√≥n no se puede deshacer.')) {
+  if (!confirm('øEst·s seguro de que deseas ELIMINAR este usuario? Esta acciÛn no se puede deshacer.')) {
     return;
   }
   
   const confirmation = prompt('Escribe "ELIMINAR" para confirmar:');
   
   if (confirmation !== 'ELIMINAR') {
-    alert('Eliminaci√≥n cancelada');
+    alert('EliminaciÛn cancelada');
     return;
   }
   
@@ -1109,10 +1116,10 @@ async function deleteUser(userId) {
     const data = await response.json();
     
     if (data.success) {
-      alert('‚úÖ Usuario eliminado exitosamente');
+      alert('? Usuario eliminado exitosamente');
       loadUsers();
     } else {
-      alert('‚ùå ' + data.message);
+      alert('? ' + data.message);
     }
   } catch (error) {
     console.error('Error:', error);
@@ -1126,10 +1133,10 @@ function toggleUserDetails(userId) {
   
   if (details.style.display === 'none') {
     details.style.display = 'block';
-    icon.textContent = '‚ñ≤';
+    icon.textContent = '?';
   } else {
     details.style.display = 'none';
-    icon.textContent = '‚ñº';
+    icon.textContent = '?';
   }
 }
 
@@ -1193,10 +1200,10 @@ async function handleAdminRequestSubmit(e) {
   
   const formData = new FormData(e.target);
   
-  // Validaciones b√°sicas
+  // Validaciones b·sicas
   const rut = formData.get('studentRut');
   if (!validateRUT(rut)) {
-    document.getElementById('admin_rutError').textContent = 'RUT inv√°lido';
+    document.getElementById('admin_rutError').textContent = 'RUT inv·lido';
     return;
   }
   
@@ -1219,15 +1226,15 @@ async function handleAdminRequestSubmit(e) {
     const data = await response.json();
     
     if (data.success) {
-      alert('‚úÖ Solicitud creada exitosamente. La solicitud pasar√° por el proceso de verificaci√≥n normal.');
+      alert('? Solicitud creada exitosamente. La solicitud pasar· por el proceso de verificaciÛn normal.');
       e.target.reset();
       document.getElementById('admin_photoPreview').innerHTML = '';
       document.getElementById('admin_idPhotoPreview').innerHTML = '';
       
-      // Cambiar a la pesta√±a de pendientes
+      // Cambiar a la pestaÒa de pendientes
       showTab('pendientes');
     } else {
-      alert('‚ùå Error: ' + data.message);
+      alert('? Error: ' + data.message);
     }
     
     submitBtn.disabled = false;
@@ -1257,7 +1264,7 @@ function toggleAdminActivityDescription() {
 }
 
 function validateRUT(rut) {
-  // Eliminar puntos y gui√≥n
+  // Eliminar puntos y guiÛn
   rut = rut.replace(/\./g, '').replace(/-/g, '');
   
   if (rut.length < 2) return false;
@@ -1265,7 +1272,7 @@ function validateRUT(rut) {
   const body = rut.slice(0, -1);
   const dv = rut.slice(-1).toUpperCase();
   
-  // Calcular d√≠gito verificador
+  // Calcular dÌgito verificador
   let sum = 0;
   let multiplier = 2;
   
@@ -1289,17 +1296,17 @@ async function loadAudit() {
       <h3 style="margin-top: 0;">Filtros</h3>
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
         <div class="form-group">
-          <label>Tipo de Acci√≥n</label>
+          <label>Tipo de AcciÛn</label>
           <select id="auditActionType">
             <option value="">Todos</option>
             <option value="user_registered">Usuario Registrado</option>
             <option value="user_created">Usuario Creado</option>
             <option value="user_role_changed">Cambio de Rol</option>
-            <option value="user_password_changed">Cambio de Contrase√±a</option>
+            <option value="user_password_changed">Cambio de ContraseÒa</option>
             <option value="user_status_changed">Cambio de Estado</option>
             <option value="user_deleted">Usuario Eliminado</option>
-            <option value="request_approved_level1">Aprobaci√≥n Nivel 1</option>
-            <option value="request_approved_level2">Aprobaci√≥n Nivel 2</option>
+            <option value="request_approved_level1">AprobaciÛn Nivel 1</option>
+            <option value="request_approved_level2">AprobaciÛn Nivel 2</option>
             <option value="request_rejected">Solicitud Rechazada</option>
           </select>
         </div>
@@ -1336,18 +1343,18 @@ async function loadAudit() {
 async function fetchAuditLogs(filters = {}) {
   try {
     const container = document.getElementById('auditLogs');
-    container.innerHTML = '<p style="text-align: center; color: #666;">‚è≥ Cargando registros...</p>';
+    container.innerHTML = '<p style="text-align: center; color: #666;">? Cargando registros...</p>';
     
     const params = new URLSearchParams(filters);
     const response = await fetch(`/api/audit?${params}`);
     const data = await response.json();
     
-    console.log('Datos de auditor√≠a recibidos:', data);
+    console.log('Datos de auditorÌa recibidos:', data);
     
     if (data.logs && data.logs.length > 0) {
       container.innerHTML = `
         <div style="margin-bottom: 1rem; padding: 0.75rem; background: #e7f3ff; border-radius: 5px; color: #004085;">
-          üìä Se encontraron <strong>${data.logs.length}</strong> registro(s)
+          ?? Se encontraron <strong>${data.logs.length}</strong> registro(s)
         </div>
         <div class="audit-logs-list">
           ${data.logs.map(log => `
@@ -1371,7 +1378,7 @@ async function fetchAuditLogs(filters = {}) {
       `;
     } else {
       // Crear mensaje descriptivo basado en los filtros aplicados
-      let message = 'üì≠ No se encontraron registros';
+      let message = '?? No se encontraron registros';
       const filterDescriptions = [];
       
       if (filters.actionType) {
@@ -1389,23 +1396,23 @@ async function fetchAuditLogs(filters = {}) {
       if (filterDescriptions.length > 0) {
         message += ` con los filtros: ${filterDescriptions.join(', ')}`;
       } else {
-        message = 'üì≠ No hay registros de auditor√≠a en el sistema';
+        message = '?? No hay registros de auditorÌa en el sistema';
       }
       
       container.innerHTML = `
         <div style="text-align: center; padding: 3rem; background: #f8f9fa; border-radius: 8px; color: #666;">
-          <div style="font-size: 3rem; margin-bottom: 1rem;">üì≠</div>
+          <div style="font-size: 3rem; margin-bottom: 1rem;">??</div>
           <p style="font-size: 1.1rem; margin: 0;">${message}</p>
-          ${filterDescriptions.length > 0 ? '<p style="margin-top: 1rem; font-size: 0.9rem;">Intenta ajustar los filtros o limpiarlos para ver m√°s resultados</p>' : ''}
+          ${filterDescriptions.length > 0 ? '<p style="margin-top: 1rem; font-size: 0.9rem;">Intenta ajustar los filtros o limpiarlos para ver m·s resultados</p>' : ''}
         </div>
       `;
     }
   } catch (error) {
-    console.error('Error cargando auditor√≠a:', error);
+    console.error('Error cargando auditorÌa:', error);
     document.getElementById('auditLogs').innerHTML = `
       <div style="text-align: center; padding: 3rem; background: #fff3cd; border-radius: 8px; color: #856404;">
-        <div style="font-size: 3rem; margin-bottom: 1rem;">‚ö†Ô∏è</div>
-        <p style="font-size: 1.1rem; margin: 0;">Error al cargar registros de auditor√≠a</p>
+        <div style="font-size: 3rem; margin-bottom: 1rem;">??</div>
+        <p style="font-size: 1.1rem; margin: 0;">Error al cargar registros de auditorÌa</p>
         <p style="margin-top: 0.5rem; font-size: 0.9rem;">${error.message}</p>
       </div>
     `;
@@ -1457,15 +1464,15 @@ function getActionTypeClass(actionType) {
 
 function getActionTypeText(actionType) {
   const texts = {
-    'user_registered': 'üë§ Usuario Registrado',
-    'user_created': 'üë§ Usuario Creado',
-    'user_role_changed': 'üîÑ Cambio de Rol',
-    'user_password_changed': 'üîë Cambio de Contrase√±a',
-    'user_status_changed': '‚ö° Cambio de Estado',
-    'user_deleted': 'üóëÔ∏è Usuario Eliminado',
-    'request_approved_level1': '‚úÖ Aprobaci√≥n Nivel 1',
-    'request_approved_level2': '‚úÖ Aprobaci√≥n Nivel 2',
-    'request_rejected': '‚ùå Solicitud Rechazada'
+    'user_registered': '?? Usuario Registrado',
+    'user_created': '?? Usuario Creado',
+    'user_role_changed': '?? Cambio de Rol',
+    'user_password_changed': '?? Cambio de ContraseÒa',
+    'user_status_changed': '? Cambio de Estado',
+    'user_deleted': '??? Usuario Eliminado',
+    'request_approved_level1': '? AprobaciÛn Nivel 1',
+    'request_approved_level2': '? AprobaciÛn Nivel 2',
+    'request_rejected': '? Solicitud Rechazada'
   };
   return texts[actionType] || actionType;
 }
