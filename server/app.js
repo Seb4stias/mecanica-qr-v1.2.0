@@ -63,7 +63,7 @@ app.use('/uploads', (req, res, next) => {
   
   // Si no existe, devolver un 404 apropiado sin HTML
   console.log(`⚠️ Imagen no encontrada: ${req.url}`);
-  res.status(404).type('text/plain').send('Image not found');
+  res.status(404).end(); // Terminar sin contenido
 });
 
 // Middleware para evitar que las rutas de archivos JS/CSS devuelvan HTML
@@ -79,7 +79,7 @@ app.use(['/js/*', '/css/*', '/images/*'], (req, res, next) => {
   
   // Si no existe, devolver 404 sin HTML
   console.log(`⚠️ Archivo estático no encontrado: ${req.url}`);
-  res.status(404).type('text/plain').send('File not found');
+  res.status(404).end(); // Terminar sin contenido
 });
 
 // Routes
