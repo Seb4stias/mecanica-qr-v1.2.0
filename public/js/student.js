@@ -162,7 +162,7 @@ async function loadMyRequests() {
               </div>
             ` : '<div style="flex-shrink: 0;"><p style="color: #999;">Sin fotos</p></div>'}
             <div style="flex-grow: 1;">
-              <h3>Solicitud #${req.id}</h3>
+              <h3>Solicitud #${req._id}</h3>
               <p><strong>Patente:</strong> ${req.vehicle_plate}</p>
               <p><strong>Modelo:</strong> ${req.vehicle_model}</p>
               <p><strong>Color:</strong> ${req.vehicle_color}</p>
@@ -173,8 +173,8 @@ async function loadMyRequests() {
           </div>
           ${req.status === 'approved' ? `
             <div style="margin-top: 10px;">
-              <button class="btn btn-success" onclick="downloadQR(${req.id})">📥 Ver QR</button>
-              <button class="btn btn-success" onclick="downloadForm(${req.id})">📄 Descargar Formulario</button>
+              <button class="btn btn-success" onclick="downloadQR(${req._id})">📥 Ver QR</button>
+              <button class="btn btn-success" onclick="downloadForm(${req._id})">📄 Descargar Formulario</button>
             </div>
           ` : ''}
         </div>

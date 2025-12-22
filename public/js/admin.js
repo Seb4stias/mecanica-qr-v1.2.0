@@ -187,7 +187,7 @@ async function loadPendingRequests() {
           canApprove = req.level1_approved !== 1 || (req.level1_approved === 1 && req.level2_approved !== 1);
         }
         
-        console.log(`Solicitud ${req.id}: level1=${req.level1_approved}, level2=${req.level2_approved}, canApprove=${canApprove}, userRole=${currentUser.role}`);
+        console.log(`Solicitud ${req._id}: level1=${req.level1_approved}, level2=${req.level2_approved}, canApprove=${canApprove}, userRole=${currentUser.role}`);
         
         return `
           <div class="request-card" style="border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; border-radius: 5px;">
@@ -224,10 +224,10 @@ async function loadPendingRequests() {
               </div>
             </div>
             <div style="margin-top: 10px;">
-              <button class="btn btn-primary" onclick="viewRequestDetails(${req.id})">Ver Detalles</button>
-              ${canApprove ? `<button class="btn btn-success" onclick="approveRequest(${req.id})">✅ Aprobar</button>` : ''}
-              <button class="btn btn-danger" onclick="rejectRequest(${req.id})">❌ Rechazar</button>
-              ${currentUser.role === 'admin_level2' ? `<button class="btn btn-secondary" onclick="deleteRequest(${req.id})" style="background: #6c757d;">🗑️ Eliminar</button>` : ''}
+              <button class="btn btn-primary" onclick="viewRequestDetails(${req._id})">Ver Detalles</button>
+              ${canApprove ? `<button class="btn btn-success" onclick="approveRequest(${req._id})">✅ Aprobar</button>` : ''}
+              <button class="btn btn-danger" onclick="rejectRequest(${req._id})">❌ Rechazar</button>
+              ${currentUser.role === 'admin_level2' ? `<button class="btn btn-secondary" onclick="deleteRequest(${req._id})" style="background: #6c757d;">🗑️ Eliminar</button>` : ''}
             </div>
           </div>
         `;
@@ -292,11 +292,11 @@ async function loadApprovedRequests() {
             </div>
           </div>
           <div style="margin-top: 10px;">
-            <button class="btn btn-primary" onclick="viewRequestDetails(${req.id})">Ver Detalles</button>
-            <button class="btn btn-success" onclick="downloadQR(${req.id})">📥 Ver QR</button>
-            <button class="btn btn-success" onclick="downloadForm(${req.id})">📄 Descargar Formulario</button>
-            <button class="btn btn-warning" onclick="regenerateQR(${req.id})" style="background: #ffc107; color: #000;">🔄 Regenerar QR</button>
-            ${currentUser.role === 'admin_level2' ? `<button class="btn btn-secondary" onclick="deleteRequest(${req.id})" style="background: #6c757d;">🗑️ Eliminar</button>` : ''}
+            <button class="btn btn-primary" onclick="viewRequestDetails(${req._id})">Ver Detalles</button>
+            <button class="btn btn-success" onclick="downloadQR(${req._id})">📥 Ver QR</button>
+            <button class="btn btn-success" onclick="downloadForm(${req._id})">📄 Descargar Formulario</button>
+            <button class="btn btn-warning" onclick="regenerateQR(${req._id})" style="background: #ffc107; color: #000;">🔄 Regenerar QR</button>
+            ${currentUser.role === 'admin_level2' ? `<button class="btn btn-secondary" onclick="deleteRequest(${req._id})" style="background: #6c757d;">🗑️ Eliminar</button>` : ''}
           </div>
         </div>
       `).join('');
@@ -327,7 +327,7 @@ async function loadRejectedRequests() {
           rejectedByName = req.rejected_by_name;
         }
         
-        console.log(`Solicitud rechazada ${req.id}:`, {
+        console.log(`Solicitud rechazada ${req._id}:`, {
           denied_by_level: req.denied_by_level,
           rejected_by_name: rejectedByName,
           level1_admin_name: req.level1_admin_name,
@@ -364,8 +364,8 @@ async function loadRejectedRequests() {
               </div>
             </div>
             <div style="margin-top: 10px;">
-              <button class="btn btn-primary" onclick="viewRequestDetails(${req.id})">Ver Detalles</button>
-              ${currentUser.role === 'admin_level2' ? `<button class="btn btn-secondary" onclick="deleteRequest(${req.id})" style="background: #6c757d;">🗑️ Eliminar</button>` : ''}
+              <button class="btn btn-primary" onclick="viewRequestDetails(${req._id})">Ver Detalles</button>
+              ${currentUser.role === 'admin_level2' ? `<button class="btn btn-secondary" onclick="deleteRequest(${req._id})" style="background: #6c757d;">🗑️ Eliminar</button>` : ''}
             </div>
           </div>
         `;
@@ -610,7 +610,7 @@ async function viewRequestDetails(id) {
       const modalBody = document.getElementById('modalBody');
       
       modalBody.innerHTML = `
-        <h2>Solicitud #${req.id}</h2>
+        <h2>Solicitud #${req._id}</h2>
         <hr>
         <h3>Datos del Estudiante</h3>
         <p><strong>Nombre:</strong> ${req.student_name}</p>

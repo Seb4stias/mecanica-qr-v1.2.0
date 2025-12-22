@@ -77,7 +77,6 @@ router.post('/requests/:id/approve', requireRole('admin_level1', 'admin_level2')
     const { comments } = req.body;
     const requestId = req.params.id;
     const adminLevel = req.session.userRole === 'admin_level1' ? 1 : 2;
-    const pool = db.getPool();
 
     console.log(`📝 Admin nivel ${adminLevel} (ID: ${req.session.userId}) aprobando solicitud ${requestId}`);
 
@@ -212,7 +211,6 @@ router.post('/requests/:id/reject', requireRole('admin_level1', 'admin_level2'),
     const { reason } = req.body;
     const requestId = req.params.id;
     const adminLevel = req.session.userRole === 'admin_level1' ? 1 : 2;
-    const pool = db.getPool();
 
     if (!reason || reason.trim() === '') {
       return res.status(400).json({
@@ -273,7 +271,6 @@ router.post('/requests/:id/reject', requireRole('admin_level1', 'admin_level2'),
 router.post('/requests/:id/regenerate-qr', requireRole('admin_level1', 'admin_level2'), async (req, res, next) => {
   try {
     const requestId = req.params.id;
-    const pool = db.getPool();
 
     console.log(`🔄 Regenerando QR para solicitud ${requestId}`);
 
@@ -325,7 +322,6 @@ router.post('/requests/:id/regenerate-qr', requireRole('admin_level1', 'admin_le
 router.delete('/requests/:id', requireRole('admin_level2'), async (req, res, next) => {
   try {
     const requestId = req.params.id;
-    const pool = db.getPool();
 
     console.log(`🗑️ Admin nivel 2 (ID: ${req.session.userId}) eliminando solicitud ${requestId}`);
 
