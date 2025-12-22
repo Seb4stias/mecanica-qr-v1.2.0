@@ -60,9 +60,6 @@ function generateImageHTML(imagePath, altText, label) {
     </div>
   `;
 }
-  
-  return normalized;
-}
 
 // Verificar sesión al cargar
 document.addEventListener('DOMContentLoaded', async () => {
@@ -97,7 +94,13 @@ function showTabFromDrawer(tabName) {
   document.querySelectorAll('.drawer-item').forEach(item => {
     item.classList.remove('active');
   });
-  event.target.closest('.drawer-item').classList.add('active');
+  
+  // Activar el item del drawer correspondiente
+  document.querySelectorAll('.drawer-item').forEach(item => {
+    if (item.onclick && item.onclick.toString().includes(`'${tabName}'`)) {
+      item.classList.add('active');
+    }
+  });
   
   // Mostrar el tab correspondiente
   showTab(tabName);
@@ -161,7 +164,13 @@ function showTab(tabName) {
   
   // Mostrar tab seleccionado
   document.getElementById(`${tabName}-tab`).classList.add('active');
-  event.target.classList.add('active');
+  
+  // Activar el botón correspondiente
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    if (btn.onclick && btn.onclick.toString().includes(`'${tabName}'`)) {
+      btn.classList.add('active');
+    }
+  });
   
   // Cargar contenido según el tab
   switch(tabName) {
