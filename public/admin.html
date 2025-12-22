@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
@@ -32,35 +32,35 @@
     </div>
     <nav class="drawer-nav">
       <button class="drawer-item active" onclick="showTabFromDrawer('pendientes')">
-        <span class="drawer-icon">📋</span>
+        <span class="drawer-icon"></span>
         Pendientes
       </button>
       <button class="drawer-item" onclick="showTabFromDrawer('aprobadas')">
-        <span class="drawer-icon">✅</span>
+        <span class="drawer-icon"></span>
         Aprobadas
       </button>
       <button class="drawer-item" onclick="showTabFromDrawer('denegadas')">
-        <span class="drawer-icon">❌</span>
+        <span class="drawer-icon"></span>
         Denegadas
       </button>
       <button class="drawer-item" onclick="showTabFromDrawer('nueva-solicitud')">
-        <span class="drawer-icon">📝</span>
+        <span class="drawer-icon"></span>
         Nueva Solicitud
       </button>
       <button class="drawer-item" onclick="showTabFromDrawer('scanner')">
-        <span class="drawer-icon">📷</span>
+        <span class="drawer-icon"></span>
         Escáner QR
       </button>
       <button class="drawer-item" id="usersDrawerTab" onclick="showTabFromDrawer('usuarios')" style="display:none">
-        <span class="drawer-icon">👥</span>
+        <span class="drawer-icon"></span>
         Usuarios
       </button>
       <button class="drawer-item" id="auditDrawerTab" onclick="showTabFromDrawer('auditoria')" style="display:none">
-        <span class="drawer-icon">📊</span>
+        <span class="drawer-icon"></span>
         Auditoría
       </button>
       <button class="drawer-item" onclick="showTabFromDrawer('mi-cuenta')">
-        <span class="drawer-icon">👤</span>
+        <span class="drawer-icon"></span>
         Mi Cuenta
       </button>
     </nav>
@@ -71,8 +71,8 @@
       <button class="tab-btn active" onclick="showTab('pendientes')">Pendientes</button>
       <button class="tab-btn" onclick="showTab('aprobadas')">Aprobadas</button>
       <button class="tab-btn" onclick="showTab('denegadas')">Denegadas</button>
-      <button class="tab-btn" onclick="showTab('nueva-solicitud')">📝 Nueva Solicitud</button>
-      <button class="tab-btn" onclick="showTab('scanner')">📷 Escáner QR</button>
+      <button class="tab-btn" onclick="showTab('nueva-solicitud')"> Nueva Solicitud</button>
+      <button class="tab-btn" onclick="showTab('scanner')"> Escáner QR</button>
       <button class="tab-btn" id="usersTab" onclick="showTab('usuarios')" style="display:none">Usuarios</button>
       <button class="tab-btn" id="auditTab" onclick="showTab('auditoria')" style="display:none">Auditoría</button>
       <button class="tab-btn" onclick="showTab('mi-cuenta')">Mi Cuenta</button>
@@ -207,7 +207,7 @@
     </div>
 
     <div id="scanner-tab" class="tab-content">
-      <h2>📷 Escáner de Códigos QR</h2>
+      <h2> Escáner de Códigos QR</h2>
       <div id="scannerContent">
         <div style="max-width: 600px; margin: 0 auto;">
           <div id="reader" style="width: 100%;"></div>
@@ -222,7 +222,7 @@
     </div>
 
     <div id="auditoria-tab" class="tab-content">
-      <h2>📊 Auditoría del Sistema</h2>
+      <h2> Auditoría del Sistema</h2>
       <div id="auditContent"></div>
     </div>
 
@@ -273,6 +273,6 @@
   </div>
 
   <script src="https://unpkg.com/html5-qrcode"></script>
-  <script src="/js/admin.js?v=16"></script>
+  <script src="/js/admin.js?v=17"></script>
 </body>
 </html>
