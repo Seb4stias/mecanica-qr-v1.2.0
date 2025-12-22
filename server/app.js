@@ -1,6 +1,6 @@
 const express = require('express');
 const session = require('express-session');
-const MongoStore = require('connect-mongo');
+// const MongoStore = require('connect-mongo'); // Deshabilitado temporalmente
 // const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 require('dotenv').config();
@@ -21,15 +21,12 @@ app.use(express.urlencoded({ extended: true }));
 
 // File upload será manejado por multer en las rutas específicas
 
-// Session configuration
+// Session configuration (temporalmente sin MongoStore)
 app.use(session({
   secret: process.env.SESSION_SECRET || 'change-this-to-a-secure-random-string',
   resave: false,
   saveUninitialized: false,
-  store: MongoStore.create({
-    mongoUrl: process.env.MONGODB_URI,
-    touchAfter: 24 * 3600 // lazy session update
-  }),
+  // store: MongoStore - Deshabilitado temporalmente
   cookie: {
     secure: false, // Cambiar a true cuando tengas HTTPS configurado
     httpOnly: true,
