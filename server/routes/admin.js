@@ -425,7 +425,7 @@ async function generateQRCode(requestId, requestData) {
   const relativePdfPath = `public/qr-codes/permit-${requestId}.pdf`;
   
   const qrCode = new QRCodeModel({
-    request_id: new mongoose.Types.ObjectId(requestId),
+    request_id: requestId.toString(),
     qr_code: qrData,
     qr_image_path: relativeQrPath,
     pdf_path: relativePdfPath,
