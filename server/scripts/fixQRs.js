@@ -7,8 +7,11 @@ async function fixQRs() {
   try {
     console.log('🔧 Arreglando QRs...');
     
-    await mongoose.connect(process.env.MONGODB_URI);
-    console.log('✓ Conectado a MongoDB');
+    // Solo conectar si no está conectado
+    if (mongoose.connection.readyState !== 1) {
+      await mongoose.connect(process.env.MONGODB_URI);
+      console.log('✓ Conectado a MongoDB');
+    }
 
     // 1. Eliminar todos los QRs existentes (están mal)
     const deletedCount = await QRCodeModel.deleteMany({});
@@ -35,7 +38,7 @@ async function fixQRs() {
       const expiresAt = expiryDays > 0 ? new Date(Date.now() + expiryDays * 24 * 60 * 60 * 1000) : null;
 
       const qrCode = new QRCodeModel({
-        request_id: request._id,
+        request_id: request._id.toString(),
         qr_code: qrData,
         qr_image_path: `public/qr-codes/qr-${request._id}.png`,
         pdf_path: `public/qr-codes/permit-${request._id}.pdf`,
@@ -70,12 +73,11 @@ async function fixQRs() {
     }
 
     console.log('\n✅ Arreglo completado');
+    return { success: true, qrsCreated: newQRs.length };
 
   } catch (error) {
     console.error('❌ Error:', error);
-  } finally {
-    await mongoose.connection.close();
-    console.log('🔌 Conexión cerrada');
+    throw error;
   }
 }
 

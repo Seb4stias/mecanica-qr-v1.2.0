@@ -43,4 +43,25 @@ router.get('/admin-js', (req, res) => {
   }
 });
 
+// Endpoint temporal para arreglar QRs
+router.get('/fix-qrs', async (req, res) => {
+  try {
+    const { fixQRs } = require('../scripts/fixQRs');
+    
+    // Ejecutar el script de arreglo
+    await fixQRs();
+    
+    res.json({
+      success: true,
+      message: 'QRs arreglados exitosamente'
+    });
+  } catch (error) {
+    console.error('Error arreglando QRs:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error arreglando QRs: ' + error.message
+    });
+  }
+});
+
 module.exports = router;
