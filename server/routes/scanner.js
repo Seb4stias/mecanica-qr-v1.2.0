@@ -38,19 +38,35 @@ router.post('/validate', requireRole('scanner', 'admin_level1', 'admin_level2'),
     }
 
     console.log('🔍 Buscando requestId:', parsedData.requestId);
+    console.log('🔍 Tipo:', typeof parsedData.requestId);
     
     // Buscar TODOS los QRs para debug
     const allQRs = await QRCodeModel.find({}).limit(5);
     console.log('🔍 Total QRs en BD:', allQRs.length);
     allQRs.forEach((qr, i) => {
-      console.log(`🔍 QR ${i+1}: request_id=${qr.request_id}, active=${qr.is_active}`);
+      console.log(`🔍 QR ${i+1}: request_id="${qr.request_id}" (tipo: ${typeof qr.request_id}), active=${qr.is_active}`);
+      console.log(`🔍 ¿Coincide? ${qr.request_id === parsedData.requestId ? 'SÍ' : 'NO'}`);
     });
     
-    // Buscar el QR específico
-    const qrCode = await QRCodeModel.findOne({
+    // Buscar el QR específico - PROBAR AMBAS FORMAS
+    let qrCode = await QRCodeModel.findOne({
       request_id: parsedData.requestId,
       is_active: true
     }).populate('request_id');
+    
+    console.log('🔍 Búsqueda 1 (string):', qrCode ? 'ENCONTRADO' : 'NO ENCONTRADO');
+    
+    // Si no encuentra, probar como ObjectId
+    if (!qrCode) {
+      const mongoose = require('mongoose');
+      if (mongoose.Types.ObjectId.isValid(parsedData.requestId)) {
+        qrCode = await QRCodeModel.findOne({
+          request_id: new mongoose.Types.ObjectId(parsedData.requestId),
+          is_active: true
+        }).populate('request_id');
+        console.log('🔍 Búsqueda 2 (ObjectId):', qrCode ? 'ENCONTRADO' : 'NO ENCONTRADO');
+      }
+    }
     
     console.log('🔍 QR encontrado:', qrCode ? 'SÍ' : 'NO');
     

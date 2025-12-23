@@ -192,8 +192,8 @@ async function loadMyRequests() {
           </div>
           ${req.status === 'approved' ? `
             <div style="margin-top: 10px;">
-              <button class="btn btn-success" onclick="downloadQR(${req._id})">📥 Ver QR</button>
-              <button class="btn btn-success" onclick="downloadForm(${req._id})">📄 Descargar Formulario</button>
+              <button class="btn btn-success" onclick="downloadQR('${req._id}')">📥 Ver QR</button>
+              <button class="btn btn-success" onclick="downloadForm('${req._id}')">📄 Descargar Formulario</button>
             </div>
           ` : ''}
         </div>
