@@ -277,12 +277,21 @@ async function loadPendingRequests() {
 }
 
 function getStatusBadge(req) {
+  // Debug: ver qué datos tenemos
+  console.log('🔍 Request data for status:', {
+    status: req.status,
+    level1_approved_by: req.level1_approved_by,
+    level2_approved_by: req.level2_approved_by
+  });
+  
   if (req.status === 'approved') {
     return '<span style="color: green; font-weight: bold;">✅ Aprobada (Nivel 1 + Nivel 2)</span>';
   } else if (req.status === 'level1_approved') {
-    return '<span style="color: orange; font-weight: bold;">⏳ Aprobada Nivel 1 (Falta Nivel 2)</span>';
+    const adminName = req.level1_approved_by?.name || 'Admin';
+    return `<span style="color: orange; font-weight: bold;">⏳ Aprobada Nivel 1 (${adminName}) (Falta Nivel 2)</span>`;
   } else if (req.status === 'level2_approved') {
-    return '<span style="color: orange; font-weight: bold;">⏳ Aprobada Nivel 2 (Falta Nivel 1)</span>';
+    const adminName = req.level2_approved_by?.name || 'Admin';
+    return `<span style="color: orange; font-weight: bold;">⏳ Aprobada Nivel 2 (${adminName}) (Falta Nivel 1)</span>`;
   } else if (req.status === 'rejected') {
     return '<span style="color: red; font-weight: bold;">❌ Rechazada</span>';
   } else {
