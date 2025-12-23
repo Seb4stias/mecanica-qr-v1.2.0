@@ -10,13 +10,14 @@ const AuditLog = require('../models/AuditLog');
  * POST /api/scanner/validate
  * Validar código QR escaneado
  */
-router.post('/validate', requireRole('scanner', 'admin_level1', 'admin_level2'), async (req, res, next) => {
+router.post('/validate', async (req, res, next) => {
   try {
+    console.log('🔍 === SCANNER VALIDATE START ===');
+    console.log('🔍 Body completo:', req.body);
+    console.log('🔍 Headers:', req.headers);
+    
     const { qrData } = req.body;
     
-    console.log('🔍 === SCANNER DEBUG START ===');
-    console.log('🔍 QR Data recibido:', qrData);
-
     if (!qrData) {
       console.log('❌ No hay qrData');
       return res.status(400).json({
@@ -38,41 +39,17 @@ router.post('/validate', requireRole('scanner', 'admin_level1', 'admin_level2'),
     }
 
     console.log('🔍 Buscando requestId:', parsedData.requestId);
-    console.log('🔍 Tipo:', typeof parsedData.requestId);
     
-    // Buscar TODOS los QRs para debug
-    const allQRs = await QRCodeModel.find({}).limit(5);
-    console.log('🔍 Total QRs en BD:', allQRs.length);
-    allQRs.forEach((qr, i) => {
-      console.log(`🔍 QR ${i+1}: request_id="${qr.request_id}" (tipo: ${typeof qr.request_id}), active=${qr.is_active}`);
-      console.log(`🔍 ¿Coincide? ${qr.request_id === parsedData.requestId ? 'SÍ' : 'NO'}`);
-    });
-    
-    // Buscar el QR específico - PROBAR AMBAS FORMAS
-    let qrCode = await QRCodeModel.findOne({
+    // Buscar el QR directamente
+    const qrCode = await QRCodeModel.findOne({
       request_id: parsedData.requestId,
       is_active: true
     }).populate('request_id');
-    
-    console.log('🔍 Búsqueda 1 (string):', qrCode ? 'ENCONTRADO' : 'NO ENCONTRADO');
-    
-    // Si no encuentra, probar como ObjectId
-    if (!qrCode) {
-      const mongoose = require('mongoose');
-      if (mongoose.Types.ObjectId.isValid(parsedData.requestId)) {
-        qrCode = await QRCodeModel.findOne({
-          request_id: new mongoose.Types.ObjectId(parsedData.requestId),
-          is_active: true
-        }).populate('request_id');
-        console.log('🔍 Búsqueda 2 (ObjectId):', qrCode ? 'ENCONTRADO' : 'NO ENCONTRADO');
-      }
-    }
     
     console.log('🔍 QR encontrado:', qrCode ? 'SÍ' : 'NO');
     
     if (!qrCode) {
       console.log('❌ QR no encontrado');
-      console.log('🔍 === SCANNER DEBUG END ===');
       return res.json({
         success: false,
         valid: false,
@@ -83,26 +60,17 @@ router.post('/validate', requireRole('scanner', 'admin_level1', 'admin_level2'),
     const request = qrCode.request_id;
     console.log('🔍 Request status:', request.status);
 
-    // Verificar que la solicitud esté aprobada
     if (request.status !== 'approved') {
       console.log('❌ Request no aprobada');
-      console.log('🔍 === SCANNER DEBUG END ===');
       return res.json({
         success: true,
         valid: false,
-        message: 'Solicitud no está aprobada',
-        data: {
-          studentName: request.student_name,
-          vehiclePlate: request.vehicle_plate,
-          status: request.status
-        }
+        message: 'Solicitud no está aprobada'
       });
     }
 
-    console.log('✅ QR VÁLIDO');
-    console.log('🔍 === SCANNER DEBUG END ===');
+    console.log('✅ QR VÁLIDO - ACCESO AUTORIZADO');
     
-    // QR válido
     res.json({
       success: true,
       valid: true,
@@ -112,16 +80,16 @@ router.post('/validate', requireRole('scanner', 'admin_level1', 'admin_level2'),
         studentRut: request.student_rut,
         vehiclePlate: request.vehicle_plate,
         vehicleModel: request.vehicle_model,
-        vehicleColor: request.vehicle_color,
-        vehiclePhotoPath: request.vehicle_photo_path,
-        vehicleIdPhotoPath: request.vehicle_id_photo_path,
-        expiresAt: qrCode.expires_at
+        vehicleColor: request.vehicle_color
       }
     });
 
   } catch (error) {
     console.log('❌ ERROR EN SCANNER:', error);
-    next(error);
+    res.status(500).json({
+      success: false,
+      message: 'Error interno del servidor'
+    });
   }
 });
 

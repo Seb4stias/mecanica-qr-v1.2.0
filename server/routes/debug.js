@@ -65,6 +65,43 @@ router.get('/fix-qrs', async (req, res) => {
   }
 });
 
+// Endpoint de prueba para el escáner
+router.post('/test-scanner', async (req, res) => {
+  try {
+    console.log('🧪 TEST SCANNER - Datos recibidos:', req.body);
+    
+    const QRCodeModel = require('../models/QRCode');
+    const { qrData } = req.body;
+    
+    if (!qrData) {
+      return res.json({ error: 'No qrData provided' });
+    }
+    
+    let parsedData;
+    try {
+      parsedData = JSON.parse(qrData);
+    } catch (e) {
+      return res.json({ error: 'Invalid JSON', qrData });
+    }
+    
+    // Buscar el QR
+    const qr = await QRCodeModel.findOne({
+      request_id: parsedData.requestId,
+      is_active: true
+    });
+    
+    res.json({
+      success: true,
+      parsedData,
+      qrFound: !!qr,
+      qrId: qr ? qr._id : null
+    });
+    
+  } catch (error) {
+    res.json({ error: error.message });
+  }
+});
+
 // Endpoint para ver QRs en la BD
 router.get('/check-qrs', async (req, res) => {
   try {
