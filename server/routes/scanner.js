@@ -12,6 +12,8 @@ const AuditLog = require('../models/AuditLog');
 router.post('/validate', requireRole('scanner', 'admin_level1', 'admin_level2'), async (req, res, next) => {
   try {
     const { qrData } = req.body;
+    
+    console.log('🔍 SCANNER DEBUG - QR Data recibido:', qrData);
 
     if (!qrData) {
       return res.status(400).json({
@@ -23,20 +25,39 @@ router.post('/validate', requireRole('scanner', 'admin_level1', 'admin_level2'),
     let parsedData;
     try {
       parsedData = JSON.parse(qrData);
+      console.log('🔍 SCANNER DEBUG - Datos parseados:', parsedData);
     } catch (e) {
+      console.log('❌ SCANNER DEBUG - Error parseando QR:', e.message);
       return res.status(400).json({
         success: false,
         message: 'Formato de QR inválido'
       });
     }
 
+    console.log('🔍 SCANNER DEBUG - Buscando QR con requestId:', parsedData.requestId);
+    
     // Buscar el QR en la base de datos
     const qrCode = await QRCodeModel.findOne({
       request_id: parsedData.requestId,
       is_active: true
     }).populate('request_id');
+    
+    console.log('🔍 SCANNER DEBUG - QR encontrado:', qrCode ? 'SÍ' : 'NO');
+    
+    if (qrCode) {
+      console.log('🔍 SCANNER DEBUG - QR ID:', qrCode._id);
+      console.log('🔍 SCANNER DEBUG - Request ID en BD:', qrCode.request_id._id);
+      console.log('🔍 SCANNER DEBUG - Is Active:', qrCode.is_active);
+    }
 
     if (!qrCode) {
+      // Buscar todos los QRs para debug
+      const allQRs = await QRCodeModel.find({}).limit(5);
+      console.log('🔍 SCANNER DEBUG - Total QRs en BD:', allQRs.length);
+      allQRs.forEach((qr, index) => {
+        console.log(`🔍 SCANNER DEBUG - QR ${index + 1}: ID=${qr.request_id}, Active=${qr.is_active}`);
+      });
+      
       return res.json({
         success: false,
         valid: false,
