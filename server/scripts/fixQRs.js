@@ -17,9 +17,15 @@ async function fixQRs() {
     const deletedCount = await QRCodeModel.deleteMany({});
     console.log(`🗑️ Eliminados ${deletedCount.deletedCount} QRs viejos`);
 
-    // 2. Buscar todas las solicitudes aprobadas
-    const approvedRequests = await Request.find({ status: 'approved' });
-    console.log(`📋 Encontradas ${approvedRequests.length} solicitudes aprobadas`);
+    // 2. Buscar todas las solicitudes que deberían tener QR
+    // (status 'approved' O que tengan ambos niveles aprobados)
+    const approvedRequests = await Request.find({
+      $or: [
+        { status: 'approved' },
+        { level1_approved: true, level2_approved: true }
+      ]
+    });
+    console.log(`📋 Encontradas ${approvedRequests.length} solicitudes que necesitan QR`);
 
     // 3. Regenerar QRs para cada solicitud aprobada
     for (const request of approvedRequests) {

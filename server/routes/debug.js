@@ -72,7 +72,8 @@ router.get('/check-qrs', async (req, res) => {
     const Request = require('../models/Request');
     
     const qrs = await QRCodeModel.find({}).limit(10);
-    const requests = await Request.find({ status: 'approved' }).limit(5);
+    const allRequests = await Request.find({}).limit(10);
+    const approvedRequests = await Request.find({ status: 'approved' }).limit(5);
     
     const qrDetails = qrs.map(qr => ({
       id: qr._id,
@@ -81,12 +82,22 @@ router.get('/check-qrs', async (req, res) => {
       qr_content: qr.qr_code ? qr.qr_code.substring(0, 100) + '...' : 'null'
     }));
     
+    const requestDetails = allRequests.map(r => ({
+      id: r._id.toString(),
+      status: r.status,
+      plate: r.vehicle_plate,
+      level1_approved: r.level1_approved,
+      level2_approved: r.level2_approved
+    }));
+    
     res.json({
       success: true,
       qrs_count: qrs.length,
-      approved_requests: requests.length,
+      total_requests: allRequests.length,
+      approved_requests: approvedRequests.length,
       qr_details: qrDetails,
-      sample_request_ids: requests.map(r => r._id.toString())
+      request_details: requestDetails,
+      sample_approved_ids: approvedRequests.map(r => r._id.toString())
     });
   } catch (error) {
     res.status(500).json({
