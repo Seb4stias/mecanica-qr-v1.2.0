@@ -471,12 +471,12 @@ async function loadUsers() {
                       <span class="user-role-badge">${getRoleText(user.role)}</span>
                       <span class="user-status-badge ${user.is_active ? 'active' : 'inactive'}">${user.is_active ? '✅ Activo' : '❌ Inactivo'}</span>
                     </div>
-                    <span class="toggle-icon" id="toggle-icon-${user.id}">▼</span>
+                    <span class="toggle-icon" id="toggle-icon-${user._id}">▼</span>
                   </div>
-                  <div class="user-card-details" id="user-details-${user.id}" style="display: none;">
+                  <div class="user-card-details" id="user-details-${user._id}" style="display: none;">
                     <div class="user-detail-row">
                       <span class="detail-label">ID:</span>
-                      <span class="detail-value">${user.id}</span>
+                      <span class="detail-value">${user._id}</span>
                     </div>
                     <div class="user-detail-row">
                       <span class="detail-label">RUT:</span>
@@ -1157,8 +1157,22 @@ async function deleteUser(userId) {
 }
 
 function toggleUserDetails(userId) {
+  console.log('🔍 Intentando toggle para userId:', userId);
   const details = document.getElementById(`user-details-${userId}`);
   const icon = document.getElementById(`toggle-icon-${userId}`);
+  
+  console.log('🔍 Elemento details:', details);
+  console.log('🔍 Elemento icon:', icon);
+  
+  if (!details) {
+    console.error('❌ No se encontró el elemento user-details-' + userId);
+    return;
+  }
+  
+  if (!icon) {
+    console.error('❌ No se encontró el elemento toggle-icon-' + userId);
+    return;
+  }
   
   if (details.style.display === 'none') {
     details.style.display = 'block';
