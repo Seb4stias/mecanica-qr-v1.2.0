@@ -14,9 +14,11 @@ router.post('/validate', requireRole('scanner', 'admin_level1', 'admin_level2'),
   try {
     const { qrData } = req.body;
     
-    console.log('🔍 SCANNER DEBUG - QR Data recibido:', qrData);
+    console.log('🔍 === SCANNER DEBUG START ===');
+    console.log('🔍 QR Data recibido:', qrData);
 
     if (!qrData) {
+      console.log('❌ No hay qrData');
       return res.status(400).json({
         success: false,
         message: 'Datos del QR requeridos'
@@ -26,40 +28,35 @@ router.post('/validate', requireRole('scanner', 'admin_level1', 'admin_level2'),
     let parsedData;
     try {
       parsedData = JSON.parse(qrData);
-      console.log('🔍 SCANNER DEBUG - Datos parseados:', parsedData);
+      console.log('🔍 Datos parseados:', parsedData);
     } catch (e) {
-      console.log('❌ SCANNER DEBUG - Error parseando QR:', e.message);
+      console.log('❌ Error parseando QR:', e.message);
       return res.status(400).json({
         success: false,
         message: 'Formato de QR inválido'
       });
     }
 
-    console.log('🔍 SCANNER DEBUG - Buscando QR con requestId:', parsedData.requestId);
-    console.log('🔍 SCANNER DEBUG - Tipo de requestId:', typeof parsedData.requestId);
+    console.log('🔍 Buscando requestId:', parsedData.requestId);
     
-    // Buscar el QR directamente por request_id como string
+    // Buscar TODOS los QRs para debug
+    const allQRs = await QRCodeModel.find({}).limit(5);
+    console.log('🔍 Total QRs en BD:', allQRs.length);
+    allQRs.forEach((qr, i) => {
+      console.log(`🔍 QR ${i+1}: request_id=${qr.request_id}, active=${qr.is_active}`);
+    });
+    
+    // Buscar el QR específico
     const qrCode = await QRCodeModel.findOne({
       request_id: parsedData.requestId,
       is_active: true
     }).populate('request_id');
     
-    console.log('🔍 SCANNER DEBUG - QR encontrado:', qrCode ? 'SÍ' : 'NO');
+    console.log('🔍 QR encontrado:', qrCode ? 'SÍ' : 'NO');
     
-    if (qrCode) {
-      console.log('🔍 SCANNER DEBUG - QR ID:', qrCode._id);
-      console.log('🔍 SCANNER DEBUG - Request ID en BD:', qrCode.request_id._id);
-      console.log('🔍 SCANNER DEBUG - Is Active:', qrCode.is_active);
-    }
-
     if (!qrCode) {
-      // Buscar todos los QRs para debug
-      const allQRs = await QRCodeModel.find({}).limit(5);
-      console.log('🔍 SCANNER DEBUG - Total QRs en BD:', allQRs.length);
-      allQRs.forEach((qr, index) => {
-        console.log(`🔍 SCANNER DEBUG - QR ${index + 1}: ID=${qr.request_id}, Active=${qr.is_active}`);
-      });
-      
+      console.log('❌ QR no encontrado');
+      console.log('🔍 === SCANNER DEBUG END ===');
       return res.json({
         success: false,
         valid: false,
@@ -68,40 +65,28 @@ router.post('/validate', requireRole('scanner', 'admin_level1', 'admin_level2'),
     }
 
     const request = qrCode.request_id;
-
-    // Verificar si está expirado
-    if (qrCode.expires_at && new Date(qrCode.expires_at) < new Date()) {
-      return res.json({
-        success: true,
-        valid: false,
-        message: 'Código QR expirado',
-        data: {
-          studentName: request.student_name,
-          studentRut: request.student_rut,
-          vehiclePlate: request.vehicle_plate,
-          expiresAt: qrCode.expires_at
-        }
-      });
-    }
+    console.log('🔍 Request status:', request.status);
 
     // Verificar que la solicitud esté aprobada
     if (request.status !== 'approved') {
+      console.log('❌ Request no aprobada');
+      console.log('🔍 === SCANNER DEBUG END ===');
       return res.json({
         success: true,
         valid: false,
         message: 'Solicitud no está aprobada',
         data: {
           studentName: request.student_name,
-          studentRut: request.student_rut,
           vehiclePlate: request.vehicle_plate,
           status: request.status
         }
       });
     }
 
-    // QR válido
-    console.log('✅ QR válido - Foto del vehículo:', request.vehicle_photo_path);
+    console.log('✅ QR VÁLIDO');
+    console.log('🔍 === SCANNER DEBUG END ===');
     
+    // QR válido
     res.json({
       success: true,
       valid: true,
@@ -118,16 +103,8 @@ router.post('/validate', requireRole('scanner', 'admin_level1', 'admin_level2'),
       }
     });
 
-    // Registrar el escaneo en audit_logs
-    const auditLog = new AuditLog({
-      action_type: 'qr_scan',
-      action_description: `QR escaneado para vehículo ${request.vehicle_plate}`,
-      performed_by: req.session.userId,
-      metadata: { valid: true, plate: request.vehicle_plate }
-    });
-    await auditLog.save();
-
   } catch (error) {
+    console.log('❌ ERROR EN SCANNER:', error);
     next(error);
   }
 });

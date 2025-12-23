@@ -49,17 +49,49 @@ router.get('/fix-qrs', async (req, res) => {
     const { fixQRs } = require('../scripts/fixQRs');
     
     // Ejecutar el script de arreglo
-    await fixQRs();
+    const result = await fixQRs();
     
     res.json({
       success: true,
-      message: 'QRs arreglados exitosamente'
+      message: 'QRs arreglados exitosamente',
+      result
     });
   } catch (error) {
     console.error('Error arreglando QRs:', error);
     res.status(500).json({
       success: false,
       message: 'Error arreglando QRs: ' + error.message
+    });
+  }
+});
+
+// Endpoint para ver QRs en la BD
+router.get('/check-qrs', async (req, res) => {
+  try {
+    const QRCodeModel = require('../models/QRCode');
+    const Request = require('../models/Request');
+    
+    const qrs = await QRCodeModel.find({}).limit(10);
+    const requests = await Request.find({ status: 'approved' }).limit(5);
+    
+    const qrDetails = qrs.map(qr => ({
+      id: qr._id,
+      request_id: qr.request_id,
+      is_active: qr.is_active,
+      qr_content: qr.qr_code ? qr.qr_code.substring(0, 100) + '...' : 'null'
+    }));
+    
+    res.json({
+      success: true,
+      qrs_count: qrs.length,
+      approved_requests: requests.length,
+      qr_details: qrDetails,
+      sample_request_ids: requests.map(r => r._id.toString())
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
     });
   }
 });
