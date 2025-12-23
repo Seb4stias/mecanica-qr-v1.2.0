@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const mongoose = require('mongoose');
 const { requireRole } = require('../middleware/auth');
 const Request = require('../models/Request');
 const QRCodeModel = require('../models/QRCode');
@@ -35,12 +36,31 @@ router.post('/validate', requireRole('scanner', 'admin_level1', 'admin_level2'),
     }
 
     console.log('🔍 SCANNER DEBUG - Buscando QR con requestId:', parsedData.requestId);
+    console.log('🔍 SCANNER DEBUG - Tipo de requestId:', typeof parsedData.requestId);
     
-    // Buscar el QR en la base de datos
-    const qrCode = await QRCodeModel.findOne({
+    // Intentar buscar tanto como string como ObjectId
+    let qrCode = await QRCodeModel.findOne({
       request_id: parsedData.requestId,
       is_active: true
     }).populate('request_id');
+    
+    // Si no encuentra, intentar convertir a ObjectId
+    if (!qrCode && mongoose.Types.ObjectId.isValid(parsedData.requestId)) {
+      console.log('🔍 SCANNER DEBUG - Intentando con ObjectId...');
+      qrCode = await QRCodeModel.findOne({
+        request_id: new mongoose.Types.ObjectId(parsedData.requestId),
+        is_active: true
+      }).populate('request_id');
+    }
+    
+    // Si aún no encuentra, intentar buscar por el contenido del QR
+    if (!qrCode) {
+      console.log('🔍 SCANNER DEBUG - Intentando buscar por contenido QR...');
+      qrCode = await QRCodeModel.findOne({
+        qr_code: qrData,
+        is_active: true
+      }).populate('request_id');
+    }
     
     console.log('🔍 SCANNER DEBUG - QR encontrado:', qrCode ? 'SÍ' : 'NO');
     

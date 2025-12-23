@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const mongoose = require('mongoose');
 const { requireRole } = require('../middleware/auth');
 const Request = require('../models/Request');
 const QRCodeModel = require('../models/QRCode');
@@ -424,7 +425,7 @@ async function generateQRCode(requestId, requestData) {
   const relativePdfPath = `public/qr-codes/permit-${requestId}.pdf`;
   
   const qrCode = new QRCodeModel({
-    request_id: requestId,
+    request_id: new mongoose.Types.ObjectId(requestId),
     qr_code: qrData,
     qr_image_path: relativeQrPath,
     pdf_path: relativePdfPath,
