@@ -39,12 +39,35 @@ router.post('/validate', async (req, res, next) => {
     }
 
     console.log('🔍 Buscando requestId:', parsedData.requestId);
+    console.log('🔍 Tipo de requestId:', typeof parsedData.requestId);
     
-    // Buscar el QR directamente
+    // Primero buscar TODOS los QRs para comparar
+    const allQRs = await QRCodeModel.find({});
+    console.log('🔍 TODOS los QRs en BD:');
+    allQRs.forEach((qr, i) => {
+      console.log(`   QR ${i+1}: request_id="${qr.request_id}" (tipo: ${typeof qr.request_id}), active=${qr.is_active}`);
+      console.log(`   ¿Coincide exacto? ${qr.request_id === parsedData.requestId ? 'SÍ' : 'NO'}`);
+      console.log(`   ¿Coincide toString? ${qr.request_id.toString() === parsedData.requestId ? 'SÍ' : 'NO'}`);
+    });
+    
+    // Buscar el QR específico
     const qrCode = await QRCodeModel.findOne({
       request_id: parsedData.requestId,
       is_active: true
     }).populate('request_id');
+    
+    console.log('🔍 Resultado búsqueda:', qrCode ? 'ENCONTRADO' : 'NO ENCONTRADO');
+    
+    if (!qrCode) {
+      // Intentar sin el filtro is_active
+      const qrWithoutActive = await QRCodeModel.findOne({
+        request_id: parsedData.requestId
+      });
+      console.log('🔍 Sin filtro is_active:', qrWithoutActive ? 'ENCONTRADO' : 'NO ENCONTRADO');
+      if (qrWithoutActive) {
+        console.log('🔍 is_active del QR encontrado:', qrWithoutActive.is_active);
+      }
+    }
     
     console.log('🔍 QR encontrado:', qrCode ? 'SÍ' : 'NO');
     
