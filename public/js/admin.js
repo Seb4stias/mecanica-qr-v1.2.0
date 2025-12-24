@@ -1457,6 +1457,7 @@ async function loadAudit() {
         <button class="btn btn-primary" onclick="applyAuditFilters()">🔍 Aplicar Filtros</button>
         <button class="btn btn-secondary" onclick="clearAuditFilters()">🗑️ Limpiar</button>
         <button class="btn btn-success" onclick="exportAuditLogs()" style="background: #28a745;">📊 Exportar CSV</button>
+        <button class="btn btn-warning" onclick="loadAllAuditLogs()" style="background: #ffc107; color: #000;">🔧 Debug: Ver Todos</button>
       </div>
     </div>
     <div id="auditLogs">
@@ -1465,6 +1466,51 @@ async function loadAudit() {
   `;
   
   await fetchAuditLogs();
+}
+
+async function loadAllAuditLogs() {
+  const container = document.getElementById('auditLogs');
+  container.innerHTML = '<p style="text-align: center; color: #666;">⏳ Cargando TODOS los registros...</p>';
+  
+  try {
+    const response = await fetch('/api/audit');
+    const data = await response.json();
+    
+    console.log('🔧 DEBUG - Todos los registros:', data);
+    
+    if (data.logs && data.logs.length > 0) {
+      container.innerHTML = `
+        <div style="margin-bottom: 1rem; padding: 0.75rem; background: #fff3cd; border-radius: 5px; color: #856404;">
+          🔧 DEBUG: Se encontraron <strong>${data.logs.length}</strong> registro(s) en total
+        </div>
+        <div class="audit-logs-list">
+          ${data.logs.slice(0, 10).map(log => `
+            <div class="audit-log-card" style="background: white; border: 1px solid #ddd; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+              <div class="audit-log-header" style="display: flex; justify-content: between; align-items: center; margin-bottom: 0.5rem;">
+                <span class="audit-action-badge ${getActionTypeClass(log.action_type)}" style="padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.875rem; font-weight: bold;">${getActionTypeText(log.action_type)}</span>
+                <span class="audit-date" style="color: #666; font-size: 0.875rem;">${new Date(log.created_at).toLocaleString('es-CL')}</span>
+              </div>
+              <div class="audit-log-body">
+                <p class="audit-description" style="margin: 0.5rem 0; font-weight: 500;">${log.description}</p>
+                <div class="audit-details" style="font-size: 0.875rem; color: #555;">
+                  <div style="margin: 0.25rem 0;"><strong>👤 Realizado por:</strong> ${log.performed_by_name || 'Sistema'} ${log.performed_by_rut ? `(RUT: ${log.performed_by_rut})` : ''}</div>
+                  ${log.target_user_name ? `<div style="margin: 0.25rem 0;"><strong>🎯 Usuario afectado:</strong> ${log.target_user_name} ${log.target_user_rut ? `(RUT: ${log.target_user_rut})` : ''}</div>` : ''}
+                  ${log.target_request_plate ? `<div style="margin: 0.25rem 0;"><strong>🚗 Vehículo:</strong> ${log.target_request_plate}</div>` : ''}
+                  ${log.ip_address ? `<div style="margin: 0.25rem 0;"><strong>🌐 IP:</strong> ${log.ip_address}</div>` : ''}
+                </div>
+              </div>
+            </div>
+          `).join('')}
+          ${data.logs.length > 10 ? `<p style="text-align: center; color: #666;">... y ${data.logs.length - 10} registros más</p>` : ''}
+        </div>
+      `;
+    } else {
+      container.innerHTML = '<div style="text-align: center; padding: 2rem; color: #dc3545;">❌ No hay registros de auditoría en la base de datos</div>';
+    }
+  } catch (error) {
+    console.error('Error cargando todos los registros:', error);
+    container.innerHTML = '<div style="text-align: center; padding: 2rem; color: #dc3545;">❌ Error al cargar registros</div>';
+  }
 }
 
 async function fetchAuditLogs(filters = {}) {

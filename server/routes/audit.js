@@ -55,6 +55,18 @@ router.get('/', requireRole('admin_level2'), async (req, res, next) => {
 
     console.log('📊 Filtros MongoDB:', filters);
 
+    // Debug: Contar todos los registros
+    const totalCount = await AuditLog.countDocuments();
+    console.log(`📊 Total de registros en la base de datos: ${totalCount}`);
+
+    // Debug: Obtener algunos registros recientes para ver las fechas
+    const recentLogs = await AuditLog.find().sort({ created_at: -1 }).limit(5);
+    console.log('📊 Registros recientes:', recentLogs.map(log => ({
+      action: log.action_type,
+      date: log.created_at,
+      description: log.description
+    })));
+
     const logs = await AuditLog.find(filters)
       .populate('performed_by', 'name email')
       .populate('target_user_id', 'name email')
@@ -62,7 +74,7 @@ router.get('/', requireRole('admin_level2'), async (req, res, next) => {
       .sort({ created_at: -1 })
       .limit(1000);
 
-    console.log(`📊 Registros encontrados: ${logs.length}`);
+    console.log(`📊 Registros encontrados con filtros: ${logs.length}`);
 
     res.json({
       success: true,
