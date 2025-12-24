@@ -1531,28 +1531,6 @@ async function fetchAuditLogs(filters = {}) {
     document.getElementById('auditLogs').innerHTML = '<div style="text-align: center; padding: 2rem; color: #dc3545;">❌ Error al cargar los registros de auditoría</div>';
   }
 }
-        message = '📭 No hay registros de auditoría en el sistema';
-      }
-      
-      container.innerHTML = `
-        <div style="text-align: center; padding: 3rem; background: #f8f9fa; border-radius: 8px; color: #666;">
-          <div style="font-size: 3rem; margin-bottom: 1rem;">📭</div>
-          <p style="font-size: 1.1rem; margin: 0;">${message}</p>
-          ${filterDescriptions.length > 0 ? '<p style="margin-top: 1rem; font-size: 0.9rem;">Intenta ajustar los filtros o limpiarlos para ver más resultados</p>' : ''}
-        </div>
-      `;
-    }
-  } catch (error) {
-    console.error('Error cargando auditoría:', error);
-    document.getElementById('auditLogs').innerHTML = `
-      <div style="text-align: center; padding: 3rem; background: #fff3cd; border-radius: 8px; color: #856404;">
-        <div style="font-size: 3rem; margin-bottom: 1rem;">⚠️</div>
-        <p style="font-size: 1.1rem; margin: 0;">Error al cargar registros de auditoría</p>
-        <p style="margin-top: 0.5rem; font-size: 0.9rem;">${error.message}</p>
-      </div>
-    `;
-  }
-}
 
 function applyAuditFilters() {
   const filters = {};
