@@ -194,6 +194,7 @@ async function loadMyRequests() {
             <div style="margin-top: 10px;">
               <button class="btn btn-success" onclick="downloadQR('${req._id}')">📥 Ver QR</button>
               <button class="btn btn-success" onclick="downloadForm('${req._id}')">📄 Descargar Formulario</button>
+              <button class="btn btn-warning" onclick="regenerateStudentQR('${req._id}')" style="background: #ffc107; color: #000;">🔄 Regenerar QR</button>
             </div>
           ` : ''}
         </div>
@@ -316,7 +317,7 @@ async function downloadQR(requestId) {
         <p style="font-size: 0.9rem; color: #666;">Presenta este código QR en la entrada del área de mecánica</p>
       </div>
       <div style="text-align: center; margin-top: 20px;">
-        <a href="/api/requests/${requestId}/qr" download="QR-${req.vehicle_plate}.png" class="btn btn-primary">📥 Descargar QR</a>
+        <a href="/api/debug/qr-image/${requestId}" download="QR-${req.vehicle_plate}.png" class="btn btn-primary">📥 Descargar QR</a>
         <a href="/api/requests/${requestId}/pdf" download="Permiso-${req.vehicle_plate}.pdf" class="btn btn-success">📄 Descargar PDF Completo</a>
         <button onclick="closeQRModal()" class="btn btn-secondary">Cerrar</button>
       </div>
@@ -331,6 +332,33 @@ async function downloadQR(requestId) {
 
 function downloadForm(requestId) {
   window.open(`/api/requests/${requestId}/pdf`, '_blank');
+}
+
+async function regenerateStudentQR(requestId) {
+  if (!confirm('¿Estás seguro de que deseas regenerar el código QR? El QR anterior dejará de funcionar.')) {
+    return;
+  }
+  
+  try {
+    const response = await fetch(`/api/admin/requests/${requestId}/regenerate-qr`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      alert('✅ Código QR regenerado exitosamente');
+      loadStudentRequests(); // Recargar la lista
+    } else {
+      alert('❌ Error: ' + data.message);
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Error al regenerar el código QR');
+  }
 }
 
 function closeQRModal() {

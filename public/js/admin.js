@@ -835,7 +835,7 @@ async function downloadQR(requestId) {
         <img src="/api/requests/${requestId}/qr" alt="Código QR" style="max-width: 400px; width: 100%; border: 2px solid #ED1C24; border-radius: 10px; padding: 10px; background: white;">
       </div>
       <div style="text-align: center; margin-top: 20px;">
-        <a href="/api/requests/${requestId}/qr" download="QR-${req.vehicle_plate}.png" class="btn btn-primary">📥 Descargar QR</a>
+        <a href="/api/debug/qr-image/${requestId}" download="QR-${req.vehicle_plate}.png" class="btn btn-primary">📥 Descargar QR</a>
         <a href="/api/requests/${requestId}/pdf" download="Permiso-${req.vehicle_plate}.pdf" class="btn btn-success">📄 Descargar PDF</a>
         <button onclick="closeQRModal()" class="btn btn-secondary">Cerrar</button>
       </div>

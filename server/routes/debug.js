@@ -31,15 +31,35 @@ router.get('/check-file/:filename', (req, res) => {
   }
 });
 
-// Endpoint para servir admin.js directamente
-router.get('/admin-js', (req, res) => {
-  const filePath = path.join(__dirname, '../../public/js/admin.js');
-  
-  if (fs.existsSync(filePath)) {
-    res.setHeader('Content-Type', 'application/javascript');
-    res.sendFile(filePath);
-  } else {
-    res.status(404).send('admin.js not found');
+// Endpoint para servir QR dinámicamente
+router.get('/qr-image/:requestId', async (req, res) => {
+  try {
+    const { requestId } = req.params;
+    
+    // Buscar el QR en la base de datos
+    const qrCode = await QRCodeModel.findOne({
+      request_id: requestId
+    });
+    
+    if (!qrCode) {
+      return res.status(404).send('QR no encontrado');
+    }
+    
+    // Generar la imagen QR dinámicamente
+    const QRCodeLib = require('qrcode');
+    const qrBuffer = await QRCodeLib.toBuffer(qrCode.qr_code, {
+      type: 'png',
+      width: 300,
+      margin: 2
+    });
+    
+    res.setHeader('Content-Type', 'image/png');
+    res.setHeader('Cache-Control', 'public, max-age=3600'); // Cache por 1 hora
+    res.send(qrBuffer);
+    
+  } catch (error) {
+    console.error('Error generando QR dinámico:', error);
+    res.status(500).send('Error generando QR');
   }
 });
 
