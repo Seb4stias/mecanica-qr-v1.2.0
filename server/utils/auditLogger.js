@@ -14,22 +14,33 @@ const Request = require('../models/Request');
  */
 async function logAudit(actionType, description, performedBy, targetUserId = null, targetRequestId = null, additionalData = null, req = null) {
   try {
+    console.log(`🔍 AUDIT DEBUG: Intentando registrar auditoría:`, {
+      actionType,
+      description,
+      performedBy,
+      targetUserId,
+      targetRequestId
+    });
+
     // Obtener información del usuario que realizó la acción
     const performedByUser = await User.findById(performedBy, 'name rut email');
+    console.log(`🔍 AUDIT DEBUG: Usuario que realizó la acción:`, performedByUser);
     
     // Obtener información del usuario objetivo si existe
     let targetUserInfo = null;
     if (targetUserId) {
       targetUserInfo = await User.findById(targetUserId, 'name rut email');
+      console.log(`🔍 AUDIT DEBUG: Usuario objetivo:`, targetUserInfo);
     }
     
     // Obtener información de la solicitud si existe
     let targetRequestInfo = null;
     if (targetRequestId) {
       targetRequestInfo = await Request.findById(targetRequestId, 'vehicle_plate student_name student_rut');
+      console.log(`🔍 AUDIT DEBUG: Solicitud objetivo:`, targetRequestInfo);
     }
 
-    const auditLog = new AuditLog({
+    const auditLogData = {
       action_type: actionType,
       description: description,
       performed_by: performedBy,
@@ -43,12 +54,18 @@ async function logAudit(actionType, description, performedBy, targetUserId = nul
       ip_address: req ? (req.ip || req.connection?.remoteAddress || req.headers['x-forwarded-for']) : null,
       user_agent: req ? req.headers['user-agent'] : null,
       additional_data: additionalData
-    });
+    };
 
-    await auditLog.save();
+    console.log(`🔍 AUDIT DEBUG: Datos del log a guardar:`, auditLogData);
+
+    const auditLog = new AuditLog(auditLogData);
+    const savedLog = await auditLog.save();
+    
+    console.log(`✅ AUDIT DEBUG: Auditoría guardada exitosamente:`, savedLog._id);
     console.log(`📝 Auditoría registrada: ${actionType} por ${performedByUser?.name}`);
   } catch (error) {
-    console.error('❌ Error registrando auditoría:', error);
+    console.error('❌ AUDIT DEBUG: Error registrando auditoría:', error);
+    console.error('❌ AUDIT DEBUG: Stack trace:', error.stack);
   }
 }
 

@@ -45,6 +45,9 @@ router.post('/login', async (req, res, next) => {
 
     console.log('✅ Sesión creada para:', user.name, '- ID:', user.id, '- Rol:', user.role);
 
+    // Registrar en auditoría
+    await logAudit('user_login', `Usuario ${user.name} inició sesión`, user._id, user._id, null, { role: user.role }, req);
+
     res.json({
       success: true,
       message: 'Inicio de sesión exitoso',
