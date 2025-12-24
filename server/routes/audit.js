@@ -43,13 +43,15 @@ router.get('/', requireRole('admin_level2'), async (req, res, next) => {
       filters.created_at = {};
       
       if (startDate) {
-        const startDateTime = startTime ? `${startDate}T${startTime}` : `${startDate}T00:00:00`;
+        const startDateTime = startTime ? `${startDate}T${startTime}:00.000Z` : `${startDate}T00:00:00.000Z`;
         filters.created_at.$gte = new Date(startDateTime);
+        console.log('📊 Fecha inicio parseada:', filters.created_at.$gte);
       }
       
       if (endDate) {
-        const endDateTime = endTime ? `${endDate}T${endTime}` : `${endDate}T23:59:59`;
+        const endDateTime = endTime ? `${endDate}T${endTime}:59.999Z` : `${endDate}T23:59:59.999Z`;
         filters.created_at.$lte = new Date(endDateTime);
+        console.log('📊 Fecha fin parseada:', filters.created_at.$lte);
       }
     }
 

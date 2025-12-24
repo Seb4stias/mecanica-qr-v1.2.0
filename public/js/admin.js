@@ -1458,6 +1458,7 @@ async function loadAudit() {
         <button class="btn btn-secondary" onclick="clearAuditFilters()">🗑️ Limpiar</button>
         <button class="btn btn-success" onclick="exportAuditLogs()" style="background: #28a745;">📊 Exportar CSV</button>
         <button class="btn btn-warning" onclick="loadAllAuditLogs()" style="background: #ffc107; color: #000;">🔧 Debug: Ver Todos</button>
+        <button class="btn btn-info" onclick="loadTodayAuditLogs()" style="background: #17a2b8;">📅 Ver Hoy</button>
       </div>
     </div>
     <div id="auditLogs">
@@ -1754,4 +1755,15 @@ async function exportAuditLogs() {
     console.error('Error exportando:', error);
     alert('❌ Error al exportar los registros');
   }
+}
+a
+sync function loadTodayAuditLogs() {
+  const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+  const filters = {
+    startDate: today,
+    endDate: today
+  };
+  
+  console.log('📅 Cargando registros de hoy:', today);
+  await fetchAuditLogs(filters);
 }
