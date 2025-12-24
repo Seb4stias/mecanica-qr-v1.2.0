@@ -252,10 +252,18 @@ async function loadPendingRequests() {
                 <p><strong>Color:</strong> ${req.vehicle_color}</p>
                 <p><strong>Estado:</strong> ${getStatusBadge(req)}</p>
                 ${req.level1_approved === 1 ? `
-                  <p style="color: green;"><strong>✅ Aprobado Nivel 1:</strong> ${req.level1_admin_name || 'Admin'} - ${req.level1_date ? new Date(req.level1_date).toLocaleString() : 'N/A'}</p>
+                  <p style="color: green;"><strong>✅ Aprobado Nivel 1:</strong> ${
+                    req.level1_approved_by?.name || 
+                    req.level1_admin_name || 
+                    (req.level1_admin_id ? `Admin ID ${req.level1_admin_id}` : 'Admin')
+                  } - ${req.level1_approved_at ? new Date(req.level1_approved_at).toLocaleString() : 'N/A'}</p>
                 ` : ''}
                 ${req.level2_approved === 1 ? `
-                  <p style="color: green;"><strong>✅ Aprobado Nivel 2:</strong> ${req.level2_admin_name || 'Admin'} - ${req.level2_date ? new Date(req.level2_date).toLocaleString() : 'N/A'}</p>
+                  <p style="color: green;"><strong>✅ Aprobado Nivel 2:</strong> ${
+                    req.level2_approved_by?.name || 
+                    req.level2_admin_name || 
+                    (req.level2_admin_id ? `Admin ID ${req.level2_admin_id}` : 'Admin')
+                  } - ${req.level2_approved_at ? new Date(req.level2_approved_at).toLocaleString() : 'N/A'}</p>
                 ` : ''}
               </div>
             </div>
@@ -332,8 +340,16 @@ async function loadApprovedRequests() {
               <p><strong>Patente:</strong> ${req.vehicle_plate}</p>
               <p><strong>Modelo:</strong> ${req.vehicle_model}</p>
               <p><strong>Color:</strong> ${req.vehicle_color}</p>
-              <p style="color: green;"><strong>✅ Aprobado Nivel 1:</strong> ${req.level1_admin_name || 'Admin'} - ${req.level1_date ? new Date(req.level1_date).toLocaleString() : 'N/A'}</p>
-              <p style="color: green;"><strong>✅ Aprobado Nivel 2:</strong> ${req.level2_admin_name || 'Admin'} - ${req.level2_date ? new Date(req.level2_date).toLocaleString() : 'N/A'}</p>
+              <p style="color: green;"><strong>✅ Aprobado Nivel 1:</strong> ${
+                req.level1_approved_by?.name || 
+                req.level1_admin_name || 
+                (req.level1_admin_id ? `Admin ID ${req.level1_admin_id}` : 'Admin')
+              } - ${req.level1_approved_at ? new Date(req.level1_approved_at).toLocaleString() : 'N/A'}</p>
+              <p style="color: green;"><strong>✅ Aprobado Nivel 2:</strong> ${
+                req.level2_approved_by?.name || 
+                req.level2_admin_name || 
+                (req.level2_admin_id ? `Admin ID ${req.level2_admin_id}` : 'Admin')
+              } - ${req.level2_approved_at ? new Date(req.level2_approved_at).toLocaleString() : 'N/A'}</p>
             </div>
           </div>
           <div style="margin-top: 10px;">
@@ -675,13 +691,21 @@ async function viewRequestDetails(id) {
         <h3>Estado de Aprobación</h3>
         <p><strong>Estado:</strong> ${getStatusBadge(req)}</p>
         ${req.level1_approved ? `
-          <p style="color: green;"><strong>✅ Aprobado Nivel 1 por:</strong> ${req.level1_admin_name || 'Admin ID ' + req.level1_admin_id}</p>
-          <p><strong>Fecha:</strong> ${new Date(req.level1_date).toLocaleString()}</p>
+          <p style="color: green;"><strong>✅ Aprobado Nivel 1 por:</strong> ${
+            req.level1_approved_by?.name || 
+            req.level1_admin_name || 
+            (req.level1_admin_id ? `Admin ID ${req.level1_admin_id}` : 'Admin')
+          }</p>
+          <p><strong>Fecha:</strong> ${new Date(req.level1_approved_at || req.level1_date).toLocaleString()}</p>
           <p><strong>Comentarios:</strong> ${req.level1_comments || 'Sin comentarios'}</p>
         ` : ''}
         ${req.level2_approved ? `
-          <p style="color: green;"><strong>✅ Aprobado Nivel 2 por:</strong> ${req.level2_admin_name || 'Admin ID ' + req.level2_admin_id}</p>
-          <p><strong>Fecha:</strong> ${new Date(req.level2_date).toLocaleString()}</p>
+          <p style="color: green;"><strong>✅ Aprobado Nivel 2 por:</strong> ${
+            req.level2_approved_by?.name || 
+            req.level2_admin_name || 
+            (req.level2_admin_id ? `Admin ID ${req.level2_admin_id}` : 'Admin')
+          }</p>
+          <p><strong>Fecha:</strong> ${new Date(req.level2_approved_at || req.level2_date).toLocaleString()}</p>
           <p><strong>Comentarios:</strong> ${req.level2_comments || 'Sin comentarios'}</p>
         ` : ''}
         ${req.status === 'rejected' ? `
