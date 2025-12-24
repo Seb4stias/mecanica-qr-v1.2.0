@@ -63,7 +63,7 @@ function generateImageHTML(imagePath, altText, label) {
 
 // Verificar sesión al cargar
 document.addEventListener('DOMContentLoaded', async () => {
-  console.log('🔄 Admin: DOMContentLoaded ejecutado');
+  console.log('🚨 ADMIN DEBUG: DOMContentLoaded INICIADO - ESTO DEBERÍA APARECER SIEMPRE');
   console.log('🔄 Admin: Verificando sesión...');
   const sessionValid = await checkSession();
   if (sessionValid) {
@@ -72,13 +72,25 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
   
   // Manejar el formulario de nueva solicitud del admin
-  console.log('🔄 Admin: Configurando formulario de admin...');
+  console.log('🚨 ADMIN DEBUG: Buscando formulario adminRequestForm...');
   const adminForm = document.getElementById('adminRequestForm');
+  console.log('🚨 ADMIN DEBUG: Formulario encontrado:', adminForm);
+  
   if (adminForm) {
     console.log('✅ Admin: Formulario adminRequestForm encontrado, agregando event listener');
-    adminForm.addEventListener('submit', handleAdminRequestSubmit);
+    adminForm.addEventListener('submit', (e) => {
+      console.log('🚨 ADMIN DEBUG: EVENT LISTENER EJECUTADO - EL FORMULARIO SE ENVIÓ');
+      handleAdminRequestSubmit(e);
+    });
+    console.log('✅ Admin: Event listener agregado exitosamente');
   } else {
     console.log('❌ Admin: No se encontró el formulario adminRequestForm');
+    // Buscar todos los formularios para debug
+    const allForms = document.querySelectorAll('form');
+    console.log('🚨 ADMIN DEBUG: Todos los formularios encontrados:', allForms);
+    allForms.forEach((form, index) => {
+      console.log(`🚨 ADMIN DEBUG: Formulario ${index}:`, form.id, form);
+    });
   }
   
   // Preview de fotos
@@ -98,6 +110,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   } else {
     console.log('❌ Admin: No se encontró admin_vehicleIdPhoto input');
   }
+  
+  console.log('🚨 ADMIN DEBUG: DOMContentLoaded TERMINADO');
 });
 
 // Funciones del Drawer (Menú Hamburguesa)
