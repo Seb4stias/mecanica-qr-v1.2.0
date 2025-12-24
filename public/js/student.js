@@ -30,6 +30,7 @@ function normalizeImagePath(path) {
 
 // Verificar sesión al cargar
 document.addEventListener('DOMContentLoaded', async () => {
+  console.log('🔄 Student: DOMContentLoaded ejecutado');
   console.log('🔄 Student: Verificando sesión...');
   const sessionValid = await checkSession();
   if (sessionValid) {
@@ -38,15 +39,30 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
   
   // Manejo de previsualizaciones de fotos
+  console.log('🔄 Student: Configurando event listeners de fotos...');
   const vehiclePhotoInput = document.getElementById('vehiclePhoto');
   const vehicleIdPhotoInput = document.getElementById('vehicleIdPhoto');
   
   if (vehiclePhotoInput) {
+    console.log('✅ Student: Event listener para vehiclePhoto configurado');
     vehiclePhotoInput.addEventListener('change', (e) => previewPhoto(e, 'photoPreview'));
+  } else {
+    console.log('❌ Student: No se encontró vehiclePhoto input');
   }
   
   if (vehicleIdPhotoInput) {
+    console.log('✅ Student: Event listener para vehicleIdPhoto configurado');
     vehicleIdPhotoInput.addEventListener('change', (e) => previewPhoto(e, 'idPhotoPreview'));
+  } else {
+    console.log('❌ Student: No se encontró vehicleIdPhoto input');
+  }
+  
+  // Verificar que el formulario existe
+  const requestForm = document.getElementById('requestForm');
+  if (requestForm) {
+    console.log('✅ Student: Formulario requestForm encontrado');
+  } else {
+    console.log('❌ Student: No se encontró el formulario requestForm');
   }
 });
 
@@ -128,39 +144,54 @@ function showTab(tabName) {
 
 // Enviar solicitud
 document.getElementById('requestForm').addEventListener('submit', async (e) => {
+  console.log('🔍 DEBUG: Formulario enviado, iniciando validaciones...');
   e.preventDefault();
   
   // Validar que ambas fotos estén presentes
   const vehiclePhoto = document.getElementById('vehiclePhoto').files[0];
   const vehicleIdPhoto = document.getElementById('vehicleIdPhoto').files[0];
   
+  console.log('🔍 DEBUG: Fotos encontradas:', {
+    vehiclePhoto: vehiclePhoto ? vehiclePhoto.name : 'NO',
+    vehicleIdPhoto: vehicleIdPhoto ? vehicleIdPhoto.name : 'NO'
+  });
+  
   if (!vehiclePhoto) {
+    console.log('❌ DEBUG: Falta foto del vehículo');
     alert('❌ Debes subir la foto del vehículo');
     document.getElementById('vehiclePhoto').focus();
     return;
   }
   
   if (!vehicleIdPhoto) {
+    console.log('❌ DEBUG: Falta foto del patrón');
     alert('❌ Debes subir la foto del patrón del vehículo');
     document.getElementById('vehicleIdPhoto').focus();
     return;
   }
   
+  console.log('✅ DEBUG: Ambas fotos presentes, creando FormData...');
   const formData = new FormData(e.target);
   const submitBtn = document.querySelector('#requestForm button[type="submit"]');
+  
+  console.log('🔍 DEBUG: FormData creado, datos:', Array.from(formData.entries()));
   
   submitBtn.disabled = true;
   submitBtn.textContent = 'Enviando...';
   
   try {
+    console.log('📡 DEBUG: Enviando request a /api/requests...');
     const response = await fetch('/api/requests', {
       method: 'POST',
       body: formData
     });
     
+    console.log('📥 DEBUG: Respuesta recibida:', response.status);
     const data = await response.json();
+    console.log('📦 DEBUG: Datos de respuesta:', data);
     
     if (data.success) {
+      console.log('✅ DEBUG: Solicitud exitosa');
       showSuccessModal('¡Solicitud enviada exitosamente!');
       e.target.reset();
       // Limpiar previsualizaciones
@@ -173,10 +204,11 @@ document.getElementById('requestForm').addEventListener('submit', async (e) => {
       document.getElementById('student_phone').value = currentUser.phone || '';
       document.getElementById('student_carrera').value = currentUser.carrera || '';
     } else {
+      console.log('❌ DEBUG: Error en respuesta:', data.message);
       showErrorModal(data.message || 'Error al enviar solicitud');
     }
   } catch (error) {
-    console.error('Error:', error);
+    console.error('💥 DEBUG: Error de conexión:', error);
     showErrorModal('Error de conexión. Intente nuevamente.');
   } finally {
     submitBtn.disabled = false;
