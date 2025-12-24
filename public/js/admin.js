@@ -1756,8 +1756,8 @@ async function exportAuditLogs() {
     alert('❌ Error al exportar los registros');
   }
 }
-a
-sync function loadTodayAuditLogs() {
+
+async function loadTodayAuditLogs() {
   const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
   const filters = {
     startDate: today,
