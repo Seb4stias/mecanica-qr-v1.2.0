@@ -12,11 +12,19 @@ const auditLogSchema = new mongoose.Schema({
       'user_deleted',
       'user_registered',
       'user_role_changed',
+      'user_activated',
+      'user_deactivated',
+      'password_changed',
       'request_created',
-      'request_approved',
+      'request_approved_level1',
+      'request_approved_level2', 
       'request_rejected',
+      'request_deleted',
       'qr_generated',
+      'qr_regenerated',
       'qr_scanned',
+      'qr_scan_success',
+      'qr_scan_failed',
       'admin_action'
     ]
   },
@@ -25,14 +33,34 @@ const auditLogSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
+  performed_by_name: {
+    type: String,
+    required: true
+  },
+  performed_by_rut: {
+    type: String,
+    default: null
+  },
   target_user_id: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     default: null
   },
+  target_user_name: {
+    type: String,
+    default: null
+  },
+  target_user_rut: {
+    type: String,
+    default: null
+  },
   target_request_id: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Request',
+    default: null
+  },
+  target_request_plate: {
+    type: String,
     default: null
   },
   description: {

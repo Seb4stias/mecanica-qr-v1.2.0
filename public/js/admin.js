@@ -1345,21 +1345,34 @@ async function loadAudit() {
   
   container.innerHTML = `
     <div class="audit-filters" style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px; margin-bottom: 1.5rem;">
-      <h3 style="margin-top: 0;">Filtros</h3>
+      <h3 style="margin-top: 0;">🔍 Filtros de Auditoría</h3>
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
         <div class="form-group">
           <label>Tipo de Acción</label>
           <select id="auditActionType">
-            <option value="">Todos</option>
-            <option value="user_registered">Usuario Registrado</option>
-            <option value="user_created">Usuario Creado</option>
-            <option value="user_role_changed">Cambio de Rol</option>
-            <option value="user_password_changed">Cambio de Contraseña</option>
-            <option value="user_status_changed">Cambio de Estado</option>
-            <option value="user_deleted">Usuario Eliminado</option>
-            <option value="request_approved_level1">Aprobación Nivel 1</option>
-            <option value="request_approved_level2">Aprobación Nivel 2</option>
-            <option value="request_rejected">Solicitud Rechazada</option>
+            <option value="">Todas las acciones</option>
+            <optgroup label="👤 Gestión de Usuarios">
+              <option value="user_registered">Usuario Registrado</option>
+              <option value="user_created">Usuario Creado</option>
+              <option value="user_role_changed">Cambio de Rol</option>
+              <option value="password_changed">Cambio de Contraseña</option>
+              <option value="user_activated">Usuario Activado</option>
+              <option value="user_deactivated">Usuario Desactivado</option>
+              <option value="user_deleted">Usuario Eliminado</option>
+            </optgroup>
+            <optgroup label="📋 Solicitudes">
+              <option value="request_created">Solicitud Creada</option>
+              <option value="request_approved_level1">Aprobación Nivel 1</option>
+              <option value="request_approved_level2">Aprobación Nivel 2</option>
+              <option value="request_rejected">Solicitud Rechazada</option>
+              <option value="request_deleted">Solicitud Eliminada</option>
+            </optgroup>
+            <optgroup label="🔲 Códigos QR">
+              <option value="qr_generated">QR Generado</option>
+              <option value="qr_regenerated">QR Regenerado</option>
+              <option value="qr_scan_success">Escaneo QR Exitoso</option>
+              <option value="qr_scan_failed">Escaneo QR Fallido</option>
+            </optgroup>
           </select>
         </div>
         <div class="form-group">
@@ -1380,8 +1393,9 @@ async function loadAudit() {
         </div>
       </div>
       <div style="margin-top: 1rem;">
-        <button class="btn btn-primary" onclick="applyAuditFilters()">Aplicar Filtros</button>
-        <button class="btn btn-secondary" onclick="clearAuditFilters()">Limpiar</button>
+        <button class="btn btn-primary" onclick="applyAuditFilters()">🔍 Aplicar Filtros</button>
+        <button class="btn btn-secondary" onclick="clearAuditFilters()">🗑️ Limpiar</button>
+        <button class="btn btn-success" onclick="exportAuditLogs()" style="background: #28a745;">📊 Exportar CSV</button>
       </div>
     </div>
     <div id="auditLogs">
@@ -1410,18 +1424,19 @@ async function fetchAuditLogs(filters = {}) {
         </div>
         <div class="audit-logs-list">
           ${data.logs.map(log => `
-            <div class="audit-log-card">
-              <div class="audit-log-header">
-                <span class="audit-action-badge ${getActionTypeClass(log.action_type)}">${getActionTypeText(log.action_type)}</span>
-                <span class="audit-date">${new Date(log.created_at).toLocaleString('es-CL')}</span>
+            <div class="audit-log-card" style="background: white; border: 1px solid #ddd; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+              <div class="audit-log-header" style="display: flex; justify-content: between; align-items: center; margin-bottom: 0.5rem;">
+                <span class="audit-action-badge ${getActionTypeClass(log.action_type)}" style="padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.875rem; font-weight: bold;">${getActionTypeText(log.action_type)}</span>
+                <span class="audit-date" style="color: #666; font-size: 0.875rem;">${new Date(log.created_at).toLocaleString('es-CL')}</span>
               </div>
               <div class="audit-log-body">
-                <p class="audit-description">${log.action_description}</p>
-                <div class="audit-details">
-                  <div><strong>Realizado por:</strong> ${log.performed_by_name || 'Sistema'} (${log.performed_by_email || 'N/A'})</div>
-                  ${log.target_user_name ? `<div><strong>Usuario afectado:</strong> ${log.target_user_name} (${log.target_user_email})</div>` : ''}
-                  ${log.request_student_name ? `<div><strong>Solicitud de:</strong> ${log.request_student_name}</div>` : ''}
-                  ${log.metadata ? `<div class="audit-metadata"><strong>Detalles:</strong> <pre>${JSON.stringify(JSON.parse(log.metadata), null, 2)}</pre></div>` : ''}
+                <p class="audit-description" style="margin: 0.5rem 0; font-weight: 500;">${log.description}</p>
+                <div class="audit-details" style="font-size: 0.875rem; color: #555;">
+                  <div style="margin: 0.25rem 0;"><strong>👤 Realizado por:</strong> ${log.performed_by_name || 'Sistema'} ${log.performed_by_rut ? `(RUT: ${log.performed_by_rut})` : ''}</div>
+                  ${log.target_user_name ? `<div style="margin: 0.25rem 0;"><strong>🎯 Usuario afectado:</strong> ${log.target_user_name} ${log.target_user_rut ? `(RUT: ${log.target_user_rut})` : ''}</div>` : ''}
+                  ${log.target_request_plate ? `<div style="margin: 0.25rem 0;"><strong>🚗 Vehículo:</strong> ${log.target_request_plate}</div>` : ''}
+                  ${log.ip_address ? `<div style="margin: 0.25rem 0;"><strong>🌐 IP:</strong> ${log.ip_address}</div>` : ''}
+                  ${log.additional_data ? `<div style="margin: 0.5rem 0;"><strong>📋 Detalles adicionales:</strong><br><pre style="background: #f8f9fa; padding: 0.5rem; border-radius: 4px; font-size: 0.75rem; overflow-x: auto;">${JSON.stringify(log.additional_data, null, 2)}</pre></div>` : ''}
                 </div>
               </div>
             </div>
@@ -1429,7 +1444,6 @@ async function fetchAuditLogs(filters = {}) {
         </div>
       `;
     } else {
-      // Crear mensaje descriptivo basado en los filtros aplicados
       let message = '📭 No se encontraron registros';
       const filterDescriptions = [];
       
@@ -1446,8 +1460,16 @@ async function fetchAuditLogs(filters = {}) {
       }
       
       if (filterDescriptions.length > 0) {
-        message += ` con los filtros: ${filterDescriptions.join(', ')}`;
-      } else {
+        message += ` con los filtros aplicados: ${filterDescriptions.join(', ')}`;
+      }
+      
+      container.innerHTML = `<div style="text-align: center; padding: 2rem; color: #666;">${message}</div>`;
+    }
+  } catch (error) {
+    console.error('Error cargando auditoría:', error);
+    document.getElementById('auditLogs').innerHTML = '<div style="text-align: center; padding: 2rem; color: #dc3545;">❌ Error al cargar los registros de auditoría</div>';
+  }
+}
         message = '📭 No hay registros de auditoría en el sistema';
       }
       
@@ -1527,4 +1549,124 @@ function getActionTypeText(actionType) {
     'request_rejected': '❌ Solicitud Rechazada'
   };
   return texts[actionType] || actionType;
+}
+
+function getActionTypeText(actionType) {
+  const actionTexts = {
+    'user_registered': '👤 Usuario Registrado',
+    'user_created': '👤 Usuario Creado',
+    'user_role_changed': '🔄 Cambio de Rol',
+    'password_changed': '🔐 Cambio de Contraseña',
+    'user_activated': '✅ Usuario Activado',
+    'user_deactivated': '❌ Usuario Desactivado',
+    'user_deleted': '🗑️ Usuario Eliminado',
+    'request_created': '📝 Solicitud Creada',
+    'request_approved_level1': '✅ Aprobación Nivel 1',
+    'request_approved_level2': '✅ Aprobación Nivel 2',
+    'request_rejected': '❌ Solicitud Rechazada',
+    'request_deleted': '🗑️ Solicitud Eliminada',
+    'qr_generated': '🔲 QR Generado',
+    'qr_regenerated': '🔄 QR Regenerado',
+    'qr_scan_success': '✅ Escaneo QR Exitoso',
+    'qr_scan_failed': '❌ Escaneo QR Fallido'
+  };
+  return actionTexts[actionType] || actionType;
+}
+
+function getActionTypeClass(actionType) {
+  if (actionType.includes('approved') || actionType.includes('success') || actionType.includes('activated') || actionType.includes('created') || actionType.includes('generated')) {
+    return 'badge-success';
+  } else if (actionType.includes('rejected') || actionType.includes('failed') || actionType.includes('deleted') || actionType.includes('deactivated')) {
+    return 'badge-danger';
+  } else if (actionType.includes('changed') || actionType.includes('regenerated')) {
+    return 'badge-warning';
+  } else {
+    return 'badge-info';
+  }
+}
+
+async function applyAuditFilters() {
+  const filters = {};
+  
+  const actionType = document.getElementById('auditActionType').value;
+  const startDate = document.getElementById('auditStartDate').value;
+  const startTime = document.getElementById('auditStartTime').value;
+  const endDate = document.getElementById('auditEndDate').value;
+  const endTime = document.getElementById('auditEndTime').value;
+  
+  if (actionType) filters.actionType = actionType;
+  if (startDate) filters.startDate = startDate;
+  if (startTime) filters.startTime = startTime;
+  if (endDate) filters.endDate = endDate;
+  if (endTime) filters.endTime = endTime;
+  
+  await fetchAuditLogs(filters);
+}
+
+function clearAuditFilters() {
+  document.getElementById('auditActionType').value = '';
+  document.getElementById('auditStartDate').value = '';
+  document.getElementById('auditStartTime').value = '';
+  document.getElementById('auditEndDate').value = '';
+  document.getElementById('auditEndTime').value = '';
+  fetchAuditLogs();
+}
+
+async function exportAuditLogs() {
+  try {
+    const filters = {};
+    const actionType = document.getElementById('auditActionType').value;
+    const startDate = document.getElementById('auditStartDate').value;
+    const startTime = document.getElementById('auditStartTime').value;
+    const endDate = document.getElementById('auditEndDate').value;
+    const endTime = document.getElementById('auditEndTime').value;
+    
+    if (actionType) filters.actionType = actionType;
+    if (startDate) filters.startDate = startDate;
+    if (startTime) filters.startTime = startTime;
+    if (endDate) filters.endDate = endDate;
+    if (endTime) filters.endTime = endTime;
+    
+    const params = new URLSearchParams(filters);
+    const response = await fetch(`/api/audit?${params}`);
+    const data = await response.json();
+    
+    if (data.logs && data.logs.length > 0) {
+      // Crear CSV
+      const csvHeaders = ['Fecha/Hora', 'Acción', 'Descripción', 'Realizado por', 'RUT', 'Usuario Afectado', 'RUT Afectado', 'Vehículo', 'IP'];
+      const csvRows = data.logs.map(log => [
+        new Date(log.created_at).toLocaleString('es-CL'),
+        getActionTypeText(log.action_type),
+        log.description,
+        log.performed_by_name || 'Sistema',
+        log.performed_by_rut || '',
+        log.target_user_name || '',
+        log.target_user_rut || '',
+        log.target_request_plate || '',
+        log.ip_address || ''
+      ]);
+      
+      const csvContent = [csvHeaders, ...csvRows]
+        .map(row => row.map(field => `"${field}"`).join(','))
+        .join('\n');
+      
+      // Descargar archivo
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `auditoria_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      alert('✅ Archivo CSV exportado exitosamente');
+    } else {
+      alert('❌ No hay registros para exportar');
+    }
+  } catch (error) {
+    console.error('Error exportando:', error);
+    alert('❌ Error al exportar los registros');
+  }
 }

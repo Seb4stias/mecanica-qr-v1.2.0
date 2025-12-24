@@ -77,6 +77,20 @@ router.post('/validate', async (req, res, next) => {
     
     if (!qrCode) {
       console.log('❌ QR no encontrado');
+      
+      // Registrar intento fallido si tenemos información del QR
+      if (parsedData.plate && parsedData.studentName) {
+        const { logQRScan } = require('../utils/auditLogger');
+        await logQRScan(
+          req.session?.userId || 'scanner-anonimo',
+          null,
+          false,
+          parsedData.plate,
+          parsedData.studentName,
+          req
+        );
+      }
+      
       return res.json({
         success: false,
         valid: false,
@@ -97,6 +111,17 @@ router.post('/validate', async (req, res, next) => {
     }
 
     console.log('✅ QR VÁLIDO - ACCESO AUTORIZADO');
+    
+    // Registrar el escaneo exitoso en auditoría
+    const { logQRScan } = require('../utils/auditLogger');
+    await logQRScan(
+      req.session?.userId || 'scanner-anonimo',
+      request._id,
+      true,
+      request.vehicle_plate,
+      request.student_name,
+      req
+    );
     
     res.json({
       success: true,
