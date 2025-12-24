@@ -13,9 +13,12 @@ async function fixQRs() {
       console.log('✓ Conectado a MongoDB');
     }
 
-    // 1. Eliminar todos los QRs existentes (están mal)
-    const deletedCount = await QRCodeModel.deleteMany({});
-    console.log(`🗑️ Eliminados ${deletedCount.deletedCount} QRs viejos`);
+    // 1. Actualizar todos los QRs existentes para que tengan is_active: true
+    const updateResult = await QRCodeModel.updateMany(
+      { is_active: { $in: [null, undefined] } },
+      { $set: { is_active: true } }
+    );
+    console.log(`🔧 Actualizados ${updateResult.modifiedCount} QRs con is_active: true`);
 
     // 2. Buscar todas las solicitudes que deberían tener QR
     // (status 'approved' O que tengan ambos niveles aprobados)

@@ -50,22 +50,26 @@ router.post('/validate', async (req, res, next) => {
       console.log(`   ¿Coincide toString? ${qr.request_id.toString() === parsedData.requestId ? 'SÍ' : 'NO'}`);
     });
     
-    // Buscar el QR específico
+    // Buscar el QR específico - SIN filtro is_active porque está undefined
     const qrCode = await QRCodeModel.findOne({
-      request_id: parsedData.requestId,
-      is_active: true
+      request_id: parsedData.requestId
     }).populate('request_id');
     
-    console.log('🔍 Resultado búsqueda:', qrCode ? 'ENCONTRADO' : 'NO ENCONTRADO');
+    console.log('🔍 QR encontrado (sin filtro active):', qrCode ? 'SÍ' : 'NO');
     
-    if (!qrCode) {
-      // Intentar sin el filtro is_active
-      const qrWithoutActive = await QRCodeModel.findOne({
-        request_id: parsedData.requestId
-      });
-      console.log('🔍 Sin filtro is_active:', qrWithoutActive ? 'ENCONTRADO' : 'NO ENCONTRADO');
-      if (qrWithoutActive) {
-        console.log('🔍 is_active del QR encontrado:', qrWithoutActive.is_active);
+    if (qrCode) {
+      console.log('🔍 is_active del QR:', qrCode.is_active);
+      // Si is_active es undefined, lo consideramos como activo
+      const isActive = qrCode.is_active === undefined || qrCode.is_active === true;
+      console.log('🔍 Considerado activo:', isActive);
+      
+      if (!isActive) {
+        console.log('❌ QR inactivo');
+        return res.json({
+          success: false,
+          valid: false,
+          message: 'Código QR inactivo'
+        });
       }
     }
     
