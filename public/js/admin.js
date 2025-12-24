@@ -63,6 +63,7 @@ function generateImageHTML(imagePath, altText, label) {
 
 // Verificar sesión al cargar
 document.addEventListener('DOMContentLoaded', async () => {
+  console.log('🔄 Admin: DOMContentLoaded ejecutado');
   console.log('🔄 Admin: Verificando sesión...');
   const sessionValid = await checkSession();
   if (sessionValid) {
@@ -71,20 +72,31 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
   
   // Manejar el formulario de nueva solicitud del admin
+  console.log('🔄 Admin: Configurando formulario de admin...');
   const adminForm = document.getElementById('adminRequestForm');
   if (adminForm) {
+    console.log('✅ Admin: Formulario adminRequestForm encontrado, agregando event listener');
     adminForm.addEventListener('submit', handleAdminRequestSubmit);
+  } else {
+    console.log('❌ Admin: No se encontró el formulario adminRequestForm');
   }
   
   // Preview de fotos
+  console.log('🔄 Admin: Configurando event listeners de fotos...');
   const vehiclePhoto = document.getElementById('admin_vehiclePhoto');
   if (vehiclePhoto) {
+    console.log('✅ Admin: Event listener para admin_vehiclePhoto configurado');
     vehiclePhoto.addEventListener('change', (e) => previewAdminPhoto(e, 'admin_photoPreview'));
+  } else {
+    console.log('❌ Admin: No se encontró admin_vehiclePhoto input');
   }
   
   const vehicleIdPhoto = document.getElementById('admin_vehicleIdPhoto');
   if (vehicleIdPhoto) {
+    console.log('✅ Admin: Event listener para admin_vehicleIdPhoto configurado');
     vehicleIdPhoto.addEventListener('change', (e) => previewAdminPhoto(e, 'admin_idPhotoPreview'));
+  } else {
+    console.log('❌ Admin: No se encontró admin_vehicleIdPhoto input');
   }
 });
 
@@ -1290,6 +1302,7 @@ function previewAdminPhoto(event, previewId) {
 }
 
 async function handleAdminRequestSubmit(e) {
+  console.log('🔍 ADMIN DEBUG: Formulario de admin enviado, iniciando validaciones...');
   e.preventDefault();
   
   // Limpiar mensajes de error previos
@@ -1299,29 +1312,43 @@ async function handleAdminRequestSubmit(e) {
   const vehiclePhoto = document.getElementById('admin_vehiclePhoto').files[0];
   const vehicleIdPhoto = document.getElementById('admin_vehicleIdPhoto').files[0];
   
+  console.log('🔍 ADMIN DEBUG: Fotos encontradas:', {
+    vehiclePhoto: vehiclePhoto ? vehiclePhoto.name : 'NO',
+    vehicleIdPhoto: vehicleIdPhoto ? vehicleIdPhoto.name : 'NO'
+  });
+  
   if (!vehiclePhoto) {
+    console.log('❌ ADMIN DEBUG: Falta foto del vehículo');
     alert('❌ Debes subir la foto del vehículo');
     document.getElementById('admin_vehiclePhoto').focus();
     return;
   }
   
   if (!vehicleIdPhoto) {
+    console.log('❌ ADMIN DEBUG: Falta foto del patrón');
     alert('❌ Debes subir la foto del patrón del vehículo');
     document.getElementById('admin_vehicleIdPhoto').focus();
     return;
   }
   
+  console.log('✅ ADMIN DEBUG: Ambas fotos presentes, creando FormData...');
   const formData = new FormData(e.target);
+  
+  console.log('🔍 ADMIN DEBUG: FormData creado, datos:', Array.from(formData.entries()));
   
   // Validaciones básicas
   const rut = formData.get('studentRut');
+  console.log('🔍 ADMIN DEBUG: Validando RUT:', rut);
   if (!validateRUT(rut)) {
+    console.log('❌ ADMIN DEBUG: RUT inválido');
     document.getElementById('admin_rutError').textContent = 'RUT inválido';
     return;
   }
   
   const email = formData.get('studentEmail');
+  console.log('🔍 ADMIN DEBUG: Validando email:', email);
   if (!email.endsWith('@inacapmail.cl')) {
+    console.log('❌ ADMIN DEBUG: Email no institucional');
     document.getElementById('admin_emailError').textContent = 'Debe ser un email institucional (@inacapmail.cl)';
     return;
   }
@@ -1331,14 +1358,18 @@ async function handleAdminRequestSubmit(e) {
     submitBtn.disabled = true;
     submitBtn.textContent = 'Creando solicitud...';
     
+    console.log('📡 ADMIN DEBUG: Enviando request a /api/admin/create-request...');
     const response = await fetch('/api/admin/create-request', {
       method: 'POST',
       body: formData
     });
     
+    console.log('📥 ADMIN DEBUG: Respuesta recibida:', response.status);
     const data = await response.json();
+    console.log('📦 ADMIN DEBUG: Datos de respuesta:', data);
     
     if (data.success) {
+      console.log('✅ ADMIN DEBUG: Solicitud creada exitosamente');
       alert('✅ Solicitud creada exitosamente. La solicitud pasará por el proceso de verificación normal.');
       e.target.reset();
       document.getElementById('admin_photoPreview').innerHTML = '';
@@ -1347,13 +1378,14 @@ async function handleAdminRequestSubmit(e) {
       // Cambiar a la pestaña de pendientes
       showTab('pendientes');
     } else {
+      console.log('❌ ADMIN DEBUG: Error en respuesta:', data.message);
       alert('❌ Error: ' + data.message);
     }
     
     submitBtn.disabled = false;
     submitBtn.textContent = 'Crear Solicitud';
   } catch (error) {
-    console.error('Error:', error);
+    console.error('💥 ADMIN DEBUG: Error de conexión:', error);
     alert('Error al crear la solicitud');
     const submitBtn = e.target.querySelector('button[type="submit"]');
     submitBtn.disabled = false;
