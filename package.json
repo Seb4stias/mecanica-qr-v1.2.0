@@ -5,15 +5,7 @@
   "main": "server/server.js",
   "scripts": {
     "start": "node server/server.js",
-    "dev": "node server/server.js",
-    "create-db": "node server/scripts/createDatabase.js",
-    "init-db": "node server/scripts/initDb.js",
-    "setup": "node server/scripts/initDb.js",
-    "setup-and-start": "node server/scripts/setupAndStart.js",
-    "diagnose-qr": "node server/scripts/diagnoseQR.js",
-    "add-vehicle-id-photo": "node server/scripts/addVehicleIdPhoto.js",
-    "fix-images": "node server/scripts/fixImagePaths.js",
-    "test": "jest"
+    "dev": "node server/server.js"
   },
   "keywords": [
     "vehicle",
@@ -25,20 +17,13 @@
   "license": "ISC",
   "dependencies": {
     "bcrypt": "^5.1.0",
-    "connect-mongo": "^6.0.0",
     "dotenv": "^16.0.0",
     "express": "^4.18.0",
-    "express-fileupload": "^1.5.2",
     "express-rate-limit": "^6.7.0",
     "express-session": "^1.17.0",
-    "helmet": "^7.0.0",
     "mongoose": "^9.0.0",
     "multer": "^1.4.0",
-    "nodemailer": "^6.9.0",
     "pdfkit": "^0.13.0",
     "qrcode": "^1.5.0"
-  },
-  "devDependencies": {
-    "jest": "^30.2.0"
   }
 }

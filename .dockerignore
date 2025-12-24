@@ -1,0 +1,25 @@
+node_modules
+.git
+.gitignore
+README.md
+*.log
+.env.local
+.env.example
+.DS_Store
+Thumbs.db
+*.md
+.vscode
+.idea
+
+# Archivos generados que se recrean
+public/qr-codes/*.png
+public/qr-codes/*.pdf
+public/uploads/*
+
+# Scripts de desarrollo
+server/scripts/
+DOCUMENTACION_CODIGO.md
+
+# Archivos de prueba
+public/test.html
+public/js/test.js

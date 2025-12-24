@@ -1,19 +1,9 @@
 const express = require('express');
 const session = require('express-session');
-// const MongoStore = require('connect-mongo'); // Deshabilitado temporalmente
-// const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
 const app = express();
-
-// Trust proxy - necesario para Coolify/Docker
-app.set('trust proxy', 1);
-
-// Security middleware - DESHABILITADO TEMPORALMENTE PARA DESARROLLO
-// if (process.env.NODE_ENV === 'production') {
-//   app.use(helmet());
-// }
 
 // Body parsing middleware
 app.use(express.json());
