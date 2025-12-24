@@ -118,6 +118,22 @@ function showTab(tabName) {
 document.getElementById('requestForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   
+  // Validar que ambas fotos estén presentes
+  const vehiclePhoto = document.getElementById('vehiclePhoto').files[0];
+  const vehicleIdPhoto = document.getElementById('vehicleIdPhoto').files[0];
+  
+  if (!vehiclePhoto) {
+    alert('❌ Debes subir la foto del vehículo');
+    document.getElementById('vehiclePhoto').focus();
+    return;
+  }
+  
+  if (!vehicleIdPhoto) {
+    alert('❌ Debes subir la foto del patrón del vehículo');
+    document.getElementById('vehicleIdPhoto').focus();
+    return;
+  }
+  
   const formData = new FormData(e.target);
   const submitBtn = document.querySelector('#requestForm button[type="submit"]');
   
@@ -135,6 +151,9 @@ document.getElementById('requestForm').addEventListener('submit', async (e) => {
     if (data.success) {
       showSuccessModal('¡Solicitud enviada exitosamente!');
       e.target.reset();
+      // Limpiar previsualizaciones
+      document.getElementById('photoPreview').innerHTML = '';
+      document.getElementById('idPhotoPreview').innerHTML = '';
       // Pre-llenar datos nuevamente
       document.getElementById('student_name').value = currentUser.name || '';
       document.getElementById('student_rut').value = currentUser.rut || '';
@@ -427,4 +446,54 @@ function closeTermsModal() {
 function confirmTerms() {
   document.getElementById('acceptTerms').checked = true;
   closeTermsModal();
+}
+
+// Manejo de previsualizaciones de fotos
+document.addEventListener('DOMContentLoaded', () => {
+  const vehiclePhotoInput = document.getElementById('vehiclePhoto');
+  const vehicleIdPhotoInput = document.getElementById('vehicleIdPhoto');
+  
+  if (vehiclePhotoInput) {
+    vehiclePhotoInput.addEventListener('change', (e) => previewPhoto(e, 'photoPreview'));
+  }
+  
+  if (vehicleIdPhotoInput) {
+    vehicleIdPhotoInput.addEventListener('change', (e) => previewPhoto(e, 'idPhotoPreview'));
+  }
+});
+
+function previewPhoto(event, previewId) {
+  const file = event.target.files[0];
+  const preview = document.getElementById(previewId);
+  
+  if (file) {
+    // Validar que sea una imagen
+    if (!file.type.startsWith('image/')) {
+      alert('Por favor selecciona un archivo de imagen válido');
+      event.target.value = '';
+      preview.innerHTML = '';
+      return;
+    }
+    
+    // Validar tamaño (máximo 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('La imagen es demasiado grande. El tamaño máximo es 5MB');
+      event.target.value = '';
+      preview.innerHTML = '';
+      return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      preview.innerHTML = `
+        <div style="margin-top: 10px;">
+          <img src="${e.target.result}" style="max-width: 200px; max-height: 200px; border-radius: 5px; border: 1px solid #ddd;">
+          <p style="font-size: 12px; color: #666; margin-top: 5px;">✅ Imagen cargada: ${file.name}</p>
+        </div>
+      `;
+    };
+    reader.readAsDataURL(file);
+  } else {
+    preview.innerHTML = '';
+  }
 }

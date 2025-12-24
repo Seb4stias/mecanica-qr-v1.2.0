@@ -1258,9 +1258,30 @@ function previewAdminPhoto(event, previewId) {
   const preview = document.getElementById(previewId);
   
   if (file) {
+    // Validar que sea una imagen
+    if (!file.type.startsWith('image/')) {
+      alert('Por favor selecciona un archivo de imagen válido');
+      event.target.value = '';
+      preview.innerHTML = '';
+      return;
+    }
+    
+    // Validar tamaño (máximo 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('La imagen es demasiado grande. El tamaño máximo es 5MB');
+      event.target.value = '';
+      preview.innerHTML = '';
+      return;
+    }
+    
     const reader = new FileReader();
     reader.onload = function(e) {
-      preview.innerHTML = `<img src="${e.target.result}" style="max-width: 200px; margin-top: 10px; border-radius: 5px;">`;
+      preview.innerHTML = `
+        <div style="margin-top: 10px;">
+          <img src="${e.target.result}" style="max-width: 200px; max-height: 200px; border-radius: 5px; border: 1px solid #ddd;">
+          <p style="font-size: 12px; color: #666; margin-top: 5px;">✅ Imagen cargada: ${file.name}</p>
+        </div>
+      `;
     };
     reader.readAsDataURL(file);
   } else {
@@ -1273,6 +1294,22 @@ async function handleAdminRequestSubmit(e) {
   
   // Limpiar mensajes de error previos
   document.querySelectorAll('.error-message').forEach(el => el.textContent = '');
+  
+  // Validar que ambas fotos estén presentes
+  const vehiclePhoto = document.getElementById('admin_vehiclePhoto').files[0];
+  const vehicleIdPhoto = document.getElementById('admin_vehicleIdPhoto').files[0];
+  
+  if (!vehiclePhoto) {
+    alert('❌ Debes subir la foto del vehículo');
+    document.getElementById('admin_vehiclePhoto').focus();
+    return;
+  }
+  
+  if (!vehicleIdPhoto) {
+    alert('❌ Debes subir la foto del patrón del vehículo');
+    document.getElementById('admin_vehicleIdPhoto').focus();
+    return;
+  }
   
   const formData = new FormData(e.target);
   
