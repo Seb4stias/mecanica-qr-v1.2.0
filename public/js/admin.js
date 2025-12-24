@@ -69,6 +69,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.log('✅ Admin: Sesión válida, cargando solicitudes...');
     loadPendingRequests();
   }
+  
+  // Manejar el formulario de nueva solicitud del admin
+  const adminForm = document.getElementById('adminRequestForm');
+  if (adminForm) {
+    adminForm.addEventListener('submit', handleAdminRequestSubmit);
+  }
+  
+  // Preview de fotos
+  const vehiclePhoto = document.getElementById('admin_vehiclePhoto');
+  if (vehiclePhoto) {
+    vehiclePhoto.addEventListener('change', (e) => previewAdminPhoto(e, 'admin_photoPreview'));
+  }
+  
+  const vehicleIdPhoto = document.getElementById('admin_vehicleIdPhoto');
+  if (vehicleIdPhoto) {
+    vehicleIdPhoto.addEventListener('change', (e) => previewAdminPhoto(e, 'admin_idPhotoPreview'));
+  }
 });
 
 // Funciones del Drawer (Menú Hamburguesa)
@@ -1235,23 +1252,6 @@ function filterUsers() {
 
 
 // Manejar el formulario de nueva solicitud del admin
-document.addEventListener('DOMContentLoaded', () => {
-  const adminForm = document.getElementById('adminRequestForm');
-  if (adminForm) {
-    adminForm.addEventListener('submit', handleAdminRequestSubmit);
-  }
-  
-  // Preview de fotos
-  const vehiclePhoto = document.getElementById('admin_vehiclePhoto');
-  if (vehiclePhoto) {
-    vehiclePhoto.addEventListener('change', (e) => previewAdminPhoto(e, 'admin_photoPreview'));
-  }
-  
-  const vehicleIdPhoto = document.getElementById('admin_vehicleIdPhoto');
-  if (vehicleIdPhoto) {
-    vehicleIdPhoto.addEventListener('change', (e) => previewAdminPhoto(e, 'admin_idPhotoPreview'));
-  }
-});
 
 function previewAdminPhoto(event, previewId) {
   const file = event.target.files[0];

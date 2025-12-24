@@ -36,6 +36,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.log('✅ Student: Sesión válida, cargando solicitudes...');
     loadMyRequests();
   }
+  
+  // Manejo de previsualizaciones de fotos
+  const vehiclePhotoInput = document.getElementById('vehiclePhoto');
+  const vehicleIdPhotoInput = document.getElementById('vehicleIdPhoto');
+  
+  if (vehiclePhotoInput) {
+    vehiclePhotoInput.addEventListener('change', (e) => previewPhoto(e, 'photoPreview'));
+  }
+  
+  if (vehicleIdPhotoInput) {
+    vehicleIdPhotoInput.addEventListener('change', (e) => previewPhoto(e, 'idPhotoPreview'));
+  }
 });
 
 // Funciones del Drawer (Menú Hamburguesa)
@@ -449,18 +461,6 @@ function confirmTerms() {
 }
 
 // Manejo de previsualizaciones de fotos
-document.addEventListener('DOMContentLoaded', () => {
-  const vehiclePhotoInput = document.getElementById('vehiclePhoto');
-  const vehicleIdPhotoInput = document.getElementById('vehicleIdPhoto');
-  
-  if (vehiclePhotoInput) {
-    vehiclePhotoInput.addEventListener('change', (e) => previewPhoto(e, 'photoPreview'));
-  }
-  
-  if (vehicleIdPhotoInput) {
-    vehicleIdPhotoInput.addEventListener('change', (e) => previewPhoto(e, 'idPhotoPreview'));
-  }
-});
 
 function previewPhoto(event, previewId) {
   const file = event.target.files[0];
